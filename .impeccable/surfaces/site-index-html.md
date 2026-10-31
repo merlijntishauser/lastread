@@ -111,5 +111,6 @@ its provenance.
   HFeG2vERmWo) and the bench (Leon Seibert, hQzBAtJoJQo) go lower down. The
   bed (Paige Cody, ypdO5AlNMgs) was step 2 until then and is gone. The fifth they named (Lala Azizli, 87lrs0EaNZo)
   shows a Kindle, not a Kobo, and is left out.
-- The Mac app's pictures are the owner's own screenshots of 0.19.0, in both
-  themes, as before.
+- The Mac app's pictures are the owner's own screenshots of 0.20.0, in both
+  themes, as before; the server's name and the Hardcover handle are painted
+  out (the button reads the app's own short label, *Open on the server*).

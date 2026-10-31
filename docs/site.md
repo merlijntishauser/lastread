@@ -52,7 +52,9 @@ page from the same files.
   Mac app by the owner's own screenshots of its window (Overview, Books,
   Covers at full width), taken on the Mac in both themes and shown in the
   theme the page is in (a `<picture>` on the system's theme, swapped by the
-  theme switch). The row's cover is drawn (`browser_tests/covers/`, a
+  theme switch), with the server's name and the Hardcover handle painted
+  out: the button says *Open on the server*, the app's own short label,
+  built from the glyphs of the line beside it. The row's cover is drawn (`browser_tests/covers/`, a
   publisher's series on bookcloth); the captions say the shelf is made up.
 - **The photographs** are four from Unsplash, chosen by the owner, under the
   Unsplash License (`THIRD-PARTY-NOTICES.md` lists them; each file carries

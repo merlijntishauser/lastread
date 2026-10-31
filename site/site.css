@@ -186,7 +186,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .appshots .shot:last-child { grid-column: 1 / -1; }  /* Covers, the fullest window, at full width */
 @media (max-width: 899.98px) { .appshots { grid-template-columns: 1fr; } .appshots .shot:last-child { grid-column: auto; } }
 @media (max-width: 639.98px) { .appshots .shot:not(:first-child) { display: none; } }  /* a phone: the Overview alone; the window is unreadable at 358px */
-.appshots .shot img { aspect-ratio: 1800 / 1177; }
+.appshots .shot img { aspect-ratio: 1800 / 1128; }
 
 /* The four steps: the figure, a heading, one paragraph, on one photograph. The cards share three rows
    (subgrid), so that the four figures stand on one line across the row, the headings on another, the
