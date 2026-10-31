@@ -58,9 +58,11 @@ it replaces the disk image on the release.
   `kobo-hardcover-sync` whose only dependency is `lastread` and whose
   description says where it went, so that `uv tool install
   kobo-hardcover-sync` and `pip install -U` land on the new name. In the
-  tap: the new formula `lastread.rb` from `make_formula.py`, and
-  `Aliases/kobo-hardcover-sync` pointing at it, so that `brew upgrade`
-  follows. The repository is renamed on GitHub first (Settings, General),
+  tap: the new formula `lastread.rb` from `make_formula.py`, the old one
+  removed, and `formula_renames.json` mapping `kobo-hardcover-sync` to
+  `lastread`, so that `brew upgrade` moves an installed keg over. Done for
+  0.20.0 on 2026-10-31; the shim on PyPI is 0.20.1 (0.20.0 of it is
+  yanked: without commands of its own, `uv tool install` linked none). The repository is renamed on GitHub first (Settings, General),
   and the old name redirects; then the addresses in the tree move to
   `merlijntishauser/lastread`. `packaging/macos/dmg-layout.sh` is run on a
   Mac once, so that the disk image's window places `Lastread.app`.
