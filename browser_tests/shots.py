@@ -263,7 +263,7 @@ def main():
             snap(p, "wide-books-light")
             for scheme, width, height in (("light", 1280, 800), ("dark", 390, 844)):
                 p = page(scheme, width, height)
-                p.goto(url + "/settings")
+                p.goto(url + "/settings#stats")  # the card is under Advanced, which the address opens
                 p.once("dialog", lambda d: d.accept())  # the second time it asks before replacing the token
                 p.click("form[action='/settings/stats/token'] button")
                 p.locator("#stats").scroll_into_view_if_needed()
