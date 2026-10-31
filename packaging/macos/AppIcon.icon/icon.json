@@ -1,8 +1,8 @@
 {
   "fill" : {
     "linear-gradient" : [
-      "srgb:0.06275,0.12941,0.18431,1.00000",
-      "srgb:0.16471,0.36078,0.51765,1.00000"
+      "srgb:0.91373,0.92157,0.90196,1.00000",
+      "srgb:1.00000,1.00000,1.00000,1.00000"
     ],
     "orientation" : {
       "start" : {
@@ -20,31 +20,16 @@
       "layers" : [
         {
           "glass" : true,
-          "image-name" : "sync.svg",
-          "name" : "sync"
+          "image-name" : "caret.svg",
+          "name" : "caret"
         }
       ],
-      "name" : "sync",
+      "name" : "caret",
       "shadow" : {
         "kind" : "layer-color",
         "opacity" : 0.5
       },
       "specular" : true
-    },
-    {
-      "layers" : [
-        {
-          "glass" : false,
-          "image-name" : "reader.svg",
-          "name" : "reader"
-        }
-      ],
-      "name" : "reader",
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "specular" : false
     }
   ],
   "supported-platforms" : {

@@ -7,6 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Changed
+
+- **A new icon**: the red caret on white, the mark a proofreader writes where
+  something goes in, which is what a sync does. The Mac app, the disk image,
+  the page's tab and the site all carry it, and the site's name has the same
+  caret before it.
+
 ### Fixed
 
 - The disk image's window says *Drag Lastread onto Applications.* In 0.20.0 it

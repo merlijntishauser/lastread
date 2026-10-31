@@ -1,10 +1,10 @@
 """Draws the Mac app's pictures as SVG (docs/macos-app.md, "The pictures"):
 
 - AppIcon.icon: the app's icon from macOS 26 on, for Icon Composer and actool. The
-  system draws the outline, the fill (a blue-to-navy gradient) and the glass; the two
-  layers are the e-reader and the sync mark on its screen, drawn flat: macOS lights them.
+  system draws the outline, the fill (white down to the page's ground) and the glass;
+  the one layer is the caret, drawn flat: macOS lights it.
 - AppIcon.svg: the same icon drawn on Apple's grid with its own light, for macOS 13 to 15.
-- VolumeIcon.svg: the disk image's icon, the e-reader in its sleeve.
+- VolumeIcon.svg: the disk image's icon, the icon's card standing in a sleeve.
 - dmg-background.svg: the disk image's window, 640 by 400 points.
 
     python3 packaging/macos/art.py
@@ -12,9 +12,11 @@
 writes them beside itself, and the PNGs made from them are kept beside them too: the
 icons with rsvg-convert, the window in a browser, which has the page's font.
 
-The icon: the Kobo itself, a page of text on its e-ink screen and under it, in the blue
-pencil, the two-way sync: what the Kobo read goes to the shelf, what changed on the shelf
-comes back. One device, one mark; the red stays for what a sync sends, in the window.
+The icon is one mark: the caret a proofreader writes where something goes in, in red on
+white. It is what a sync does (the page writes the new value in after a caret) and the
+mark before the name on the site; square-cut, as the page's marks are, with a sharp
+apex. It replaced the e-reader with the two-way sync (0.18.0 to 0.20.0), five things on
+one tile; the owner chose it from six directions.
 """
 
 import math
@@ -27,19 +29,17 @@ FONT = "../../src/lastread/web/static/fonts/SchibstedGrotesk-latin.woff2"
 # DESIGN.md's colours, light.
 INK, GRAPHITE, GROUND = "#17191c", "#4a4f57", "#edefea"
 BLUE = "#1c5e8b"
-# The icon's own: the tile from the rail's blue down to navy, the device's body, e-ink.
-TILE_TOP, TILE_BOTTOM = "#2a5c84", "#10212f"
-BODY, BODY_TOP, BODY_BOTTOM = "#3a4049", "#4a515b", "#2b3038"
-EINK, EINK_TOP, EINK_BOTTOM = "#ece9df", "#f0ede3", "#e3dfd2"
-TEXT = "#6b7079"  # the page's lines, as e-ink prints them
+# The icon's own: the site's Name Caret red, and the tile from white down to near the ground.
+RED = "#e8343f"
+TILE_TOP, TILE_BOTTOM = "#ffffff", "#e9ebe6"
 SLEEVE_TOP, SLEEVE_BOTTOM = "#46606f", "#1c2a33"
 
-# The device on the 1024 canvas, which is the tile itself (flat_icon scales it onto
-# Apple's grid): its body, its screen, the lines of the page and the two arrows.
-DEVICE = (200, 52, 624, 920, 70)  # x, y, width, height, corner
-SCREEN = (256, 124, 512, 696, 16)
-LINES = ((214, 710), (282, 710), (350, 710), (418, 572))  # y, right end; all from x 314
-ARROWS = (596, 712)  # the one that goes, the one that comes back
+# The caret on the 1024 canvas, which is the tile itself (flat_icon scales it onto Apple's
+# grid): its two feet and apex, and its stroke. A mitred apex and butt ends: square-cut.
+# Its ink runs from y 282 (the mitre's point) to 746 (the outer corners of the feet),
+# centred on the tile.
+CARET = ((322, 720), (512, 400), (702, 720))
+CARET_WIDTH = 112
 
 
 def shadow(name, dy, blur, opacity, colour="#000"):
@@ -61,30 +61,12 @@ def rounded(box, fill, extra=""):
     return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}"{extra}/>'
 
 
-def mark(d, colour, width):
-    return f'<path d="{d}" fill="none" stroke="{colour}" stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round"/>'
-
-
-def reader(lit=True, lines=LINES, screen=SCREEN):
-    """The e-reader: its body, its e-ink screen and the lines of the page on it. Lit: with
-    the gradients and the hairline edge of the flat icon; flat for an Icon Composer layer,
-    which macOS lights itself."""
-    body = rounded(DEVICE, "url(#body)" if lit else BODY)
-    edge = rounded(DEVICE, "none", ' stroke="#fff" stroke-opacity="0.08" stroke-width="7"') if lit else ""
-    page = rounded(screen, "url(#eink)" if lit else EINK)
-    text = mark("".join(f"M314 {y}H{right}" for y, right in lines), TEXT, 20)
-    return body + edge + page + text
-
-
-def sync(arrows=ARROWS, x=(338, 686), head=60, width=48):
-    """The two-way sync on the page, in the blue pencil: an arrow that goes, one that comes back."""
-    go, back = arrows
-    left, right = x
-    d = (
-        f"M{left} {go}H{right}M{right - head} {go - head}L{right} {go}L{right - head} {go + head}"
-        f"M{right} {back}H{left}M{left + head} {back - head}L{left} {back}L{left + head} {back + head}"
+def caret(points=CARET, width=CARET_WIDTH, colour=RED):
+    (ax, ay), (bx, by), (cx, cy) = points
+    return (
+        f'<path d="M{ax} {ay} L{bx} {by} L{cx} {cy}" fill="none" stroke="{colour}"'
+        f' stroke-width="{width}" stroke-linejoin="miter" stroke-miterlimit="10"/>'
     )
-    return mark(d, BLUE, width)
 
 
 def svg(body, defs="", size=1024):
@@ -112,12 +94,11 @@ def srgb(hex_colour):
 
 
 def icon_composer():
-    """The .icon bundle: the fill a gradient from the rail's blue down to navy, the
-    e-reader below, the sync mark above it in glass."""
+    """The .icon bundle: the fill a gradient from white down to near the page's ground,
+    the caret above it in glass."""
     folder = HERE / "AppIcon.icon"
     (folder / "Assets").mkdir(parents=True, exist_ok=True)
-    (folder / "Assets" / "reader.svg").write_text(svg(reader(lit=False)))
-    (folder / "Assets" / "sync.svg").write_text(svg(sync()))
+    (folder / "Assets" / "caret.svg").write_text(svg(caret()))
     (folder / "icon.json").write_text(
         f"""{{
   "fill" : {{
@@ -141,31 +122,16 @@ def icon_composer():
       "layers" : [
         {{
           "glass" : true,
-          "image-name" : "sync.svg",
-          "name" : "sync"
+          "image-name" : "caret.svg",
+          "name" : "caret"
         }}
       ],
-      "name" : "sync",
+      "name" : "caret",
       "shadow" : {{
         "kind" : "layer-color",
         "opacity" : 0.5
       }},
       "specular" : true
-    }},
-    {{
-      "layers" : [
-        {{
-          "glass" : false,
-          "image-name" : "reader.svg",
-          "name" : "reader"
-        }}
-      ],
-      "name" : "reader",
-      "shadow" : {{
-        "kind" : "neutral",
-        "opacity" : 0.5
-      }},
-      "specular" : false
     }}
   ],
   "supported-platforms" : {{
@@ -180,44 +146,31 @@ def icon_composer():
 
 def flat_icon():
     """For macOS 13 to 15: the outline is drawn here, an 824 square with 100 around it,
-    lit from above as macOS lights its icons."""
+    lit from above as macOS lights its icons, with a hairline so that white stays a tile
+    on a white window."""
     shape = squircle(100, 100, 824)
-    defs = (
-        f'<clipPath id="tile"><path d="{shape}"/></clipPath>'
-        + shadow("lift", 10, 10, 0.28)
-        + shadow("device", 14, 16, 0.45, "#06111a")
-        + gradient("ground", TILE_TOP, TILE_BOTTOM)
-        + gradient("body", BODY_TOP, BODY_BOTTOM)
-        + gradient("eink", EINK_TOP, EINK_BOTTOM)
-    )
+    defs = f'<clipPath id="tile"><path d="{shape}"/></clipPath>' + shadow("lift", 10, 10, 0.28) + gradient("ground", TILE_TOP, TILE_BOTTOM)
     body = (
         f'<g filter="url(#lift)"><path d="{shape}" fill="url(#ground)"/></g>'
-        f'<g clip-path="url(#tile)"><g transform="translate(100 100) scale({824 / 1024})">'
-        f'<g filter="url(#device)">{reader()}</g>{sync()}</g></g>'
+        f'<path d="{shape}" fill="none" stroke="{INK}" stroke-opacity="0.08" stroke-width="4"/>'
+        f'<g clip-path="url(#tile)"><g transform="translate(100 100) scale({824 / 1024})">{caret()}</g></g>'
     )
     return svg(body, defs)
 
 
 def volume_icon():
-    """The e-reader in its sleeve: the device standing half out of a slate cloth pouch,
-    so the disk and the app tell apart on the desktop. The page shows two lines and the
-    sync mark above the sleeve's edge."""
-    defs = (
-        shadow("drop", 16, 16, 0.32)
-        + shadow("stand", 10, 12, 0.40, "#06111a")
-        + gradient("body", BODY_TOP, BODY_BOTTOM)
-        + gradient("eink", EINK_TOP, EINK_BOTTOM)
-        + gradient("sleeve", SLEEVE_TOP, SLEEVE_BOTTOM)
-    )
-    lines = ((200, 710), (266, 572))
+    """The icon's card standing half out of a slate cloth sleeve, so the disk and the app
+    tell apart on the desktop; the caret above the sleeve's edge."""
+    defs = shadow("drop", 16, 16, 0.32) + shadow("stand", 10, 12, 0.30, "#06111a") + gradient("card", TILE_TOP, TILE_BOTTOM)
     body = (
-        f'<g transform="translate(0 -12)"><g filter="url(#stand)">{reader(lines=lines)}</g>{sync(arrows=(340, 436), width=44)}</g>'
-        '<g filter="url(#drop)">'
-        '<rect x="150" y="492" width="724" height="500" rx="48" fill="url(#sleeve)"/>'  # the pouch
+        f'<g filter="url(#stand)">{rounded((262, 96, 500, 640, 44), "url(#card)")}</g>'
+        + caret(((404, 440), (512, 256), (620, 440)), 70)
+        + '<g filter="url(#drop)">'
+        '<rect x="150" y="492" width="724" height="500" rx="48" fill="url(#sleeve)"/>'  # the sleeve
         '<rect x="150" y="492" width="724" height="34" rx="17" fill="#5a7383"/>'  # its hem, catching the light
         "</g>"
     )
-    return svg(body, defs)
+    return svg(body, defs + gradient("sleeve", SLEEVE_TOP, SLEEVE_BOTTOM))
 
 
 def move_mark():
@@ -275,46 +228,36 @@ text {{ font-family: "Schibsted Grotesk"; }}
 
 def small_icon(size):
     """The flat icon at 16 and 32 pixels, drawn on their own pixel grid rather than shrunk:
-    the device, its screen, two or three lines and the two arrows as whole pixels."""
+    the tile, its hairline and the caret with its feet on a pixel row."""
     if size == 32:
         tile = squircle(3, 3, 26, steps=128)
-        body, screen = (8, 5, 16, 23, 3), (10, 7, 12, 17, 1)
-        lines = "".join(f'<rect x="12" y="{y}" width="{w}" height="1" fill="{TEXT}"/>' for y, w in ((9, 8), (11, 8), (13, 6)))
-        arrows = mark("M13 17.5H19M17.5 16L19 17.5L17.5 19", BLUE, 1.2) + mark("M19 21.5H13M14.5 20L13 21.5L14.5 23", BLUE, 1.2)
+        mark = caret(((10, 22.5), (16, 12.5), (22, 22.5)), 3.5)
     else:
         tile = squircle(1, 1, 14, steps=96)
-        body, screen = (4, 2, 8, 12, 1.5), (5, 3, 6, 9, 0.5)
-        lines = "".join(f'<rect x="6" y="{y}" width="{w}" height="1" fill="{TEXT}"/>' for y, w in ((4, 4), (6, 3)))
-        arrows = mark("M6 8.5H10M9 7.5L10 8.5", BLUE, 1) + mark("M10 10.5H6M7 11.5L6 10.5", BLUE, 1)
-    defs = f'<clipPath id="tile"><path d="{tile}"/></clipPath>' + gradient("ground", TILE_TOP, TILE_BOTTOM)
+        mark = caret(((5, 11.5), (8, 6.5), (11, 11.5)), 2)
     return svg(
-        f'<path d="{tile}" fill="url(#ground)"/><g clip-path="url(#tile)">{rounded(body, BODY)}{rounded(screen, EINK)}{lines}{arrows}</g>',
-        defs,
+        f'<path d="{tile}" fill="url(#ground)"/><path d="{tile}" fill="none" stroke="{INK}" stroke-opacity="0.18" stroke-width="1"/>{mark}',
+        gradient("ground", TILE_TOP, TILE_BOTTOM),
         size,
     )
 
 
 def small_volume(size):
-    """The disk's icon at 16 and 32 pixels: the device standing out of its sleeve, square
-    to the grid, with a line or two and the arrow that goes."""
+    """The disk's icon at 16 and 32 pixels: the card standing out of its sleeve, square
+    to the grid, with the caret above the sleeve's edge."""
     if size == 32:
-        body, screen, sleeve = (9, 2, 14, 20, 2), (11, 4, 10, 12, 1), (4, 14, 24, 16, 2)
-        lines = f'<rect x="13" y="6" width="6" height="1" fill="{TEXT}"/><rect x="13" y="8" width="5" height="1" fill="{TEXT}"/>'
-        arrows = mark("M13 11.5H19M17.5 10L19 11.5L17.5 13", BLUE, 1.2)
+        card, sleeve = (9, 2, 14, 20, 2), (4, 14, 24, 16, 2)
+        mark = caret(((12.5, 12), (16, 6.5), (19.5, 12)), 2.2)
     else:
-        body, screen, sleeve = (5, 1, 6, 10, 1), (6, 2, 4, 5, 0.5), (2, 8, 12, 7, 1)
-        lines = f'<rect x="7" y="3" width="2" height="1" fill="{TEXT}"/>'
-        arrows = mark("M7 5.5H9", BLUE, 1)
-    defs = gradient("sleeve", SLEEVE_TOP, SLEEVE_BOTTOM)
+        card, sleeve = (5, 1, 6, 10, 1), (2, 8, 12, 7, 1)
+        mark = caret(((6, 6.5), (8, 3.5), (10, 6.5)), 1.4)
     x, y, w, h, r = sleeve
     return svg(
-        rounded(body, BODY)
-        + rounded(screen, EINK)
-        + lines
-        + arrows
-        + f'<rect x="{x}" y="{y + 1}" width="{w}" height="{h}" rx="{r}" fill="#000" opacity="0.25"/>'  # the sleeve's shadow on the device
+        rounded(card, TILE_TOP)
+        + mark
+        + f'<rect x="{x}" y="{y + 1}" width="{w}" height="{h}" rx="{r}" fill="#000" opacity="0.25"/>'  # the sleeve's shadow on the card
         + rounded(sleeve, "url(#sleeve)"),
-        defs,
+        gradient("sleeve", SLEEVE_TOP, SLEEVE_BOTTOM),
         size,
     )
 

@@ -419,31 +419,38 @@ What the environment holds, and how to set it up once, is in
 Drawn in the page's Galley Proof (`DESIGN.md`) by
 `packaging/macos/art.py`, which writes the SVGs; a test holds them to it.
 
-- **The app's icon** is the Kobo itself: the e-reader, a page of text on
-  its e-ink screen and under it, in the blue pencil, the two-way sync (an
-  arrow that goes, one that comes back), on a tile that runs from the
-  rail's blue down to navy. It replaced the galley slip of 0.14.0 to 0.17.0,
-  which was pale, busy at small sizes and the page's idea rather than an
-  icon's; the owner chose it from four directions, and asked for the sync
-  mark in place of a red caret. From macOS 26 on it is `AppIcon.icon`:
-  the gradient as the bundle's fill (`linear-gradient` with an
-  orientation, the unofficial schema), and two flat layers for Icon
-  Composer (the e-reader, and the sync mark in glass), which macOS lights
-  itself; `build.sh` compiles it into `Assets.car` with `actool`. Only Xcode 26 or later reads that format: `build.sh` takes the
-  selected Xcode's `actool`, or else the newest Xcode installed, and stops
-  when none can. Without `Assets.car`, macOS 26 shrinks an older icon into
-  a grey tile. Up to macOS 15 it is `AppIcon.png`, the same drawn flat on
-  Apple's grid, made into `AppIcon.icns`, with `AppIcon-16.png` and
-  `AppIcon-32.png` for the two smallest sizes: drawn on their own pixel
-  grid, the device, two or three lines and the arrows as whole pixels,
-  where the large one shrunk is grey noise. (From macOS 26 on the system
-  draws every size from `AppIcon.icon` itself.)
-- **The disk's icon** (`VolumeIcon.png`) is the e-reader standing half
-  out of a slate cloth sleeve, so the disk and the app tell apart on the
-  desktop; at 16 and 32 pixels (`VolumeIcon-16.png`, `VolumeIcon-32.png`)
-  the same, square to the grid. A downloaded
-  `.dmg` file itself keeps the plain disk image icon: a file's own icon
-  does not come along in a download.
+- **The app's icon** is one mark: the red caret on a white tile, the
+  caret a proofreader writes where something goes in. It is what a sync
+  does (the page writes the new value in after a caret) and the mark
+  before the name on the site, so the icon and the name are one logo.
+  Square-cut like the page's marks: a mitred apex, butt ends, a stroke an
+  eighth of the tile. It replaced the e-reader with the two-way sync of
+  0.18.0 to 0.20.0 (the device, its screen, the lines and two arrows: five
+  things on one tile), which itself replaced the galley slip of 0.14.0 to
+  0.17.0; the owner chose it from six directions on 2026-10-31, asking for
+  something as simple as the marks of the apps beside it in the Dock. From
+  macOS 26 on it is `AppIcon.icon`: the white-to-ground gradient as the
+  bundle's fill (`linear-gradient` with an orientation, the unofficial
+  schema), and one flat layer for Icon Composer, the caret in glass,
+  which macOS lights itself; `build.sh` compiles it into `Assets.car`
+  with `actool`. Only Xcode 26 or later reads that format: `build.sh`
+  takes the selected Xcode's `actool`, or else the newest Xcode
+  installed, and stops when none can. Without `Assets.car`, macOS 26
+  shrinks an older icon into a grey tile. Up to macOS 15 it is
+  `AppIcon.png`, the same drawn flat on Apple's grid with a hairline so a
+  white tile stays a tile on a white window, made into `AppIcon.icns`,
+  with `AppIcon-16.png` and `AppIcon-32.png` for the two smallest sizes:
+  drawn on their own pixel grid, the caret's feet on a pixel row. (From
+  macOS 26 on the system draws every size from `AppIcon.icon` itself.)
+  The site's icon (`site/img/app-icon.svg`) is `AppIcon.svg`, both
+  favicons are `AppIcon-32.svg`, and the page's touch icon is the caret
+  on a full-square tile, iOS drawing its own outline.
+- **The disk's icon** (`VolumeIcon.png`) is the icon's white card, the
+  caret on it, standing half out of a slate cloth sleeve, so the disk and
+  the app tell apart on the desktop; at 16 and 32 pixels
+  (`VolumeIcon-16.png`, `VolumeIcon-32.png`) the same, square to the
+  grid. A downloaded `.dmg` file itself keeps the plain disk image icon:
+  a file's own icon does not come along in a download.
 - **The disk's window** (`dmg-background.png` and its `@2x`) is the app's
   icon printed in non-repro blue, which stays behind Finder's icons and
   names, under one sentence, *Drag Lastread onto Applications.*,

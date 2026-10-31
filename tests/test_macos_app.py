@@ -309,9 +309,10 @@ def test_the_pictures_are_what_art_py_draws(tmp_path, monkeypatch):
     for size in (16, 32):  # drawn for their size
         assert art.small_icon(size) == (MACOS / f"AppIcon-{size}.svg").read_text()
         assert art.small_volume(size) == (MACOS / f"VolumeIcon-{size}.svg").read_text()
-    for name in ("icon.json", "Assets/reader.svg", "Assets/sync.svg"):
+    assert sorted(p.name for p in (MACOS / "AppIcon.icon" / "Assets").iterdir()) == ["caret.svg"]  # one layer, the caret
+    for name in ("icon.json", "Assets/caret.svg"):
         assert (tmp_path / "AppIcon.icon" / name).read_text() == (MACOS / "AppIcon.icon" / name).read_text(), name
-    for layer in ("reader.svg", "sync.svg"):  # neither filters nor gradients: actool draws flat, macOS lights the layers
+    for layer in ("caret.svg",):  # neither filters nor gradients: actool draws flat, macOS lights the layer
         assert (MACOS / "AppIcon.icon" / "Assets" / layer).read_text().count("filter") == 0
         assert (MACOS / "AppIcon.icon" / "Assets" / layer).read_text().count("Gradient") == 0
 
