@@ -5,6 +5,13 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
+## Unreleased
+
+### Fixed
+
+- The disk image's window says *Drag Lastread onto Applications.* In 0.20.0 it
+  still named the app by its old name.
+
 ## 0.20.0 - 2026-10-31
 
 ### Changed
