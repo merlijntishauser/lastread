@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lastread: your Kobo's reading, on Hardcover</title>
-<meta name="description" content="Keeps your Hardcover shelf in step with what you read on a Kobo e-reader: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer.">
+<meta name="description" content="Keeps your Hardcover shelf in step with what you read on a Kobo e-reader: which books, how far, finished when. It works with the Kobo as it comes, Kobo-store books included, and runs on your own computer.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d0c14" media="(prefers-color-scheme: dark)">
@@ -49,13 +49,13 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="claim">
       <div>
         <h1 id="claim">Your Kobo knows what you read. Now Hardcover does too.</h1>
-        <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a>, the book-tracking site, follows: which books, how far, finished when. Works with the Kobo as it comes, Kobo-store books included, on your own computer: its page shows you every change before it is sent.</p>
+        <p class="lede">Plug in the Kobo and your shelf on <a href="https://hardcover.app">Hardcover</a>, the book-tracking site, follows: which books, how far, finished when. It works with the Kobo as it comes, Kobo-store books included, and runs on your own computer, where its page shows you every change before it is sent.</p>
       </div>
       <div class="card flag get" id="download" tabindex="-1" style="--i:0">
         <img class="mini" src="img/app-icon.svg" alt="" width="64" height="64">
         <a class="primary" id="dmg" href="https://github.com/merlijntishauser/lastread/releases/latest">Download for Mac</a>
         <p class="ver" id="ver" aria-live="polite">The latest release's disk image, on GitHub. Signed and notarised; macOS 13 or later.</p>
-        <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
+        <p class="sure">It reads your Kobo, writes nothing to it unless you ask, and starts as a dry run. Beta, Mac and Linux only.</p>
         <p class="ways">Or in a terminal, on a Mac or Linux:</p>
         <code>brew install merlijntishauser/tap/lastread</code>
         <code>uv tool install lastread</code>
@@ -107,15 +107,15 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
     <div class="cards three story">
       <figure class="card photo" style="--i:2">
         <img src="img/photo-park.jpg" srcset="img/small/photo-park.jpg 800w, img/photo-park.jpg 1600w" sizes="(max-width: 639.98px) 100vw, (max-width: 1099.98px) 50vw, 33vw" alt="Someone lying back on a park chair in the sun, feet up on the railing, reading on a Kobo" width="1600" height="1067">
-        <figcaption><h2 class="title">The Kobo, as it comes</h2><p class="facts">Kobo-store books and your own files alike, read over the cable from the Kobo's own database. Nothing is installed on it.</p></figcaption>
+        <figcaption><h2 class="title">The Kobo, as it comes</h2><p class="facts">It reads Kobo-store books and your own files alike, over the cable, from the Kobo's own database. Nothing is installed on it.</p></figcaption>
       </figure>
       <div class="card plum" style="--i:3">
         <h2>Your computer</h2>
-        <p class="line">The sync runs here, on your Mac or Linux machine. Its page shows what the next sync changes before anything is sent. No account with this project, no cloud of its own.</p>
+        <p class="line">The sync runs here, on your Mac or Linux machine, with no account to make and no cloud in between.</p>
       </div>
       <div class="card teal" style="--i:4">
         <h2>Hardcover</h2>
-        <p class="line">Your shelf there follows: which books, how far, finished when. What you change on Hardcover is kept, not overwritten.</p>
+        <p class="line">Your shelf there follows the Kobo, and what you change on Hardcover stays.</p>
       </div>
     </div>
   </section>
@@ -186,7 +186,7 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       </li>
       <li class="card photo step" style="--n:3">
         <img src="img/photo-hammock.jpg" srcset="img/small/photo-hammock.jpg 800w, img/photo-hammock.jpg 1600w" sizes="100vw" alt="" width="1600" height="1067" loading="lazy">
-        <div class="over"><p class="figure" aria-hidden="true">4</p><h3>Hardcover, in step</h3><p>Status, progress and dates. What you change on Hardcover is taken over at the next sync, not overwritten. One read-through per book, never a duplicate.</p></div>
+        <div class="over"><p class="figure" aria-hidden="true">4</p><h3>Hardcover, in step</h3><p>Status, progress and dates go to Hardcover. What you change there is taken over at the next sync, not overwritten, and each book has one read-through.</p></div>
       </li>
     </ol>
   </section>
@@ -205,14 +205,14 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       </div>
       <figure class="card photo tall">
         <img src="img/photo-teal.jpg" srcset="img/small/photo-teal.jpg 800w, img/photo-teal.jpg 1100w" sizes="(max-width: 899.98px) 100vw, 33vw" alt="Someone looking at you over the top of a teal book held up to their face" width="1100" height="1650" loading="lazy">
-        <figcaption><h3 class="title">It never guesses a match</h3><p class="facts">A book it cannot place by ISBN, or by title and author together, waits for you. Two editions? It asks.</p></figcaption>
+        <figcaption><h3 class="title">It never guesses a match</h3><p class="facts">A book it cannot place by ISBN, or by title and author together, waits for you, and when there are two editions it asks which one.</p></figcaption>
       </figure>
       <div class="card ink">
         <h2>What it leaves alone</h2>
         <ul class="marks" role="list">
-          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>The Kobo. No add-on, no other reading software, no change to how you read.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>The Kobo. It needs no add-on or other reading software, and you read as you always have.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Highlights, notes and ratings. It does not manage books either; it works with what is on the Kobo.</span></li>
-          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your data. No account with this project and no cloud of its own: your computer or your own server, your own Hardcover token. Its page loads nothing from elsewhere.</span></li>
+          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your data. It stays on your computer or your own server, with your own Hardcover token, and its page loads nothing from elsewhere.</span></li>
           <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Your history. Books read before the tool came start switched off; you choose which of them Hardcover should know about.</span></li>
         </ul>
       </div>
@@ -245,10 +245,10 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       <img src="img/photo-bench.jpg" srcset="img/small/photo-bench.jpg 800w, img/photo-bench.jpg 1800w" sizes="100vw" alt="Someone sitting on a quay by the water, reading" width="1800" height="1000" loading="lazy">
       <div class="over">
         <h2 id="close-h">Yours, on your machine</h2>
-        <p class="lede">Open source under the MIT licence. Install it, plug in the Kobo, and read what the next sync will do before it does it.</p>
+        <p class="lede">It is open source, under the MIT licence. Install it, plug in the Kobo, and read what the next sync will do before it does it.</p>
         <div class="get">
           <a class="primary" href="https://github.com/merlijntishauser/lastread/releases/latest">Download for Mac</a>
-          <p class="sure">Reads your Kobo and writes nothing to it unless you ask. Starts as a dry run. Beta; Mac and Linux only.</p>
+          <p class="sure">It reads your Kobo, writes nothing to it unless you ask, and starts as a dry run. Beta, Mac and Linux only.</p>
           <p class="ways"><code>brew install merlijntishauser/tap/lastread</code> <code>uv tool install lastread</code></p>
         </div>
       </div>
