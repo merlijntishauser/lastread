@@ -272,6 +272,12 @@ Kobo stays deleted, and one you take out of the folder stays on the Kobo.
 A book with DRM is not copied, and you are told so: the Kobo could not open
 it. Lastread never decrypts anything.
 
+With [kepubify](https://pgaskin.net/kepubify/) installed (`brew install
+kepubify` on a Mac), each book goes on the Kobo as kepub: the Kobo's own
+way of showing a book, with its reading statistics and time left in a
+chapter. It is converted on your computer; your own file stays as it is.
+Without kepubify the books go as they are.
+
 Once you have read in such a book, it syncs like any other: Lastread finds
 it on Hardcover by the ISBN in the book's own file. `lastread to-kobo` says
 which folder and how many books wait; `--off` stops it. Calibre

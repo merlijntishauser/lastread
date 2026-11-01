@@ -1,8 +1,12 @@
 # A folder of yours, put on the Kobo when it is plugged in
 
-Design, proposed on 2026-11-01. **Step 1 built** the same day, with the
-proposals below as they stand (copy and remember, EPUB as is); the open
-questions are still open. It follows rule M10
+Design, proposed on 2026-11-01. **Steps 1 and 2 built** the same day,
+with the proposals below as they stand (copy and remember; kepub when
+kepubify is installed, not bundled); the open questions are still open.
+Step 2 as built: kepubify on the PATH, or in Homebrew's or Go's folder
+(the plug-in trigger's PATH lacks them); `kepubify -o OUT IN` on the
+computer, five minutes at most per book, a failure goes as EPUB. Rule P7.
+Checked against kepubify 4.0.4 (2022-03-09, MIT, the latest release). It follows rule M10
 (`7b2c568`): a sideloaded book is matched on Hardcover by the ISBN in its
 own EPUB. This is the other half: getting the book onto the Kobo.
 

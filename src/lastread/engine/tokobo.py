@@ -11,24 +11,41 @@ hundreds of books is not read whole at every plug-in.
 
 A book with DRM is not copied: it would not open on the Kobo. Nothing is
 ever decrypted; the file is only looked at for the marks DRM leaves.
+
+A plain EPUB goes on the Kobo as kepub when kepubify is installed (P7):
+the Kobo's own renderer, with its reading statistics. kepubify is the
+reader's own program (MIT, by Patrick Gaskin); it is run on a copy in a
+temporary folder of this computer, never on the Kobo and never on the
+reader's file. Seen with kepubify 4.0.4: `kepubify -o OUT IN` with one
+input and an OUT that does not exist writes OUT, keeps the OPF (and so
+the ISBN, M10), and exits non-zero on a book it cannot read.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import shutil
+import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+
+log = logging.getLogger(__name__)
 
 FOLDER = "Lastread"  # on the Kobo's own storage
 PARTIAL = ".lastread-"  # a copy on its way: hidden, so the Kobo does not list it
 REMEMBERED = "to-kobo.json"
 SPARE = 50 << 20  # room left on the Kobo after a copy
 MANY = 20  # more than this at once is asked about first (`to-kobo --yes`)
+KEPUB = ".kepub.epub"
+CONVERT_SECONDS = 300  # one book; kepubify takes a second or two
+# Where kepubify is when the plug-in trigger's PATH does not have it: Homebrew's, and `go install`'s.
+KEPUBIFY_DIRS = ("/opt/homebrew/bin", "/usr/local/bin", "~/go/bin")
 # Font obfuscation is not DRM: the book opens anywhere (EPUB 3, 4.2; Adobe's older one).
 FONTS = {"http://www.idpf.org/2008/embedding", "http://ns.adobe.com/pdf/enc#RC"}
 
@@ -38,6 +55,9 @@ class Result:
     put: list[str] = field(default_factory=list)  # file names, as they are on the Kobo now
     refused: list[tuple[str, str]] = field(default_factory=list)  # (file name, why), said once per file
     left: int = 0  # not put this time: the Kobo is full, or went away
+    kepubify: str = ""  # the kepubify that converted, "" when there is none
+    as_epub: list[str] = field(default_factory=list)  # plain EPUBs put on the Kobo as they are
+    unconverted: list[str] = field(default_factory=list)  # of those, the ones kepubify could not convert
     why_left: str = ""  # "full" or "unplugged"
 
 
@@ -88,9 +108,19 @@ def inside(folder: str, mount: str) -> bool:
     return folder == mount or folder.startswith(mount + os.sep)
 
 
-def put(folder: str, mount: str, device: str, state_dir: str) -> Result:
+def find_kepubify() -> str:
+    """kepubify, when it is installed: on the PATH, or where Homebrew and Go put it."""
+    for d in ("", *KEPUBIFY_DIRS):
+        found = shutil.which("kepubify", path=os.path.expanduser(d) if d else None)
+        if found:
+            return found
+    return ""
+
+
+def put(folder: str, mount: str, device: str, state_dir: str, kepubify: str | None = None) -> Result:
     """Put each book of the folder on the Kobo at mount that this Kobo has
-    not had from here yet. device names the Kobo (kobo_db.Device.name)."""
+    not had from here yet. device names the Kobo (kobo_db.Device.name).
+    kepubify: the program to convert with; None looks for it, "" is none."""
     r = Result()
     if inside(folder, mount):
         return r
@@ -106,6 +136,13 @@ def put(folder: str, mount: str, device: str, state_dir: str) -> Result:
         if stale.startswith(PARTIAL):
             os.unlink(os.path.join(target, stale))
     there = _on_the_kobo(mount)
+    r.kepubify = find_kepubify() if kepubify is None else kepubify
+    with tempfile.TemporaryDirectory(prefix="khs-kepub-") as tmp:
+        _put_each(r, todo, there, mount, target, tmp, done, remembered, state_dir)
+    return r
+
+
+def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: dict, remembered: dict, state_dir: str) -> None:
     for n, (path, sha) in enumerate(todo):
         name, size = os.path.basename(path), os.path.getsize(path)
         if (name.lower(), size) in there and _same(path, sha, there[name.lower(), size]):
@@ -120,21 +157,52 @@ def put(folder: str, mount: str, device: str, state_dir: str) -> Result:
         if shutil.disk_usage(mount).free < size + SPARE:
             r.left, r.why_left = len(todo) - n, "full"
             break
+        source, as_name = path, name
+        if not name.lower().endswith(KEPUB):
+            converted = _kepub(r.kepubify, path, tmp) if r.kepubify else ""
+            if converted:
+                source, as_name = converted, os.path.basename(converted)
+            else:
+                r.as_epub.append(name)
+                if r.kepubify:
+                    r.unconverted.append(name)
         try:
-            landed = _copy(path, target)
+            landed = _copy(source, target, as_name)
         except OSError:
             r.left, r.why_left = len(todo) - n, "unplugged"
             break
+        finally:
+            if source != path:
+                os.unlink(source)
         r.put.append(landed)
         done[sha] = {"name": landed, "at": _now()}
         _keep(state_dir, remembered)
-    return r
 
 
-def _copy(path: str, target: str) -> str:
-    """One book into target, completely or not at all (P4, P5): a hidden
-    partial copy, flushed, then renamed to a name nothing else has."""
+def _kepub(kepubify: str, path: str, tmp: str) -> str:
+    """The book converted to kepub in tmp, or "" when kepubify did not
+    manage (P7): then it goes as it is."""
     name = os.path.basename(path)
+    out = os.path.join(tmp, name[: -len(".epub")] + KEPUB)
+    try:
+        done = subprocess.run(
+            [kepubify, "-o", out, path], stdin=subprocess.DEVNULL, capture_output=True, timeout=CONVERT_SECONDS, check=False
+        )
+    except (OSError, subprocess.SubprocessError) as ex:
+        log.warning("kepubify did not run: %s", ex)
+        done = None
+    if done is not None and done.returncode == 0 and zipfile.is_zipfile(out):
+        return out
+    if done is not None:
+        log.warning("kepubify could not convert a book (exit %s)", done.returncode)
+    if os.path.exists(out):
+        os.unlink(out)
+    return ""
+
+
+def _copy(path: str, target: str, name: str) -> str:
+    """One book into target as name, completely or not at all (P4, P5): a
+    hidden partial copy, flushed, then renamed to a name nothing else has."""
     partial = os.path.join(target, PARTIAL + name + ".partial")
     with open(path, "rb") as src, open(partial, "wb") as dst:
         shutil.copyfileobj(src, dst, 1 << 20)
@@ -147,7 +215,7 @@ def _copy(path: str, target: str) -> str:
 
 def _free_name(target: str, name: str) -> str:
     """name, or name with a number when the Kobo has one by that name (P4)."""
-    stem, ext = (name[: -len(".kepub.epub")], ".kepub.epub") if name.lower().endswith(".kepub.epub") else os.path.splitext(name)
+    stem, ext = (name[: -len(KEPUB)], KEPUB) if name.lower().endswith(KEPUB) else os.path.splitext(name)
     taken = {f.lower() for f in os.listdir(target)}
     candidate, n = name, 1
     while candidate.lower() in taken:

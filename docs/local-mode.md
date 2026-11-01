@@ -111,8 +111,8 @@ page.
    ask the server for the collection list.
 5. Put the books of the reader's folder on the Kobo, when one is chosen
    (`to-kobo`): only the ones this Kobo has not had from here yet, files
-   only, into `Lastread` on the Kobo (rules P1-P6). Kept in
-   `to-kobo.json` in the state folder.
+   only, into `Lastread` on the Kobo (rules P1-P7), as kepub when
+   kepubify is installed. Kept in `to-kobo.json` in the state folder.
 6. Keep the collection on the Kobo equal to the books switched on, when a
    collection name is set and something changed.
 7. Eject, when that setting is on.

@@ -6,6 +6,8 @@ import json
 import os
 import shutil
 import sqlite3
+import sys
+import time
 import zipfile
 from dataclasses import replace
 
@@ -13,9 +15,9 @@ import pytest
 
 from lastread import cli
 from lastread.computer import config, runner
-from lastread.engine import kobo_db, tokobo
+from lastread.engine import epub, kobo_db, tokobo
 from tests.test_computer import FakeComputer, register, server  # noqa: F401  (server: a fixture)
-from tests.test_epub import ISBN, an_epub
+from tests.test_epub import CONTAINER, ISBN, an_epub
 from tests.test_local import LOCAL, kobo
 
 ENCRYPTION = """<?xml version="1.0"?>
@@ -23,6 +25,41 @@ ENCRYPTION = """<?xml version="1.0"?>
   <enc:EncryptedData><enc:EncryptionMethod Algorithm="{}"/>
     <enc:CipherData><enc:CipherReference URI="OEBPS/{}"/></enc:CipherData></enc:EncryptedData>
 </encryption>"""
+
+
+REAL_KEPUBIFY = tokobo.find_kepubify  # before the fixture below stands in for it
+FAKE_KEPUBIFY = f"""#!{sys.executable}
+# A stand-in for kepubify 4.0.4: `kepubify -o OUT IN` writes OUT, a kepub; a book it cannot read exits 1.
+import shutil, sys, time, zipfile
+out, book = sys.argv[sys.argv.index("-o") + 1], sys.argv[-1]
+name = book.rsplit("/", 1)[-1]
+open(__file__ + ".calls", "a").write(name + "\\n")
+if name.startswith("Slow"):
+    time.sleep(5)
+if name.startswith("Bad"):
+    sys.exit(1)
+shutil.copyfile(book, out)
+with zipfile.ZipFile(out, "a") as z:
+    z.writestr("OEBPS/kepubify-titlepage-dummy.xhtml", "<html/>")
+"""
+
+
+@pytest.fixture(autouse=True)
+def no_kepubify(monkeypatch):
+    """Whatever this computer has installed: no kepubify, unless a test gives one."""
+    monkeypatch.setattr(tokobo, "find_kepubify", lambda: "")
+
+
+def a_kepubify(where, monkeypatch):
+    path = where / "kepubify"
+    path.write_text(FAKE_KEPUBIFY)
+    path.chmod(0o755)
+    monkeypatch.setattr(tokobo, "find_kepubify", lambda: str(path))
+    return path
+
+
+def calls(kepubify):
+    return open(str(kepubify) + ".calls").read().split() if os.path.exists(str(kepubify) + ".calls") else []
 
 
 def a_book(path, title="A Book", extra=None):
@@ -226,3 +263,92 @@ def test_the_books_are_matched_after_the_next_plug_in(plugged, home):
     assert kobo_db.fill_isbns(copy, mount(home)) == 1
     isbns = {b.content_id: b.isbn for b in kobo_db.read_books(kobo_db.open_db(copy, allow_user_table=True))}
     assert isbns[f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] == ISBN
+
+
+def test_a_plain_epub_goes_as_kepub_when_kepubify_is_installed(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    kepubify = a_kepubify(home, monkeypatch)
+    a_book(books / "One.epub", "One")
+    a_book(books / "Two.kepub.epub", "Two")  # a kepub already: as it is
+    mine = (books / "One.epub").read_bytes()
+    rows = []
+    out = runner.sync(mac, cfg, on_step=rows.append)
+    assert on_kobo(home) == ["One.kepub.epub", "Two.kepub.epub"] and calls(kepubify) == ["One.epub"]
+    with zipfile.ZipFile(os.path.join(mount(home), tokobo.FOLDER, "One.kepub.epub")) as z:
+        assert "OEBPS/kepubify-titlepage-dummy.xhtml" in z.namelist()
+    assert (books / "One.epub").read_bytes() == mine  # the reader's own file is not touched
+    assert out.message == "2 books put on the Kobo. Eject before unplugging."  # the notification does not say how
+    assert [r.text for r in rows if r.what == "To Kobo"] == ["2 books put on the Kobo as kepub"]
+    assert os.listdir(home / "scratch") == []  # the converted copies are gone
+    # Put on the Kobo once, also as kepub: the reader's file is what is remembered.
+    assert runner.sync(mac, cfg).message == "" and calls(kepubify) == ["One.epub"]
+
+
+def test_a_book_kepubify_cannot_convert_goes_as_it_is(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    a_kepubify(home, monkeypatch)
+    monkeypatch.setattr(tokobo, "CONVERT_SECONDS", 0.5)
+    a_book(books / "Bad.epub", "Bad")
+    a_book(books / "Slow.epub", "Slow")
+    a_book(books / "Good.epub", "Good")
+    rows = []
+    started = time.monotonic()
+    runner.sync(mac, cfg, on_step=rows.append)
+    assert time.monotonic() - started < 4  # a kepubify that hangs is not waited for
+    assert on_kobo(home) == ["Bad.epub", "Good.kepub.epub", "Slow.epub"]
+    (row,) = [r for r in rows if r.what == "To Kobo"]
+    assert row.state == "warn" and row.text == "3 books put on the Kobo (Bad.epub, Slow.epub as EPUB: kepubify could not convert them)"
+    assert os.listdir(home / "scratch") == []
+
+
+def test_without_kepubify_the_books_go_as_epub_and_it_is_said_how_to_get_kepub(plugged, home, capsys):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    rows = []
+    runner.sync(mac, cfg, on_step=rows.append)
+    assert on_kobo(home) == ["One.epub"]
+    assert [r.text for r in rows if r.what == "To Kobo"] == ["1 book put on the Kobo as EPUB (kepubify is not installed)"]
+    config.save(cfg)
+    cli.main(["to-kobo"], computer=mac)
+    said = capsys.readouterr().out
+    assert "as EPUB;" in said and "kepubify" in said
+
+
+def test_kepubify_is_found_where_homebrew_puts_it_also_without_it_on_the_path(tmp_path, monkeypatch):
+    (tmp_path / "bin").mkdir()
+    tool = tmp_path / "bin" / "kepubify"
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o755)
+    monkeypatch.setenv("PATH", "/nonexistent")
+    monkeypatch.setattr(tokobo, "KEPUBIFY_DIRS", ("/nonexistent", str(tmp_path / "bin")))
+    assert REAL_KEPUBIFY() == str(tool)
+    monkeypatch.setattr(tokobo, "KEPUBIFY_DIRS", ())
+    assert REAL_KEPUBIFY() == ""
+
+
+CHAPTERED = f"""<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>In A Book</dc:title>
+    <dc:identifier id="id">urn:isbn:{ISBN}</dc:identifier><dc:language>en</dc:language></metadata>
+  <manifest><item id="c" href="c.xhtml" media-type="application/xhtml+xml"/></manifest>
+  <spine><itemref idref="c"/></spine>
+</package>"""
+
+
+@pytest.mark.skipif(not REAL_KEPUBIFY(), reason="kepubify is not installed here")
+def test_the_real_kepubify(tmp_path):
+    """With the real program, where it is installed: the kepub keeps its ISBN (M10)."""
+    book = str(tmp_path / "In A Book.epub")
+    with zipfile.ZipFile(book, "w") as z:  # one chapter, which kepubify marks up
+        z.writestr("mimetype", "application/epub+zip")
+        z.writestr("META-INF/container.xml", CONTAINER)
+        z.writestr("OEBPS/content.opf", CHAPTERED)
+        z.writestr(
+            "OEBPS/c.xhtml", '<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><body><p>Two. Sentences.</p></body></html>'
+        )
+    out = tokobo._kepub(REAL_KEPUBIFY(), book, str(tmp_path))
+    assert out == str(tmp_path / "In A Book.kepub.epub") and epub.isbn(out) == ISBN
+    with zipfile.ZipFile(out) as z:
+        assert any(b"koboSpan" in z.read(n) for n in z.namelist() if n.endswith(".xhtml"))
+    (tmp_path / "Bad.epub").write_bytes(b"not a zip")
+    assert tokobo._kepub(REAL_KEPUBIFY(), str(tmp_path / "Bad.epub"), str(tmp_path)) == ""

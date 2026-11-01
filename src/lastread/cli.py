@@ -1239,7 +1239,12 @@ def _to_kobo(a, computer) -> None:
             _one(WARN, f"Books in {cfg.to_kobo} go on the Kobo at plug-in, but the folder is not there.")
         else:
             n = len(tokobo.waiting(cfg.to_kobo, "", config.state_dir()))
-            _one(OK, f"Books in {cfg.to_kobo} go on the Kobo at plug-in; {plural(n, 'book')} {'waits' if n == 1 else 'wait'} for a Kobo.")
+            _one(
+                OK,
+                f"Books in {cfg.to_kobo} go on the Kobo at plug-in, {_as_kepub()}; "
+                f"{plural(n, 'book')} {'waits' if n == 1 else 'wait'} for a Kobo.",
+                "" if tokobo.find_kepubify() else _KEPUBIFY_HOW,
+            )
         return
     folder = os.path.abspath(os.path.expanduser(a.folder))
     if not os.path.isdir(folder):
@@ -1255,7 +1260,23 @@ def _to_kobo(a, computer) -> None:
         )
     cfg.to_kobo = folder
     config.save(cfg)
-    _one(OK, f"At every plug-in, the books in {folder} go on the Kobo, in its folder {tokobo.FOLDER}; {plural(n, 'book')} now.")
+    _one(
+        OK,
+        f"At every plug-in, the books in {folder} go on the Kobo, in its folder {tokobo.FOLDER}, {_as_kepub()}; {plural(n, 'book')} now.",
+        "" if tokobo.find_kepubify() else _KEPUBIFY_HOW,
+    )
+
+
+_KEPUBIFY_HOW = (
+    "`brew install kepubify` has them go as kepub: the Kobo's own renderer and its reading statistics."
+    if sys.platform == "darwin"
+    else "With kepubify installed (pgaskin.net/kepubify) they go as kepub: the Kobo's own renderer and its reading statistics."
+)
+
+
+def _as_kepub() -> str:
+    found = tokobo.find_kepubify()
+    return f"as kepub (converted by {found})" if found else "as EPUB"
 
 
 def _webhook(a, computer) -> None:

@@ -427,8 +427,18 @@ def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -
         step(Row(OK, "To Kobo", f"Nothing new in {folder}"))
     else:
         text = " ".join(told).rstrip(".")
-        step(Row(WARN if r.refused or r.left else OK, "To Kobo", text))
+        if r.put:  # how they went, for whoever watches; the notification does not say it (P7)
+            text = text.replace(" put on the Kobo", " put on the Kobo" + _how(r), 1)
+        step(Row(WARN if r.refused or r.left or r.unconverted else OK, "To Kobo", text))
     return bool(r.put)
+
+
+def _how(r: tokobo.Result) -> str:
+    if r.unconverted:
+        return f" ({', '.join(r.unconverted)} as EPUB: kepubify could not convert {'it' if len(r.unconverted) == 1 else 'them'})"
+    if r.as_epub:
+        return " as EPUB (kepubify is not installed)"
+    return " as kepub"
 
 
 def _keep_export(con, reader: str, path: str, said: list[str], step) -> None:
