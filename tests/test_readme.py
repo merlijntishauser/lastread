@@ -26,7 +26,7 @@ def test_every_link_to_a_file_leads_somewhere():
 
 COMMANDS = (
     *("setup", "token", "sync", "status", "doctor", "history", "settings"),
-    *("update", "books", "book", "open", "export", "webhook", "uninstall", "serve", "import"),
+    *("update", "books", "book", "open", "export", "webhook", "to-kobo", "uninstall", "serve", "import"),
 )
 
 
@@ -40,7 +40,7 @@ def test_every_command_and_option_in_the_text_is_real(capsys):
 
     for page in PAGES:
         text = (ROOT / page).read_text()
-        for command, rest in re.findall(r"lastread ([a-z]+)((?: --[a-z-]+)*)", text):
+        for command, rest in re.findall(r"lastread ([a-z][a-z-]*[a-z])((?: --[a-z-]+)*)", text):
             if command in ("is", "does", "reads", "on", "s"):  # the name in a sentence, not a command
                 continue
             usage = help_of(command)

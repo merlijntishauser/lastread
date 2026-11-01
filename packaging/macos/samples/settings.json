@@ -12,6 +12,7 @@
     "allow_untested_kobo": false,
     "check_for_updates": true,
     "export_to": "",
-    "webhook_url": ""
+    "webhook_url": "",
+    "to_kobo": ""
   }
 }

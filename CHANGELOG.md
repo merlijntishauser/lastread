@@ -9,6 +9,15 @@ minor version may change behaviour; the notes will say so.
 
 ### Added
 
+- **Books from a folder of yours go on the Kobo.** `lastread to-kobo FOLDER`:
+  at every plug-in, the EPUBs in that folder that this Kobo has not had yet
+  are copied to a folder `Lastread` on it, and the Kobo lists them after the
+  eject. Only files are written, never the Kobo's database or a setting.
+  Each book goes on each Kobo once; one deleted on the Kobo stays deleted.
+  A book with DRM is not copied, and the sync says so. More than 20 books
+  at once only with `--yes`. The rules are P1 to P6 in
+  `docs/sync-rules.md`.
+
 - **Books you put on the Kobo yourself are found by their ISBN.** The Kobo
   often keeps no ISBN for a sideloaded book; Lastread now reads it from the
   book's own EPUB file, so a DRM-free book bought elsewhere is matched on

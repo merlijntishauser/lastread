@@ -347,6 +347,39 @@ of the books that sync. This is the only thing ever written to the Kobo.
   they are not put in the collection.
   Tests: `tests/test_collection.py::test_one_in_one_out_and_ids_that_are_not_books_here_are_skipped`
 
+## Books put on the Kobo
+
+Only when you chose a folder (`lastread to-kobo FOLDER`). The Kobo finds
+the books itself after the eject; at the next plug-in they are books like
+any other you put on it yourself (M10).
+
+- **P1** Only the EPUBs of the folder you chose, and the folders in it;
+  nothing when you chose none. Hidden files and folders are left out. They
+  go into one folder on the Kobo, `Lastread`, and nowhere else.
+  Tests: `tests/test_tokobo.py::test_only_the_books_of_the_folder_you_chose_and_nothing_without_one`,
+  `tests/test_tokobo.py::test_choosing_the_folder`
+- **P2** A book with DRM (Adobe, Readium LCP, or encrypted otherwise) is not
+  copied: it would not open on the Kobo. You are told once, with what to
+  use instead. Nothing is decrypted. Hidden fonts are not DRM.
+  Tests: `tests/test_tokobo.py::test_only_epubs_and_a_book_with_drm_is_refused_and_said_once`
+- **P3** A book goes on each Kobo once, known by its contents, not its
+  name. Deleted on the Kobo, it stays deleted; taken out of the folder or
+  renamed, it stays on the Kobo. One you already put on the Kobo by hand
+  is not put there twice. Another Kobo gets every book of the folder.
+  Tests: `tests/test_tokobo.py::test_a_book_goes_on_each_kobo_once_and_a_delete_on_the_kobo_stays`
+- **P4** Never over another file: a name the Kobo has already gets a
+  number.
+  Tests: `tests/test_tokobo.py::test_never_over_another_file_a_name_that_is_taken_gets_a_number`
+- **P5** A book is on the Kobo whole or not at all, also when the Kobo is
+  pulled out halfway; what was left half is cleared at the next plug-in.
+  A Kobo without room gets nothing half; the books wait.
+  Tests: `tests/test_tokobo.py::test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out`
+- **P6** Only files are written: the Kobo's database is never touched for
+  this. In server mode the computer does it, and no book goes to the
+  server.
+  Tests: `tests/test_tokobo.py::test_only_files_are_written_never_the_database`,
+  `tests/test_tokobo.py::test_server_mode_puts_the_books_on_the_kobo_from_this_computer`
+
 ## What leaves your computer
 
 - **U1** The Kobo account's login tokens are never read and never sent.

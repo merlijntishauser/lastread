@@ -198,6 +198,7 @@ struct SettingsAnswer: Codable {
         let checkForUpdates: Bool
         let exportTo: String
         let webhookUrl: String
+        let toKobo: String  // the folder whose books go on the Kobo at plug-in, "" = none
     }
 
     let schema: Int

@@ -1,6 +1,8 @@
 # A folder of yours, put on the Kobo when it is plugged in
 
-Design, proposed on 2026-11-01, **not agreed**. It follows rule M10
+Design, proposed on 2026-11-01. **Step 1 built** the same day, with the
+proposals below as they stand (copy and remember, EPUB as is); the open
+questions are still open. It follows rule M10
 (`7b2c568`): a sideloaded book is matched on Hardcover by the ISBN in its
 own EPUB. This is the other half: getting the book onto the Kobo.
 

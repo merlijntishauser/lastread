@@ -15,7 +15,8 @@ Kobo, and nothing about how you read changes. The short version is at
 ![The Books page: a list of books, each with how far it is read, a Sync switch, and in the margin what the next sync changes on Hardcover, marked like a proof](docs/img/books.png)
 
 > **Beta.** It has been used daily on one Kobo and one Mac. It can write
-> one thing to your Kobo, a collection, and only if you ask for it; see
+> two things to your Kobo, a collection and books from a folder of yours,
+> each only if you ask for it; see
 > [what is written to the Kobo](#the-collection-on-the-kobo). Read that
 > part before you give the collection a name.
 
@@ -41,16 +42,8 @@ Rakuten Kobo or Hardcover.
   Kobo account is shared and the device lists everyone's books.
 - Keeps your reading minutes, for a dashboard of your own if you have one.
 
-It does not sync highlights, notes or ratings, and it does not manage
-books: it works with whatever is on the Kobo.
-
-Bought elsewhere? Put DRM-free books on the Kobo with
-[Calibre](https://calibre-ebook.com) (as kepub) and Lastread syncs them
-too. It finds them on Hardcover by the ISBN in the book's own file when
-the Kobo keeps none.
-
-Every rule it follows is written down, each with the test that holds it:
-[docs/sync-rules.md](docs/sync-rules.md).
+It does not sync highlights, notes or ratings. It does not manage books
+either, with one exception: books from a folder of yours (below).
 
 ## Two ways to run it
 
@@ -203,6 +196,7 @@ Other commands:
 | `lastread token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
 | `lastread export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `lastread export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `lastread export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `lastread webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
+| `lastread to-kobo FOLDER` | Put the EPUBs in FOLDER on the Kobo at every plug-in; `--off` stops it. |
 | `lastread uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
@@ -211,7 +205,9 @@ Other commands:
 
 Optional. Give the collection a name under Settings and the Kobo gets a
 collection holding the books that sync. This is **the only thing this tool
-ever writes to your Kobo**. Without a name, it writes nothing at all.
+ever writes to your Kobo's database**; the other write is
+[books from a folder of yours](#books-bought-elsewhere), as files. Without
+a name and without a folder, it writes nothing at all.
 
 What is written, and how:
 
@@ -258,6 +254,32 @@ changed.
    Eject, then unplug. Everything on the device goes back to that moment,
    reading positions included; for Kobo-store books the Kobo fetches the
    newer positions from your account at its next sync.
+
+## Books bought elsewhere
+
+DRM-free books, from a shop that marks its books instead of locking them
+or from anywhere else, can go on the Kobo from a folder on your computer:
+
+```sh
+lastread to-kobo ~/Books/To\ Kobo
+```
+
+At every plug-in, the EPUBs in that folder that this Kobo has not had yet
+are copied to a folder `Lastread` on it, and the Kobo lists them after the
+eject. Nothing on the Kobo is changed for it: no setting, no add-on, and
+not its database. Each book goes on each Kobo once; one you delete on the
+Kobo stays deleted, and one you take out of the folder stays on the Kobo.
+A book with DRM is not copied, and you are told so: the Kobo could not open
+it. Lastread never decrypts anything.
+
+Once you have read in such a book, it syncs like any other: Lastread finds
+it on Hardcover by the ISBN in the book's own file. `lastread to-kobo` says
+which folder and how many books wait; `--off` stops it. Calibre
+([calibre-ebook.com](https://calibre-ebook.com)) does the same job and
+more, if you would rather use it.
+
+Every rule it follows is written down, each with the test that holds it:
+[docs/sync-rules.md](docs/sync-rules.md).
 
 ## For a household, on your own server
 

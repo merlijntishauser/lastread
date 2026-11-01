@@ -91,6 +91,14 @@ lastread webhook [URL [--token]] [--test] [--remove]
     in the Keychain. A test is sent first; nothing is stored unless it
     gets a 2xx answer. Without arguments: where it goes now.
 
+lastread to-kobo [FOLDER [--yes]] [--off]
+    At every plug-in, put the EPUBs in FOLDER on the Kobo, in a folder
+    Lastread there: each book once per Kobo, never one with DRM, never
+    over another file. A book you delete on the Kobo stays deleted.
+    More than 20 books that no Kobo has yet are only taken with --yes.
+    --off stops it; the books on the Kobo stay. Without arguments: which
+    folder, and how many of its books wait for a Kobo.
+
 lastread uninstall [--purge]
     Remove the trigger; --purge also the state and the tokens.
 
@@ -128,7 +136,7 @@ from datetime import datetime
 from urllib.parse import quote
 
 from . import __version__, term
-from .engine import kobo_db, state
+from .engine import kobo_db, state, tokobo
 from .env import env
 from .term import FAIL, NOTE, OK, WARN, Row, plural
 
@@ -149,6 +157,7 @@ COMMANDS = (
             ("open", "Open the page with your books"),
             ("export", "Your reading as JSON, for a database of your own"),
             ("webhook", "POST each sync to an address of your own"),
+            ("to-kobo", "Put the books from a folder of yours on the Kobo"),
             ("uninstall", "Remove the trigger"),
         ),
     ),
@@ -194,7 +203,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sub = p.add_subparsers(
         dest="cmd",
         required=True,
-        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,uninstall,serve,import}",
+        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,to-kobo,uninstall,serve,import}",
     )
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
@@ -255,6 +264,10 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     hook.add_argument("--token", action="store_true", help="ask for a Bearer token to send with it")
     hook.add_argument("--test", action="store_true", help="send a test now")
     hook.add_argument("--remove", action="store_true", help="stop sending, and forget the address and the token")
+    tko = sub.add_parser("to-kobo", help="put the books from a folder of yours on the Kobo at every plug-in")
+    tko.add_argument("folder", nargs="?", default="", help="the folder with the EPUBs")
+    tko.add_argument("--yes", action="store_true", help=f"also when more than {tokobo.MANY} books go to the Kobo at once")
+    tko.add_argument("--off", action="store_true", help="stop putting books on the Kobo (the ones there stay)")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -303,6 +316,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         "uninstall": _uninstall,
         "token": _token,
         "webhook": _webhook,
+        "to-kobo": _to_kobo,
     }
     commands[a.cmd](a, computer)
 
@@ -777,6 +791,11 @@ def _status(a, computer) -> None:
             else Row(FAIL, "Token", "No upload token", "Run `lastread setup` again.")
         )
         del token
+    if cfg.to_kobo:
+        there = os.path.isdir(cfg.to_kobo)
+        rows.append(
+            Row(OK if there else WARN, "To Kobo", f"Books in {cfg.to_kobo} go on the Kobo" + ("" if there else ", but it is not there"))
+        )
     mount = computer.find_kobo()
     if not mount:
         rows.append(Row(NOTE, "Kobo", "Not found"))
@@ -895,7 +914,11 @@ def _settings(a, computer) -> None:
         except remote.ServerError as ex:
             sys.exit(f"lastread: {ex}")
         reader, connected = (there["live"], there["user"]), there["connected"]
-    values = {name: getattr(cfg, name) for name in SETTABLE} | {"export_to": cfg.export_to, "webhook_url": cfg.webhook_url}
+    values = {name: getattr(cfg, name) for name in SETTABLE} | {
+        "export_to": cfg.export_to,
+        "webhook_url": cfg.webhook_url,
+        "to_kobo": cfg.to_kobo,
+    }
     token = computer.secret(UPLOAD) if cfg.mode == "server" else ""
     found = {
         "mode": cfg.mode,
@@ -1196,6 +1219,43 @@ def _export(a) -> None:
         config.save(cfg)
         rows.append(Row(OK, "Every sync", "Written again after every sync. `lastread export --stop` stops that."))
     term.Screen.of().rows(rows)
+
+
+def _to_kobo(a, computer) -> None:
+    from .computer import config
+
+    cfg = config.load()
+    if not cfg.mode:
+        sys.exit("lastread: not set up yet: run setup first.")
+    if a.off:
+        cfg.to_kobo = ""
+        config.save(cfg)
+        _one(OK, "No books are put on the Kobo any more. The ones on it stay.")
+        return
+    if not a.folder:
+        if not cfg.to_kobo:
+            _one(NOTE, "No folder: nothing is put on the Kobo.", "`lastread to-kobo FOLDER` sets one.")
+        elif not os.path.isdir(cfg.to_kobo):
+            _one(WARN, f"Books in {cfg.to_kobo} go on the Kobo at plug-in, but the folder is not there.")
+        else:
+            n = len(tokobo.waiting(cfg.to_kobo, "", config.state_dir()))
+            _one(OK, f"Books in {cfg.to_kobo} go on the Kobo at plug-in; {plural(n, 'book')} {'waits' if n == 1 else 'wait'} for a Kobo.")
+        return
+    folder = os.path.abspath(os.path.expanduser(a.folder))
+    if not os.path.isdir(folder):
+        sys.exit(f"lastread: {folder} is not a folder.")
+    mount = computer.find_kobo()
+    if mount and tokobo.inside(folder, mount):
+        sys.exit(f"lastread: {folder} is on the Kobo itself; choose a folder on this computer.")
+    n = len(tokobo.waiting(folder, "", config.state_dir()))
+    if n > tokobo.MANY and not a.yes:
+        sys.exit(
+            f"lastread: {plural(n, 'book')} in {folder} would go on the Kobo at the next plug-in. "
+            "If that is what you want, run this again with --yes. Nothing was changed."
+        )
+    cfg.to_kobo = folder
+    config.save(cfg)
+    _one(OK, f"At every plug-in, the books in {folder} go on the Kobo, in its folder {tokobo.FOLDER}; {plural(n, 'book')} now.")
 
 
 def _webhook(a, computer) -> None:

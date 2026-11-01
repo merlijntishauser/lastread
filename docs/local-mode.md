@@ -109,10 +109,14 @@ page.
    **Server mode:** build a small database holding only what the server
    reads (the book rows and the device's reading events), upload it, and
    ask the server for the collection list.
-5. Keep the collection on the Kobo equal to the books switched on, when a
+5. Put the books of the reader's folder on the Kobo, when one is chosen
+   (`to-kobo`): only the ones this Kobo has not had from here yet, files
+   only, into `Lastread` on the Kobo (rules P1-P6). Kept in
+   `to-kobo.json` in the state folder.
+6. Keep the collection on the Kobo equal to the books switched on, when a
    collection name is set and something changed.
-6. Eject, when that setting is on.
-7. Notify with one line: what changed, and "eject before unplugging" when
+7. Eject, when that setting is on.
+8. Notify with one line: what changed, and "eject before unplugging" when
    the Kobo was written to and is still mounted.
 
 Running it twice without changes does nothing the second time: no import,
@@ -168,6 +172,11 @@ Added with the move to Python:
 - Tests on a made-up database with the Kobo's schema, run in CI: create,
   repeat, change, remove, unknown schema, a write that is interrupted.
 
+The books of the `to-kobo` folder are the other write, and the milder
+one: files only, into the Kobo's `Lastread` folder, each copied under a
+hidden name and renamed when it is whole. The database is not opened for
+it; the Kobo imports the files itself after the eject.
+
 ## Commands
 
 ```
@@ -177,6 +186,7 @@ lastread sync [--verbose]       one sync now; --verbose shows it book by book
 lastread status                 mode, last sync, Kobo found, token present, collection
 lastread doctor                 check everything a sync depends on; changes nothing
 lastread open                   start the page and open it
+lastread to-kobo [FOLDER]       put the books of FOLDER on the Kobo at every plug-in
 lastread uninstall [--purge]    remove the trigger; --purge also state and secrets
 lastread serve                  server mode (what the container runs)
 ```

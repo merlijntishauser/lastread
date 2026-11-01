@@ -21,7 +21,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 from .. import ISSUES, __version__, logs
-from ..engine import collection, export, hardcover, job, kobo_db, state
+from ..engine import collection, export, hardcover, job, kobo_db, state, tokobo
 from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
 from . import config, history, page, remote, webhook
@@ -357,6 +357,8 @@ def _sync_here(
             step(Row(NOTE, "Hardcover", f"Not connected yet: connect {where}"))
 
         name = (reader["kobo_collection"] or "").strip()
+        if mount and cfg.to_kobo:
+            wrote = _put_books(cfg.to_kobo, mount, state_dir, said, step)
         if mount:
             ids = [
                 b["content_id"]
@@ -364,7 +366,7 @@ def _sync_here(
                 if state.syncs(b)
             ]
             before = len(said)
-            wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said)
+            wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said) or wrote
             _collection_step(step, name, said[before:])
             if wrote:
                 try:
@@ -393,6 +395,40 @@ def finished_books(books: list[dict], state_dir: str) -> list[dict]:
         for b in books
         if b["went"] == "sent" and b["what"].startswith("mark Read")
     ]
+
+
+def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -> bool:
+    """`to-kobo FOLDER`: the books of that folder this Kobo does not have
+    from here yet, put on it (tokobo, P1-P6). True when a file was written."""
+    if not os.path.isdir(folder):
+        said.append(f"No books put on the Kobo: {folder} is not there.")
+        step(Row(WARN, "To Kobo", f"{folder} is not there", "Plug in the disk it is on, or choose another with `lastread to-kobo`."))
+        return False
+    try:
+        r = tokobo.put(folder, mount, kobo_db.device(mount).name, state_dir)
+    except OSError as ex:
+        log.warning("books not put on the Kobo: %s", ex)
+        said.append(f"No books put on the Kobo ({ex.strerror or ex}).")
+        step(Row(WARN, "To Kobo", f"Not done: {ex.strerror or ex}"))
+        return False
+    log.info("to the Kobo: %d put, %d refused, %d left (%s)", len(r.put), len(r.refused), r.left, r.why_left or "-")
+    told = []
+    if r.put:
+        told.append(f"{plural(len(r.put), 'book')} put on the Kobo.")
+    for name, why in r.refused:
+        told.append(f"{name} not put on the Kobo: {why}.")
+    if r.left:
+        told.append(
+            f"{plural(r.left, 'book')} not put on the Kobo: "
+            + ("it is full." if r.why_left == "full" else "it was unplugged; the rest go next time.")
+        )
+    said += told
+    if not told:
+        step(Row(OK, "To Kobo", f"Nothing new in {folder}"))
+    else:
+        text = " ".join(told).rstrip(".")
+        step(Row(WARN if r.refused or r.left else OK, "To Kobo", text))
+    return bool(r.put)
 
 
 def _keep_export(con, reader: str, path: str, said: list[str], step) -> None:
@@ -479,8 +515,9 @@ def _sync_to_server(
             said.append(f"{plural(n, 'book')} updated.")
             step(Row(OK, "Upload", f"Sent to {server.host}: {plural(n, 'book')} updated"))
 
+        wrote = _put_books(cfg.to_kobo, mount, state_dir, said, step) if cfg.to_kobo else False
+
         # The collection on the Kobo: checked on every plug-in.
-        wrote = False
         try:
             wanted = server.collection() or ("", [])  # no name set on the server: no collection wanted
         except remote.ServerError as ex:
@@ -489,7 +526,7 @@ def _sync_to_server(
             step(Row(WARN, "Collection", f"Left as it is: {server.host} could not be asked which books belong in it"))
         if wanted is not None:
             before = len(said)
-            wrote = _keep_collection(db, copy, wanted[0], wanted[1], state_dir, cfg, said)
+            wrote = _keep_collection(db, copy, wanted[0], wanted[1], state_dir, cfg, said) or wrote
             _collection_step(step, wanted[0], said[before:])
             if wrote:
                 with open(hash_file, "w") as fh:  # our own write is not a reason to upload again
