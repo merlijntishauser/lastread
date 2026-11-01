@@ -207,6 +207,7 @@ struct AdvancedTab: View {
                         Button("Show the log") { showLog() }
                     }
                 }
+                ToKoboSection(model: model, saved: settings.settings.toKobo)
                 if settings.mode == "local" {
                     WebhookSection(model: model, saved: settings.settings.webhookUrl)
                     ExportSection(model: model, everySync: settings.settings.exportTo)
@@ -413,6 +414,112 @@ struct WebhookSection: View {
         if !token.isEmpty { args.append("--token") }
         model.change(args, input: token.isEmpty ? nil : token + "\n", done: "Webhook saved")
         token = ""
+    }
+}
+
+/// Books from a folder of yours, put on the Kobo at every plug-in (`to-kobo`, rules P1-P7).
+/// In both modes: the folder is this Mac's, and this Mac does the copying.
+struct ToKoboSection: View {
+    @ObservedObject var model: SettingsModel
+    let saved: String  // from settings --json: a change elsewhere is looked at again
+    @State private var found: ToKoboAnswer?
+
+    var body: some View {
+        Section {
+            if let found, !found.folder.isEmpty {
+                LabeledContent("Folder") {
+                    HStack {
+                        Text(found.folder).lineLimit(1).truncationMode(.middle).textSelection(.enabled)
+                        Button("Stop") { stop(found.folder) }.disabled(model.working)
+                    }
+                }
+                Text(state(found)).foregroundStyle(found.there ? Pencil.graphite : Pencil.red).fixedSize(horizontal: false, vertical: true)
+                ForEach(found.refused, id: \.name) { r in
+                    LabeledContent(r.name) {
+                        Text(r.why).foregroundStyle(Pencil.graphite).multilineTextAlignment(.trailing)
+                    }
+                }
+            }
+            HStack {
+                Spacer()
+                Button(found?.folder.isEmpty == false ? "Choose Another Folder…" : "Choose a Folder…") { choose() }
+                    .disabled(model.working)
+            }
+        } header: {
+            Text("Books from a folder")
+        } footer: {
+            Text(footer).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+        }
+        .onAppear { look() }
+        .onChange(of: saved) { _ in look() }
+    }
+
+    private var footer: String {
+        let what = """
+            At every plug-in, the EPUBs in this folder that the Kobo has not had yet are copied to a folder Lastread on it. \
+            Each book goes on each Kobo once; one you delete on the Kobo stays deleted. A book with DRM is not copied.
+            """
+        guard let found, found.kepubify.isEmpty else { return what }
+        return what + " With kepubify installed (brew install kepubify) they go as kepub, with the Kobo's reading statistics."
+    }
+
+    private func state(_ a: ToKoboAnswer) -> String {
+        guard a.there else { return "The folder is not there. Plug in the disk it is on, or choose another." }
+        let how = a.kepubify.isEmpty ? "as EPUB" : "as kepub"
+        let books = a.books == 1 ? "1 book" : "\(a.books) books"
+        return "\(books), \(how). \(a.waiting == 0 ? "Every one is on a Kobo already." : "\(a.waiting) wait for the next plug-in.")"
+    }
+
+    private func look() { ask(["to-kobo", "--json"]) }
+
+    private func ask(_ args: [String], then: @escaping (ToKoboAnswer) -> Void = { _ in }) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = answer(ToKoboAnswer.self, args)
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let a):
+                    found = a
+                    then(a)
+                case .failure(let why):
+                    model.sheet("Nothing was changed", why.said.replacingOccurrences(of: "lastread: ", with: ""), ["OK"]) { _ in }
+                }
+            }
+        }
+    }
+
+    private func choose() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Choose"
+        panel.message = "The EPUBs in this folder go on the Kobo at every plug-in."
+        let chosen = { (response: NSApplication.ModalResponse) in
+            guard response == .OK, let folder = panel.url?.path else { return }
+            guard model.allowed("put the books in \(folder) on the Kobo at every plug-in") else { return }
+            ask(["to-kobo", folder, "--json"]) { a in
+                guard a.tooMany > 0 else { return model.load() }
+                model.confirm(
+                    "\(a.tooMany) books at once",
+                    "All \(a.tooMany) books in \(folder) would go on the Kobo at the next plug-in.",
+                    "Put Them on the Kobo"
+                ) {
+                    ask(["to-kobo", folder, "--yes", "--json"]) { _ in model.load() }
+                }
+            }
+        }
+        if let window = model.window {
+            panel.beginSheetModal(for: window, completionHandler: chosen)
+        } else {
+            chosen(panel.runModal())
+        }
+    }
+
+    private func stop(_ folder: String) {
+        model.confirm("Stop putting books on the Kobo?", "No more books from \(folder) go on the Kobo. The ones on it stay.", "Stop") {
+            guard model.allowed("stop putting books on the Kobo") else { return }
+            ask(["to-kobo", "--off", "--json"]) { _ in model.load() }
+        }
     }
 }
 

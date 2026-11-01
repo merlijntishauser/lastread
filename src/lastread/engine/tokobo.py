@@ -102,6 +102,52 @@ def waiting(folder: str, device: str, state_dir: str) -> list[str]:
     return out
 
 
+class Refused(ValueError):
+    """A folder that is not taken: key names the reason (strings for the page), n the books waiting."""
+
+    def __init__(self, key: str, text: str, n: int = 0):
+        super().__init__(text)
+        self.key, self.n = key, n
+
+
+def choose(folder: str, mount: str | None, state_dir: str, yes: bool = False) -> tuple[str, int]:
+    """The folder as it is kept (absolute), and how many of its books no
+    Kobo has yet; Refused when it cannot be taken: not a folder, on the
+    Kobo itself, or more than MANY books at once without yes (P1). The
+    command, the page and the Mac app all choose through this."""
+    folder = os.path.abspath(os.path.expanduser(folder.strip()))
+    if not os.path.isdir(folder):
+        raise Refused("not_a_folder", f"{folder} is not a folder.")
+    if mount and inside(folder, mount):
+        raise Refused("on_the_kobo", f"{folder} is on the Kobo itself; choose a folder on this computer.")
+    n = len(waiting(folder, "", state_dir))
+    if n > MANY and not yes:
+        raise Refused("too_many", f"{n} books in {folder} would go on the Kobo at the next plug-in.", n)
+    return folder, n
+
+
+def summary(folder: str, state_dir: str) -> dict:
+    """What the page and the app show about the folder: whether it is
+    there, how many books it holds and how many wait for a Kobo, the ones
+    that were refused (still in the folder) and why, and the kepubify that
+    converts them ("" for none)."""
+    out = {"folder": folder, "there": bool(folder) and os.path.isdir(folder), "books": 0, "waiting": 0, "refused": []}
+    out["kepubify"] = find_kepubify()
+    if not out["there"]:
+        return out
+    remembered = _remembered(state_dir)
+    books = books_in(folder)
+    hashes = {p: _hash(remembered, p) for p in books}
+    _keep(state_dir, remembered)
+    given = {sha: v for kobo in remembered["kobos"].values() for sha, v in kobo.items()}
+    out["books"] = len(books)
+    out["waiting"] = sum(1 for p in books if hashes[p] not in given)
+    out["refused"] = [
+        {"name": os.path.basename(p), "why": given[hashes[p]]["refused"]} for p in books if given.get(hashes[p], {}).get("refused")
+    ]
+    return out
+
+
 def inside(folder: str, mount: str) -> bool:
     """Whether the folder is on the Kobo itself: then there is nothing to put there."""
     folder, mount = os.path.realpath(folder), os.path.realpath(mount)

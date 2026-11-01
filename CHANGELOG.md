@@ -16,8 +16,12 @@ minor version may change behaviour; the notes will say so.
   Each book goes on each Kobo once; one deleted on the Kobo stays deleted.
   A book with DRM is not copied, and the sync says so. More than 20 books
   at once only with `--yes`. With kepubify installed (`brew install
-  kepubify`), each goes as kepub, converted on the computer. The rules are
-  P1 to P7 in `docs/sync-rules.md`.
+  kepubify`), each goes as kepub, converted on the computer. The folder is
+  chosen with the command, in the Mac app's Settings (Advanced, a folder
+  picker), or on the page in local mode (Settings, Advanced); each asks
+  before a folder puts more than 20 books on the Kobo at once, and shows
+  the books that were refused and why. The rules are P1 to P7 in
+  `docs/sync-rules.md`.
 
 - **Books you put on the Kobo yourself are found by their ISBN.** The Kobo
   often keeps no ISBN for a sideloaded book; Lastread now reads it from the

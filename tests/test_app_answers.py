@@ -484,3 +484,37 @@ def test_setup_with_check_asks_the_server_first_and_changes_nothing_when_it_does
     assert "knows this computer already" in capsys.readouterr().out
     cli.main(["setup", "--new-token", "--check", "--no-trigger"], computer=computer)
     assert "Paste this computer's hash" in capsys.readouterr().out  # a new token is a new device to the server
+
+
+# ---------- to-kobo ----------
+def test_to_kobo_answers_the_shape_the_app_reads_and_asks_before_many(home, capsys):
+    from tests.test_tokobo import a_book
+
+    kobo(home)
+    computer = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    found = answer(capsys, "to-kobo", "--json", computer=computer)
+    same_shape(found, sample("tokobo.json"))
+    assert (found["folder"], found["saved"], found["too_many"]) == ("", False, 0)
+
+    books = home / "Books"
+    a_book(books / "One.epub", "One")
+    a_book(books / "Locked.epub", "Locked", {"META-INF/rights.xml": "<rights/>"})
+    found = answer(capsys, "to-kobo", str(books), "--json", computer=computer)
+    assert (found["folder"], found["saved"], found["waiting"], found["books"]) == (str(books), True, 2, 2)
+    runner.sync(computer, config.load())
+    found = answer(capsys, "to-kobo", "--json", computer=computer)
+    same_shape(found, sample("tokobo.json"))
+    assert found["waiting"] == 0 and [r["name"] for r in found["refused"]] == ["Locked.epub"]
+
+    # Too many at once: an answer for the app to ask about, and nothing changed until --yes.
+    many = home / "Many"
+    for n in range(found["many"] + 1):
+        a_book(many / f"Book {n:02d}.epub", f"Many {n}")
+    found = answer(capsys, "to-kobo", str(many), "--json", computer=computer)
+    assert (found["saved"], found["too_many"], found["folder"]) == (False, found["many"] + 1, str(books))
+    found = answer(capsys, "to-kobo", str(many), "--yes", "--json", computer=computer)
+    assert (found["saved"], found["folder"]) == (True, str(many))
+    # A folder that is no folder is refused, also as JSON: the app shows what it says.
+    with pytest.raises(SystemExit, match="is not a folder"):
+        cli.main(["to-kobo", str(home / "nowhere"), "--json"], computer=computer)

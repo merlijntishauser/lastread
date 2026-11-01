@@ -1407,6 +1407,7 @@ def settings_page(
     checks: list | None = None,
     waiting: bool = False,
     open_advanced: bool = False,
+    ask: dict | None = None,
 ) -> HTMLResponse:
     me = accounts.get(con, me["name"])  # after a change: the row as it is now
     body = account_pages.settings(
@@ -1417,7 +1418,7 @@ def settings_page(
         accounts.devices(con, me["name"]),
         account_pages.flash(ok, err, detail),
         new_stats_token,
-        _this_computer() if local else None,
+        _this_computer(ask) if local else None,
         checks,
         {
             "kind": accounts.token_kind(con, me["name"]),
@@ -1698,10 +1699,14 @@ def settings_check(request: Request):
     return resp
 
 
-def _this_computer() -> dict:
+def _this_computer(ask: dict | None = None) -> dict:
+    """ask: a folder that waits for the reader's yes (too many books at once)."""
+    from ..engine import tokobo
+
     cfg = computer_config.load()
     return {
         "eject": cfg.eject_after_sync,
+        "tokobo": tokobo.summary(cfg.to_kobo, computer_config.state_dir()) | {"ask": ask, "many": tokobo.MANY},
         "kept_in": local.computer.secret_place(local_page.HARDCOVER),
         # Only the Mac app looks for a newer version (computer/update.py).
         "app": {"version": __version__, "check": cfg.check_for_updates, "newer": update.newer()} if local.computer.in_app else None,
@@ -1734,6 +1739,44 @@ def settings_eject(request: Request, eject: str = Form("0")):
     cfg.eject_after_sync = eject == "1"
     computer_config.save(cfg)
     return RedirectResponse("/settings?ok=" + ("eject_on" if cfg.eject_after_sync else "eject_off") + "#computer", status_code=303)
+
+
+@app.post("/settings/to-kobo")
+def settings_to_kobo(request: Request, folder: str = Form(""), yes: str = Form("0")):
+    """Local mode: the folder whose books go on the Kobo at plug-in (`to-kobo`,
+    P1). More than tokobo.MANY books at once are asked about first."""
+    from ..engine import tokobo
+
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    if not local:
+        return PlainTextResponse(T["not_in_server_mode"], status_code=404)
+    try:
+        chosen, _ = tokobo.choose(folder, local.computer.find_kobo(), computer_config.state_dir(), yes == "1")
+    except tokobo.Refused as ex:
+        if ex.key == "too_many":
+            return settings_page(
+                con, me, open_advanced=True, ask={"folder": os.path.abspath(os.path.expanduser(folder.strip())), "n": ex.n}
+            )
+        return settings_page(con, me, err="tokobo_" + ex.key, detail=str(ex), status=400, open_advanced=True)
+    cfg = computer_config.load()
+    cfg.to_kobo = chosen
+    computer_config.save(cfg)
+    return RedirectResponse("/settings?ok=tokobo_on#tokobo", status_code=303)
+
+
+@app.post("/settings/to-kobo/off")
+def settings_to_kobo_off(request: Request):
+    con, me, bad = guard(request)
+    if bad:
+        return bad
+    if not local:
+        return PlainTextResponse(T["not_in_server_mode"], status_code=404)
+    cfg = computer_config.load()
+    cfg.to_kobo = ""
+    computer_config.save(cfg)
+    return RedirectResponse("/settings?ok=tokobo_off#tokobo", status_code=303)
 
 
 @app.get("/settings/export")

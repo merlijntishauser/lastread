@@ -373,6 +373,7 @@ def settings(
         + f'</div><p class="hint">{e(T["s_stats_help"].format(name=me["name"]))}</p></section>'
     )
     if local is not None:
+        tokobo = _tokobo(local["tokobo"])
         on = local["eject"]
         computer = (
             f'<section class="card" id="computer"><h2>{T["s_computer"]}</h2>'
@@ -383,11 +384,51 @@ def settings(
         )
         return (
             f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}'
-            f"{advanced(T['s_advanced_what_local'], booklist + collection + download + computer, open_advanced)}{check_card(checks, True)}</main>"
+            f"{advanced(T['s_advanced_what_local'], booklist + collection + tokobo + download + computer, open_advanced)}{check_card(checks, True)}</main>"
         )
     return (
         f'<main class="cards"><h2 class="pagetitle">{T["settings_title"]}</h2>{msg}{you}{hardcover}'
         f"{advanced(T['s_advanced_what'], booklist + collection + devs + stats + download, open_advanced)}{check_card(checks, False)}</main>"
+    )
+
+
+def _tokobo(t: dict) -> str:
+    """Books from a folder of the reader's, put on the Kobo at plug-in (P1-P7):
+    which folder, how many wait, the ones refused, and the question when
+    a folder would put more than t["many"] books on the Kobo at once."""
+    folder = t["folder"]
+    if not folder:
+        state = line("none", T["s_tokobo_off"])
+    elif not t["there"]:
+        state = line("warn", T["s_tokobo_gone"].format(folder=folder))
+    else:
+        how = T["s_tokobo_as_kepub"] if t["kepubify"] else T["s_tokobo_as_epub"]
+        state = line("ok", T["s_tokobo_on"].format(folder=folder, how=how, n=t["waiting"], books=t["books"]))
+    refused = (
+        '<ul class="refused">' + "".join(f"<li><b>{e(r['name'])}</b>: {e(r['why'])}</li>" for r in t["refused"]) + "</ul>"
+        if t["refused"]
+        else ""
+    )
+    ask = ""
+    if t.get("ask"):
+        a = t["ask"]
+        ask = (
+            f'<div class="flash ask" role="alert">{line("warn", T["s_tokobo_ask"].format(n=a["n"], folder=a["folder"]))}'
+            f'<form method="post" action="/settings/to-kobo"><input type="hidden" name="folder" value="{e(a["folder"])}">'
+            f'<input type="hidden" name="yes" value="1"><button class="solid">{e(T["s_tokobo_yes"].format(n=a["n"]))}</button></form></div>'
+        )
+    stop = (
+        f'<div class="btnrow"><form method="post" action="/settings/to-kobo/off" data-confirm="{e(T["s_tokobo_stop_confirm"])}">'
+        f'<button class="danger">{T["s_tokobo_stop"]}</button></form></div>'
+        if folder
+        else ""
+    )
+    hint = T["s_tokobo_help"] + ("" if t["kepubify"] else " " + T["s_tokobo_kepubify"])
+    return (
+        f'<section class="card" id="tokobo"><h2>{T["s_tokobo"]}</h2>{state}{refused}{ask}{stop}'
+        f'<form method="post" action="/settings/to-kobo" class="field"><label for="tokobo-folder">{T["s_tokobo_folder"]}</label>'
+        f'<div class="inputs"><input type="text" id="tokobo-folder" name="folder" value="{e(folder)}" placeholder="{e(T["s_tokobo_placeholder"])}" spellcheck="false" required>'
+        f'<button>{T["save"]}</button></div><p class="hint">{e(hint)}</p></form></section>'
     )
 
 

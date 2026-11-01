@@ -41,6 +41,7 @@ struct CheckSamples {
             check("token.jsonl line \(n + 1)", line) { n == token.count - 1 ? $0.done?.user == "sam" : $0.code == "ABCD-EFGH" }
         }
         check("update.json", decode(UpdateAnswer.self, try text("update.json"))) { $0.newer && !$0.latest.isEmpty }
+        check("tokobo.json", decode(ToKoboAnswer.self, try text("tokobo.json"))) { $0.refused.first?.name == "Locked.epub" && $0.tooMany == 0 }
         let lines = try text("steps.jsonl").split(separator: "\n").map { decode(StepLine.self, String($0)) }
         for (n, line) in lines.enumerated() {
             check("steps.jsonl line \(n + 1)", line) { n == lines.count - 1 ? $0.done?.finished?.first?.title == "Blindness" : $0.step != nil }

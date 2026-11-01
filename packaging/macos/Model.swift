@@ -211,6 +211,25 @@ struct SettingsAnswer: Codable {
     let settings: Values
 }
 
+/// `to-kobo --json`: the folder whose books go on the Kobo at plug-in, and what the call did.
+struct ToKoboAnswer: Codable {
+    struct Refused: Codable {
+        let name: String
+        let why: String
+    }
+
+    let schema: Int
+    let folder: String  // "" = none
+    let there: Bool
+    let books: Int
+    let waiting: Int  // of them, the ones no Kobo has had yet
+    let refused: [Refused]
+    let kepubify: String  // the one that converts, "" = they go as EPUB
+    let saved: Bool  // this call changed the folder
+    let tooMany: Int  // the folder asked for was not taken: this many books at once; ask, then --yes
+    let many: Int
+}
+
 struct UpdateAnswer: Codable {
     let schema: Int
     let version: String

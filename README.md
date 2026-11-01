@@ -280,7 +280,9 @@ Without kepubify the books go as they are.
 
 Once you have read in such a book, it syncs like any other: Lastread finds
 it on Hardcover by the ISBN in the book's own file. `lastread to-kobo` says
-which folder and how many books wait; `--off` stops it. Calibre
+which folder and how many books wait; `--off` stops it. The folder can also
+be chosen in the Mac app's Settings (Advanced), or in local mode on the
+page, under Settings, Advanced. Calibre
 ([calibre-ebook.com](https://calibre-ebook.com)) does the same job and
 more, if you would rather use it.
 

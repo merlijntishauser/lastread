@@ -18,7 +18,7 @@ from lastread.computer import config, runner
 from lastread.engine import epub, kobo_db, tokobo
 from tests.test_computer import FakeComputer, register, server  # noqa: F401  (server: a fixture)
 from tests.test_epub import CONTAINER, ISBN, an_epub
-from tests.test_local import LOCAL, kobo
+from tests.test_local import LOCAL, ORIGIN, kobo, local  # noqa: F401  (local: a fixture)
 
 ENCRYPTION = """<?xml version="1.0"?>
 <encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -352,3 +352,50 @@ def test_the_real_kepubify(tmp_path):
         assert any(b"koboSpan" in z.read(n) for n in z.namelist() if n.endswith(".xhtml"))
     (tmp_path / "Bad.epub").write_bytes(b"not a zip")
     assert tokobo._kepub(REAL_KEPUBIFY(), str(tmp_path / "Bad.epub"), str(tmp_path)) == ""
+
+
+# ---------- choosing the folder on the page (local mode) ----------
+def test_the_page_chooses_the_folder_asks_before_many_and_shows_what_was_refused(local, home):  # noqa: F811
+    web, mac, inside = local
+    books = home / "Books"
+    a_book(books / "One.epub", "One")
+    a_book(books / "Adobe.epub", "Adobe", {"META-INF/rights.xml": "<rights/>"})
+    page = inside.get("/settings").text
+    assert 'id="tokobo"' in page and "No folder: nothing is put on the Kobo" in page
+
+    # A folder that is not one, and one on the Kobo, are refused next to the form.
+    r = inside.post("/settings/to-kobo", data={"folder": str(home / "nowhere")}, headers=ORIGIN)
+    assert r.status_code == 400 and "That is not a folder on this computer." in r.text and config.load().to_kobo == ""
+    kobo(home)
+    r = inside.post("/settings/to-kobo", data={"folder": mount(home)}, headers=ORIGIN)
+    assert r.status_code == 400 and "That folder is on the Kobo itself." in r.text
+
+    r = inside.post("/settings/to-kobo", data={"folder": str(books)}, headers=ORIGIN, follow_redirects=False)
+    assert r.headers["location"] == "/settings?ok=tokobo_on#tokobo" and config.load().to_kobo == str(books)
+    page = inside.get("/settings?ok=tokobo_on").text
+    assert f"Books in {books} go on the Kobo at plug-in, as EPUB; 2 of 2 wait for a Kobo" in page
+    assert "With kepubify installed" in page
+
+    # After a plug-in: what went is no longer waiting, and the one with DRM is listed with why.
+    runner.sync(mac, replace(LOCAL, to_kobo=str(books)))
+    page = inside.get("/settings").text
+    assert "0 of 2 wait for a Kobo" in page and "<b>Adobe.epub</b>: it has Adobe DRM; open it with Adobe Digital Editions" in page
+
+    # A folder with many books not on a Kobo yet: asked first, with the number; nothing kept until yes.
+    many = home / "Many"
+    for n in range(tokobo.MANY + 1):
+        a_book(many / f"Book {n:02d}.epub", f"Many {n}")
+    r = inside.post("/settings/to-kobo", data={"folder": str(many)}, headers=ORIGIN)
+    assert r.status_code == 200 and f"{tokobo.MANY + 1} books in {many} would go on the Kobo" in r.text
+    assert f"Put all {tokobo.MANY + 1} on the Kobo" in r.text and config.load().to_kobo == str(books)
+    inside.post("/settings/to-kobo", data={"folder": str(many), "yes": "1"}, headers=ORIGIN)
+    assert config.load().to_kobo == str(many)
+
+    r = inside.post("/settings/to-kobo/off", headers=ORIGIN, follow_redirects=False)
+    assert r.headers["location"] == "/settings?ok=tokobo_off#tokobo" and config.load().to_kobo == ""
+
+
+def test_the_server_page_has_no_folder(home, server):  # noqa: F811
+    """The folder is the computer's: on a server's page there is nothing to choose."""
+    assert 'id="tokobo"' not in server.page.get("/settings").text
+    assert server.page.post("/settings/to-kobo", data={"folder": "/tmp"}).status_code == 404

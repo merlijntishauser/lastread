@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "folder": "/Users/sam/Books/To Kobo",
+  "there": true,
+  "books": 12,
+  "waiting": 2,
+  "refused": [
+    {"name": "Locked.epub", "why": "it has Adobe DRM; open it with Adobe Digital Editions"}
+  ],
+  "kepubify": "/opt/homebrew/bin/kepubify",
+  "saved": false,
+  "too_many": 0,
+  "many": 20
+}

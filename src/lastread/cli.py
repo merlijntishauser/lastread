@@ -91,13 +91,15 @@ lastread webhook [URL [--token]] [--test] [--remove]
     in the Keychain. A test is sent first; nothing is stored unless it
     gets a 2xx answer. Without arguments: where it goes now.
 
-lastread to-kobo [FOLDER [--yes]] [--off]
+lastread to-kobo [FOLDER [--yes]] [--off] [--json]
     At every plug-in, put the EPUBs in FOLDER on the Kobo, in a folder
     Lastread there: each book once per Kobo, never one with DRM, never
     over another file. A book you delete on the Kobo stays deleted.
     More than 20 books that no Kobo has yet are only taken with --yes.
     --off stops it; the books on the Kobo stay. Without arguments: which
-    folder, and how many of its books wait for a Kobo.
+    folder, how many of its books wait for a Kobo, and the ones refused.
+    --json for the Mac app: then too many books is an answer
+    ("too_many"), not a refusal.
 
 lastread uninstall [--purge]
     Remove the trigger; --purge also the state and the tokens.
@@ -268,6 +270,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tko.add_argument("folder", nargs="?", default="", help="the folder with the EPUBs")
     tko.add_argument("--yes", action="store_true", help=f"also when more than {tokobo.MANY} books go to the Kobo at once")
     tko.add_argument("--off", action="store_true", help="stop putting books on the Kobo (the ones there stay)")
+    tko.add_argument("--json", action="store_true", help="as JSON, for the Mac app; too many books are answered, not refused")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -1227,44 +1230,46 @@ def _to_kobo(a, computer) -> None:
     cfg = config.load()
     if not cfg.mode:
         sys.exit("lastread: not set up yet: run setup first.")
+    saved, too_many, n = False, 0, 0
     if a.off:
-        cfg.to_kobo = ""
+        cfg.to_kobo, saved = "", True
         config.save(cfg)
-        _one(OK, "No books are put on the Kobo any more. The ones on it stay.")
-        return
-    if not a.folder:
-        if not cfg.to_kobo:
-            _one(NOTE, "No folder: nothing is put on the Kobo.", "`lastread to-kobo FOLDER` sets one.")
-        elif not os.path.isdir(cfg.to_kobo):
-            _one(WARN, f"Books in {cfg.to_kobo} go on the Kobo at plug-in, but the folder is not there.")
+    elif a.folder:
+        try:
+            folder, n = tokobo.choose(a.folder, computer.find_kobo(), config.state_dir(), a.yes)
+        except tokobo.Refused as ex:
+            if not (a.json and ex.key == "too_many"):
+                more = " If that is what you want, run this again with --yes." if ex.key == "too_many" else ""
+                sys.exit(f"lastread: {ex}{more} Nothing was changed.")
+            too_many = ex.n  # the app asks, then comes again with --yes
         else:
-            n = len(tokobo.waiting(cfg.to_kobo, "", config.state_dir()))
-            _one(
-                OK,
-                f"Books in {cfg.to_kobo} go on the Kobo at plug-in, {_as_kepub()}; "
-                f"{plural(n, 'book')} {'waits' if n == 1 else 'wait'} for a Kobo.",
-                "" if tokobo.find_kepubify() else _KEPUBIFY_HOW,
-            )
-        return
-    folder = os.path.abspath(os.path.expanduser(a.folder))
-    if not os.path.isdir(folder):
-        sys.exit(f"lastread: {folder} is not a folder.")
-    mount = computer.find_kobo()
-    if mount and tokobo.inside(folder, mount):
-        sys.exit(f"lastread: {folder} is on the Kobo itself; choose a folder on this computer.")
-    n = len(tokobo.waiting(folder, "", config.state_dir()))
-    if n > tokobo.MANY and not a.yes:
-        sys.exit(
-            f"lastread: {plural(n, 'book')} in {folder} would go on the Kobo at the next plug-in. "
-            "If that is what you want, run this again with --yes. Nothing was changed."
+            cfg.to_kobo, saved = folder, True
+            config.save(cfg)
+    if a.json:  # for the Mac app: the folder as it is now, and what this call did
+        return _json(tokobo.summary(cfg.to_kobo, config.state_dir()) | {"saved": saved, "too_many": too_many, "many": tokobo.MANY})
+    how = "" if tokobo.find_kepubify() else _KEPUBIFY_HOW
+    if a.off:
+        _one(OK, "No books are put on the Kobo any more. The ones on it stay.")
+    elif a.folder:
+        _one(
+            OK,
+            f"At every plug-in, the books in {cfg.to_kobo} go on the Kobo, in its folder {tokobo.FOLDER}, {_as_kepub()}; {plural(n, 'book')} now.",
+            how,
         )
-    cfg.to_kobo = folder
-    config.save(cfg)
-    _one(
-        OK,
-        f"At every plug-in, the books in {folder} go on the Kobo, in its folder {tokobo.FOLDER}, {_as_kepub()}; {plural(n, 'book')} now.",
-        "" if tokobo.find_kepubify() else _KEPUBIFY_HOW,
-    )
+    elif not cfg.to_kobo:
+        _one(NOTE, "No folder: nothing is put on the Kobo.", "`lastread to-kobo FOLDER` sets one.")
+    elif not os.path.isdir(cfg.to_kobo):
+        _one(WARN, f"Books in {cfg.to_kobo} go on the Kobo at plug-in, but the folder is not there.")
+    else:
+        found = tokobo.summary(cfg.to_kobo, config.state_dir())
+        n = found["waiting"]
+        _one(
+            OK,
+            f"Books in {cfg.to_kobo} go on the Kobo at plug-in, {_as_kepub()}; {plural(n, 'book')} {'waits' if n == 1 else 'wait'} for a Kobo.",
+            how,
+        )
+        for r in found["refused"]:
+            _one(WARN, f"{r['name']} is not put on the Kobo: {r['why']}.")
 
 
 _KEPUBIFY_HOW = (
