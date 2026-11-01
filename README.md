@@ -281,9 +281,10 @@ your computer; your own file stays as it is.
 
 Once you have read in such a book, it syncs like any other: Lastread finds
 it on Hardcover by the ISBN in the book's own file. `lastread to-kobo` says
-which folder and how many books wait; `--off` stops it. The folder can also
-be chosen in the Mac app's Settings (Advanced), or in local mode on the
-page, under Settings, Advanced. Calibre
+which folder and how many books wait; `--off` stops it. In the Mac app,
+*EPUB Folder* in the sidebar chooses the folder and lists its books, each
+with where it is with the Kobo and its Hardcover status; in local mode the
+page can choose it too, under Settings, Advanced. Calibre
 ([calibre-ebook.com](https://calibre-ebook.com)) does the same job and
 more, if you would rather use it.
 

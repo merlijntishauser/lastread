@@ -7,7 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- **EPUB Folder in the Mac app.** The folder whose books go on the Kobo
+  has its own place in the sidebar: each book in it, by its title and
+  author, with whether it is on the Kobo (and since when, as kepub or
+  EPUB), refused for DRM, or waiting for the next plug-in, and its
+  Hardcover status once a sync has read it from the Kobo. A double-click
+  shows the book in Books. The folder is chosen there, in a panel that can
+  make a new folder, and gets a Finder icon with the caret.
+- `lastread to-kobo --json` lists each book of the folder (`list`).
+
+### Changed
+
+- The folder is no longer chosen in the Mac app's Settings, but in
+  *EPUB Folder*.
 
 ## 0.21.0 - 2026-11-01
 

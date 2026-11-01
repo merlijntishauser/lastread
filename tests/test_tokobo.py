@@ -245,7 +245,7 @@ def test_choosing_the_folder(plugged, home, capsys):
     assert f"No books put on the Kobo: {home / 'gone'} is not there." in out.message
 
 
-def test_the_books_are_matched_after_the_next_plug_in(plugged, home):
+def test_the_books_are_matched_after_the_next_plug_in(plugged, home, capsys):
     """The point of it: put on the Kobo, read, and found on Hardcover by its ISBN (M10)."""
     mac, books, cfg, db = plugged
     a_book(books / "One.epub", "One")
@@ -263,6 +263,36 @@ def test_the_books_are_matched_after_the_next_plug_in(plugged, home):
     assert kobo_db.fill_isbns(copy, mount(home)) == 1
     isbns = {b.content_id: b.isbn for b in kobo_db.read_books(kobo_db.open_db(copy, allow_user_table=True))}
     assert isbns[f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] == ISBN
+    # The folder's list knows it by the id the Books list has for it: the app joins the two for its Hardcover status.
+    runner.sync(mac, cfg)
+    config.save(cfg)
+    cli.main(["books", "--json"], computer=mac)
+    ids = {b["id"] for b in json.loads(capsys.readouterr().out)["books"]}
+    (one,) = tokobo.books(str(books), config.state_dir())
+    assert one["ids"] == [f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] and set(one["ids"]) <= ids
+
+
+def test_the_list_says_of_each_book_where_it_is_with_the_kobo(plugged, home):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    a_book(books / "Locked.epub", "Locked", {"META-INF/rights.xml": "<rights/>"})
+    a_book(books / "Mine.epub", "Mine")
+    shutil.copyfile(books / "Mine.epub", os.path.join(mount(home), "Mine.epub"))  # put there by hand before
+    runner.sync(mac, cfg)
+    a_book(books / "Later" / "Two.epub", "Two")
+    found = {b["name"]: b for b in tokobo.books(str(books), config.state_dir())}
+    assert list(found) == ["Locked.epub", "Mine.epub", "One.epub", os.path.join("Later", "Two.epub")]
+    one = found["One.epub"]
+    assert (one["title"], one["isbn"], one["kobo"], one["format"], one["why"]) == ("One", ISBN, "on", "epub", "")
+    assert one["ids"] == [f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] and one["at"].endswith("Z")
+    assert found["Mine.epub"]["kobo"] == "on" and found["Mine.epub"]["ids"] == ["file:///mnt/onboard/Mine.epub"]
+    locked = found["Locked.epub"]
+    assert (locked["kobo"], locked["ids"], locked["why"]) == ("refused", [], "it has Adobe DRM; open it with Adobe Digital Editions")
+    assert (found[os.path.join("Later", "Two.epub")]["kobo"], found[os.path.join("Later", "Two.epub")]["at"]) == ("waiting", "")
+    # What the book says of itself is kept with its hash: not read again while the file is the same.
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr(epub, "about", lambda path: pytest.fail(f"read again: {path}"))
+        assert [b["title"] for b in tokobo.summary(str(books), config.state_dir())["list"]] == ["Locked", "Mine", "One", "Two"]
 
 
 def test_a_plain_epub_goes_as_kepub_when_kepubify_is_installed(plugged, home, monkeypatch):

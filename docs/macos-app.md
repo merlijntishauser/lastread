@@ -146,7 +146,7 @@ started in three ways:
   open (*Sync now*, or the Kobo plugged in), that second line says what
   it did instead, with its mark, on every pane, until the next sync or
   check. Beside it a sidebar: *Overview*,
-  *Books* and *History*. The window's toolbar is AppKit's own, not the
+  *Books*, *Covers*, *History* and *EPUB Folder*. The window's toolbar is AppKit's own, not the
   one SwiftUI gives a `NavigationSplitView`: the sidebar button at the
   content's leading edge (`isNavigational`) and a tracking separator at
   the sidebar's edge, added once the split view exists. SwiftUI's button
@@ -265,6 +265,24 @@ started in three ways:
   updates, searchable. It is written for the reader; this document is how
   the app is built. VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
+- **EPUB Folder** (`Folder.swift`) is the folder whose books go on the
+  Kobo at every plug-in (`to-kobo`, rules P1-P7), in both modes: the
+  folder is this Mac's, and this Mac copies. Without one, what it does and
+  *Choose a Folder…* (an open panel with *New Folder*). With one, its
+  name, where it is and how many books wait, with *Show in Finder*,
+  *Choose Another…* and *Stop…*; under it each book of the folder
+  (`list` in `to-kobo --json`: its title and author from the EPUB, the
+  file, and whether it is on a Kobo, refused or waiting) with its
+  Hardcover status, from Books, once a sync has read it from the Kobo:
+  the two are joined on the Kobo's ContentID (`ids`). A double-click shows
+  that book in Books, or the file in the Finder. More than 20 books at
+  once is asked about first (`--yes`). The chosen folder gets a Finder
+  icon: the system's folder with the icon's caret on it
+  (`NSWorkspace.setIcon`), drawn at run time so that it is this macOS's
+  folder; never over an icon of the reader's own (an `Icon\r` file
+  there), and taken off again, only the one the app put there, when the
+  folder is changed or stopped. A folder chosen in a terminal or on the
+  page gets it the next time the window looks. The preview does neither.
 - **Settings (⌘-,),** two tabs, each change through the tool. *General*,
   the few most readers touch: in local mode the Hardcover connection and
   *Send to Hardcover* (in server mode a line that these are on the

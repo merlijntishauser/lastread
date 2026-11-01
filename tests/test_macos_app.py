@@ -289,6 +289,9 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
         '"setup", "--local"',
         '"setup", "--server"',
         '"open"',
+        '["to-kobo"] + args + ["--json"]',
+        '[folder, "--yes"]',
+        '["--off"]',
     ):
         assert args in swift, args
 

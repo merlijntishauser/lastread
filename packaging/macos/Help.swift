@@ -85,10 +85,17 @@ let helpTopics: [HelpTopic] = [
         .say("The last syncs on this Mac, newest first: when, what started it, and what it said. The last hundred are kept, without book titles."),
         .term("Show the Log", "Opens agent.log in Console: what each sync did, in counts and messages."),
     ]),
+    HelpTopic(id: Pane.folder.rawValue, symbol: Pane.folder.symbol, lines: [
+        .say("A folder of yours for EPUBs from other shops, without DRM, or free ones. At every plug-in, the books in it that the Kobo has not had yet are copied to its folder Lastread, as kepub. In the Finder the folder has the caret on it."),
+        .say("The list has each book of the folder: whether it is on the Kobo, and once a sync has read it from the Kobo, its Hardcover status as Books has it. Double-click a book to see it in Books."),
+        .term("Once per Kobo", "A book goes on each Kobo once. One you delete on the Kobo stays deleted; one you take out of the folder stays on the Kobo."),
+        .term("DRM", "A book with DRM is not copied, and the list says why. Nothing is ever decrypted."),
+        .term("Stop", "No more books from the folder go on the Kobo. The ones on it stay."),
+    ]),
     HelpTopic(id: "Keys", symbol: "keyboard", lines: [
         .key("⌘R", "Sync now"),
         .key("⇧⌘R", "Check again"),
-        .key("⌘1 to ⌘4", "Overview, Books, Covers, History"),
+        .key("⌘1 to ⌘5", "Overview, Books, Covers, History, EPUB Folder"),
         .key("⌃⌘S", "Show or hide the sidebar"),
         .key("⌃⌘F", "Full screen"),
         .key("⌘,", "Settings"),

@@ -15,7 +15,11 @@ read `to-kobo --json` / `tokobo.summary` and choose through
 `tokobo.choose`; the question before more than 20 books is a blue
 (question) flash on the page and an alert in the app. Then kepubify
 bundled: in the Mac app (`Contents/Resources/bin`, looked at first) and
-as a dependency of the Homebrew formula. It follows rule M10
+as a dependency of the Homebrew formula. After 0.21.0 the Mac app moved the folder out of Settings into a pane of
+its own, *EPUB Folder*: each book of the folder (`tokobo.books`, `list`
+in `to-kobo --json`) with its Kobo state and, joined on the Kobo's
+ContentID, its Hardcover status from Books; *New Folder* in the open
+panel; and a Finder icon with the caret on the chosen folder. It follows rule M10
 (`7b2c568`): a sideloaded book is matched on Hardcover by the ISBN in its
 own EPUB. This is the other half: getting the book onto the Kobo.
 

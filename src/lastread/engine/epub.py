@@ -1,6 +1,7 @@
 """The ISBN an EPUB file names for itself. For books put on the Kobo by
 hand: the Kobo's database often has no ISBN for them, and an ISBN is the
-surest way to the book on Hardcover (rule M10).
+surest way to the book on Hardcover (rule M10). Its title and author
+too, for the books of the folder that goes on the Kobo (tokobo).
 
 The file is the reader's, from anywhere, so it is read with care: only
 the package document (the OPF, a few kB), never more than MOST bytes of
@@ -21,24 +22,34 @@ def isbn(path: str) -> str:
     """The book's ISBN-13, or "" when the file is not an EPUB, names none,
     or names only numbers that are not ISBNs (a Calibre id, an ASIN, a
     UUID). One marked as an ISBN goes before one that only looks like it."""
+    return about(path)["isbn"]
+
+
+def about(path: str) -> dict:
+    """What the book says of itself: its title, its first author and its
+    ISBN (as isbn() finds it); "" for each the file does not say."""
+    found = {"title": "", "author": "", "isbn": ""}
     try:
         with zipfile.ZipFile(path) as z:
             opf = _rootfile(z)
             root = ET.fromstring(_read(z, opf)) if opf else None
     except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError):
-        return ""
+        return found
     if root is None:
-        return ""
+        return found
     marked, unmarked = [], []
     for el in root.iter():
-        if _local(el.tag) != "identifier":
+        tag, text = _local(el.tag), " ".join((el.text or "").split())
+        if tag in ("title", "creator") and text and not found["title" if tag == "title" else "author"]:
+            found["title" if tag == "title" else "author"] = text
+        if tag != "identifier":
             continue
-        text = (el.text or "").strip()
         said = "isbn" in text.lower() or any(_local(k) == "scheme" and v.strip().lower() == "isbn" for k, v in el.attrib.items())
-        found = isbn13(text.rsplit(":", 1)[-1] if said else text, marked=said)
-        if found:
-            (marked if said else unmarked).append(found)
-    return (marked + unmarked + [""])[0]
+        isbn = isbn13(text.rsplit(":", 1)[-1] if said else text, marked=said)
+        if isbn:
+            (marked if said else unmarked).append(isbn)
+    found["isbn"] = (marked + unmarked + [""])[0]
+    return found
 
 
 def isbn13(text: str, marked: bool = False) -> str:

@@ -218,12 +218,28 @@ struct ToKoboAnswer: Codable {
         let why: String
     }
 
+    /// A book of the folder (tokobo.books).
+    struct Book: Codable, Identifiable {
+        let name: String  // in the folder, with the folder it is in
+        let title: String  // as the book says it; "" when it does not
+        let author: String
+        let isbn: String
+        let kobo: String  // "on" a Kobo, "refused", "waiting" for the next plug-in
+        let why: String  // refused: why
+        let at: String  // on a Kobo: since when, ISO 8601
+        let format: String  // on a Kobo: "kepub" or "epub"
+        let ids: [String]  // the Kobo's ids for it: the ids of `books --json`
+
+        var id: String { name }
+    }
+
     let schema: Int
     let folder: String  // "" = none
     let there: Bool
     let books: Int
     let waiting: Int  // of them, the ones no Kobo has had yet
     let refused: [Refused]
+    let list: [Book]
     let kepubify: String  // the one that converts, "" = they go as EPUB
     let saved: Bool  // this call changed the folder
     let tooMany: Int  // the folder asked for was not taken: this many books at once; ask, then --yes

@@ -1,8 +1,8 @@
 // The app's window (docs/plans/2026-10-24-mac-app-native-books-design.md):
 // one line that answers "is it ready", above a sidebar of Overview (the
-// chain, Chain.swift), Books and History. Everything comes from the tool,
-// as JSON (Model.swift); what only macOS knows (whether notifications are
-// on) is added here.
+// chain, Chain.swift), Books, Covers, History and EPUB Folder
+// (Folder.swift). Everything comes from the tool, as JSON (Model.swift);
+// what only macOS knows (whether notifications are on) is added here.
 
 import AppKit
 import ServiceManagement
@@ -52,6 +52,8 @@ final class WindowModel: ObservableObject {
         }
     }
     @Published var booksBroken: String?
+    @Published var folder: ToKoboAnswer?  // the folder whose books go on the Kobo, from `to-kobo --json` (Folder.swift)
+    @Published var folderBroken: String?
     @Published var search = ""
     @Published var filter = UserDefaults.standard.string(forKey: "BooksShow") ?? "all" {  // Show: remembered, apart from Covers'
         didSet { UserDefaults.standard.set(filter, forKey: "BooksShow") }
@@ -98,6 +100,7 @@ final class WindowModel: ObservableObject {
                     self.broken = nil
                     self.elsewhere = found.syncing ?? ""
                     self.loadBooks()
+                    self.loadFolder()
                 case .failure(let why):
                     self.broken = why.said
                 }
@@ -311,7 +314,7 @@ func answer<T: Codable>(_ type: T.Type, _ args: [String]) -> Result<T, NoAnswer>
 // ---------- the window ----------
 /// What the sidebar holds.
 enum Pane: String, CaseIterable, Identifiable {
-    case overview = "Overview", books = "Books", covers = "Covers", history = "History"
+    case overview = "Overview", books = "Books", covers = "Covers", history = "History", folder = "EPUB Folder"
 
     var id: String { rawValue }
     var symbol: String {
@@ -320,6 +323,7 @@ enum Pane: String, CaseIterable, Identifiable {
         case .books: return "books.vertical"
         case .covers: return "rectangle.stack"
         case .history: return "clock"
+        case .folder: return "folder"
         }
     }
 }
@@ -354,6 +358,7 @@ struct MainView: View {
                     case .history: HistorySection(model: model)
                     case .books: BooksPane(model: model)
                     case .covers: CoversPane(model: model)
+                    case .folder: FolderPane(model: model)
                     }
                 }
             }

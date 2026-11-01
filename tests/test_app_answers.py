@@ -506,6 +506,7 @@ def test_to_kobo_answers_the_shape_the_app_reads_and_asks_before_many(home, caps
     found = answer(capsys, "to-kobo", "--json", computer=computer)
     same_shape(found, sample("tokobo.json"))
     assert found["waiting"] == 0 and [r["name"] for r in found["refused"]] == ["Locked.epub"]
+    assert {b["name"]: b["kobo"] for b in found["list"]} == {"Locked.epub": "refused", "One.epub": "on"}
 
     # Too many at once: an answer for the app to ask about, and nothing changed until --yes.
     many = home / "Many"

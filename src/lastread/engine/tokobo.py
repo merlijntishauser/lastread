@@ -37,6 +37,9 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from . import epub
+from .kobo_db import ONBOARD
+
 log = logging.getLogger(__name__)
 
 FOLDER = "Lastread"  # on the Kobo's own storage
@@ -133,22 +136,45 @@ def choose(folder: str, mount: str | None, state_dir: str, yes: bool = False) ->
 def summary(folder: str, state_dir: str) -> dict:
     """What the page and the app show about the folder: whether it is
     there, how many books it holds and how many wait for a Kobo, the ones
-    that were refused (still in the folder) and why, and the kepubify that
-    converts them ("" for none)."""
-    out = {"folder": folder, "there": bool(folder) and os.path.isdir(folder), "books": 0, "waiting": 0, "refused": []}
+    that were refused (still in the folder) and why, the kepubify that
+    converts them ("" for none), and each book (books())."""
+    out = {"folder": folder, "there": bool(folder) and os.path.isdir(folder), "books": 0, "waiting": 0, "refused": [], "list": []}
     out["kepubify"] = find_kepubify()
     if not out["there"]:
         return out
+    out["list"] = books(folder, state_dir)
+    out["books"] = len(out["list"])
+    out["waiting"] = sum(1 for b in out["list"] if b["kobo"] == "waiting")
+    out["refused"] = [{"name": os.path.basename(b["name"]), "why": b["why"]} for b in out["list"] if b["kobo"] == "refused"]
+    return out
+
+
+def books(folder: str, state_dir: str) -> list[dict]:
+    """Each book of the folder: its name there (with the folder it is in),
+    what it says of itself (epub.about), and where it is with the Kobos:
+    "on" one, "refused" (why says why), or "waiting" for the next plug-in.
+    For one on a Kobo, when it went (at), its format (kepub or EPUB), and the
+    ids the Kobo knows it by (its ContentID: the id of `books --json`)."""
     remembered = _remembered(state_dir)
-    books = books_in(folder)
-    hashes = {p: _hash(remembered, p) for p in books}
+    out = []
+    for path in books_in(folder):
+        sha = _hash(remembered, path)
+        on = [kobo[sha] for kobo in remembered["kobos"].values() if sha in kobo]
+        put = sorted((v for v in on if not v.get("refused")), key=lambda v: v.get("at", ""))
+        refused = next((v["refused"] for v in on if v.get("refused")), "")
+        name = put[0]["name"] if put else os.path.basename(path)
+        out.append(
+            {
+                "name": os.path.relpath(path, folder),
+                **_about(remembered, path),
+                "kobo": "on" if put else "refused" if refused else "waiting",
+                "why": "" if put else refused,
+                "at": put[0].get("at", "") if put else "",
+                "format": ("kepub" if name.lower().endswith(KEPUB) else "epub") if put else "",
+                "ids": sorted({ONBOARD + _where(v) for v in put if _where(v)}),
+            }
+        )
     _keep(state_dir, remembered)
-    given = {sha: v for kobo in remembered["kobos"].values() for sha, v in kobo.items()}
-    out["books"] = len(books)
-    out["waiting"] = sum(1 for p in books if hashes[p] not in given)
-    out["refused"] = [
-        {"name": os.path.basename(p), "why": given[hashes[p]]["refused"]} for p in books if given.get(hashes[p], {}).get("refused")
-    ]
     return out
 
 
@@ -198,8 +224,9 @@ def put(folder: str, mount: str, device: str, state_dir: str, kepubify: str | No
 def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: dict, remembered: dict, state_dir: str) -> None:
     for n, (path, sha) in enumerate(todo):
         name, size = os.path.basename(path), os.path.getsize(path)
-        if (name.lower(), size) in there and _same(path, sha, there[name.lower(), size]):
-            done[sha] = {"name": name, "at": _now(), "found": True}  # already on the Kobo: by hand, or a copy not remembered
+        if (name.lower(), size) in there and (same := _same(path, sha, there[name.lower(), size])):
+            # Already on the Kobo: by hand, or a copy not remembered.
+            done[sha] = {"name": name, "at": _now(), "found": True, "path": os.path.relpath(same, mount).replace(os.sep, "/")}
             _keep(state_dir, remembered)
             continue
         if why := drm(path):
@@ -293,8 +320,9 @@ def _on_the_kobo(mount: str) -> dict[tuple[str, int], list[str]]:
     return found
 
 
-def _same(path: str, sha: str, candidates: list[str]) -> bool:
-    return any(_sha256(c) == sha for c in candidates)
+def _same(path: str, sha: str, candidates: list[str]) -> str:
+    """The one of candidates that is this book, "" for none."""
+    return next((c for c in candidates if _sha256(c) == sha), "")
 
 
 def _hash(remembered: dict, path: str) -> str:
@@ -307,6 +335,20 @@ def _hash(remembered: dict, path: str) -> str:
     sha = _sha256(path)
     remembered["files"][path] = [*key, sha]
     return sha
+
+
+def _where(given: dict) -> str:
+    """Where on the Kobo a book went, from its root; "" for one that was
+    found there before this was remembered."""
+    return given.get("path") or ("" if given.get("found") else f"{FOLDER}/{given['name']}")
+
+
+def _about(remembered: dict, path: str) -> dict:
+    """epub.about, kept with the file's hash (after _hash) until it changes."""
+    kept = remembered["files"][path]
+    if len(kept) < 4:
+        kept[3:] = [epub.about(path)]
+    return kept[3]
 
 
 def _sha256(path: str) -> str:

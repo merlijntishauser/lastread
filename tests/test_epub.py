@@ -16,8 +16,8 @@ ISBN = "9780306406157"  # a valid ISBN-13; its ISBN-10 is 0306406152
 OPF = """<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" xmlns:opf="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:title>A Sideloaded Book</dc:title>
     {}
+    <dc:title>A Sideloaded Book</dc:title>
   </metadata>
 </package>"""
 CONTAINER = """<?xml version="1.0"?>
@@ -122,3 +122,15 @@ def test_a_waiting_book_is_looked_up_again_when_its_isbn_arrives(tmp_path):
     state.import_books(st, "alice", "kobo1", kobo_db.read_books(kobo_db.open_db(str(tmp_path / "k2.sqlite"))))
     run(tmp_path, fake, live=False)
     assert (row(st, side[0])["hc_how"], row(st, side[0])["hc_book_id"]) == ("manual", 99)
+
+
+def test_an_epub_names_its_title_and_first_author(tmp_path):
+    book = an_epub(
+        tmp_path / "b.epub",
+        f"<dc:identifier>urn:isbn:{ISBN}</dc:identifier>",
+        "<dc:creator opf:role='aut'>Ursula K.\n      Le Guin</dc:creator>",
+        "<dc:creator>Someone Else</dc:creator>",
+    )
+    assert epub.about(book) == {"title": "A Sideloaded Book", "author": "Ursula K. Le Guin", "isbn": ISBN}
+    (tmp_path / "not.epub").write_bytes(b"not a zip")
+    assert epub.about(str(tmp_path / "not.epub")) == {"title": "", "author": "", "isbn": ""}

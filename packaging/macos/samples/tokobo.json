@@ -2,10 +2,45 @@
   "schema": 1,
   "folder": "/Users/sam/Books/To Kobo",
   "there": true,
-  "books": 12,
-  "waiting": 2,
+  "books": 3,
+  "waiting": 1,
   "refused": [
     {"name": "Locked.epub", "why": "it has Adobe DRM; open it with Adobe Digital Editions"}
+  ],
+  "list": [
+    {
+      "name": "Sci-fi/The Dispossessed.epub",
+      "title": "The Dispossessed",
+      "author": "Ursula K. Le Guin",
+      "isbn": "9780061054884",
+      "kobo": "on",
+      "why": "",
+      "at": "2026-11-01T09:12:44Z",
+      "format": "kepub",
+      "ids": ["file:///mnt/onboard/Lastread/The Dispossessed.kepub.epub"]
+    },
+    {
+      "name": "Locked.epub",
+      "title": "Een Boek",
+      "author": "",
+      "isbn": "",
+      "kobo": "refused",
+      "why": "it has Adobe DRM; open it with Adobe Digital Editions",
+      "at": "",
+      "format": "",
+      "ids": []
+    },
+    {
+      "name": "Piranesi.epub",
+      "title": "Piranesi",
+      "author": "Susanna Clarke",
+      "isbn": "9781526622426",
+      "kobo": "waiting",
+      "why": "",
+      "at": "",
+      "format": "",
+      "ids": []
+    }
   ],
   "kepubify": "/opt/homebrew/bin/kepubify",
   "saved": false,
