@@ -24,6 +24,7 @@ from lastread.computer.platform import UPLOAD, Computer
 from lastread.engine import collection, kobo_db
 from tests import said
 from tests.kobo_fixture import BOOKS, make
+from tests.test_epub import ISBN, an_epub
 
 SAM = {"Remote-User": "sam"}
 COLLECTION = "On Hardcover"
@@ -195,6 +196,7 @@ def test_the_upload_holds_only_what_the_server_reads(tmp_path):
 # ---------- a sync, start to finish ----------
 def test_plug_in_upload_then_collection_then_nothing(home, server):
     db = plug_in(home)
+    an_epub(home / "Volumes" / "KOBOeReader" / "A Sideloaded Book.epub", f"<dc:identifier>urn:isbn:{ISBN}</dc:identifier>")
     mac = FakeComputer(home / "Volumes")
     register(server, mac)
     cfg = config.Config(server=server.url)
@@ -207,6 +209,7 @@ def test_plug_in_upload_then_collection_then_nothing(home, server):
     with gzip.open(snapshots(server)[0]) as fh:
         arrived = fh.read()
     assert b"SECRET" not in arrived and b"PRIVATE" not in arrived and len(arrived) < 40_000
+    assert ISBN.encode() in arrived  # the sideloaded book's, read from its own file (M10)
     assert members(db) == set()  # no collection name on the server yet: nothing written
     assert os.listdir(home / "scratch") == []  # the copy of the Kobo's database is gone
 

@@ -44,6 +44,11 @@ Rakuten Kobo or Hardcover.
 It does not sync highlights, notes or ratings, and it does not manage
 books: it works with whatever is on the Kobo.
 
+Bought elsewhere? Put DRM-free books on the Kobo with
+[Calibre](https://calibre-ebook.com) (as kepub) and Lastread syncs them
+too. It finds them on Hardcover by the ISBN in the book's own file when
+the Kobo keeps none.
+
 Every rule it follows is written down, each with the test that holds it:
 [docs/sync-rules.md](docs/sync-rules.md).
 

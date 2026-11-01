@@ -23,6 +23,7 @@ from lastread.server import accounts
 from tests import client_at, said
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, FakeMac, members, plug_in
+from tests.test_epub import ISBN, an_epub
 from tests.test_hardcover import FakeHC
 
 VERSION = "N36XXXXXXXX,4.9.77,6.0.274403,4.9.77,4.9.77,00000000-0000-0000-0000-000000000393\n"
@@ -155,6 +156,20 @@ def test_a_book_marked_read_gets_a_notification_of_its_own_with_its_cover(home, 
     cli.main(["sync", "--trigger", "app", "--steps"], computer=mac)
     done = json.loads(capsys.readouterr().out.splitlines()[-1])["done"]
     assert done["finished"] == live.finished
+
+
+def test_a_book_put_on_the_kobo_by_hand_is_found_by_the_isbn_in_its_file(home):
+    kobo(home)
+    an_epub(home / "Volumes" / "KOBOeReader" / "A Sideloaded Book.epub", f"<dc:identifier>urn:isbn:{ISBN}</dc:identifier>")
+    mac = FakeComputer(home / "Volumes")
+    hc = FakeHC(isbn={ISBN: {"id": 7, "book_id": 70, "isbn_13": ISBN, "pages": 250, "title": "A Sideloaded Book"}})
+    runner.sync(mac, LOCAL)
+    mac.set_secret(HARDCOVER, TOKEN)
+    con = st(home)
+    state.set_mode(con, "me", ["file:///mnt/onboard/A Sideloaded Book.epub"], "on")
+    runner.sync(mac, LOCAL, hardcover_client=hc)
+    got = con.execute("select isbn, hc_how, hc_book_id from book where content_id like 'file://%'").fetchone()
+    assert tuple(got) == (ISBN, "isbn", 70)
 
 
 def test_a_new_collection_name_replaces_the_old_collection_and_a_cleared_one_removes_it(home):

@@ -209,7 +209,7 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 )
             continue
         row = con.execute(
-            "select mode, first_seen_reading, percent, status, finished_at, seconds_read from book where reader=? and device=? and content_id=?",
+            "select mode, first_seen_reading, percent, status, finished_at, seconds_read, isbn, hc_book_id from book where reader=? and device=? and content_id=?",
             (reader, device, b.content_id),
         ).fetchone()
         reading_now = being_read(b.status, b.percent)
@@ -265,6 +265,9 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
             # The start date is the import that first saw the book being read.
             # One that was already being read when it was first seen has none.
             first_seen = row["first_seen_reading"] or (at if reading_now and not being_read(row["status"], row["percent"]) else "")
+            if b.isbn and b.isbn != (row["isbn"] or "") and not row["hc_book_id"]:
+                # An ISBN it did not have when it was looked up (one from the book's own file, M10): one more look.
+                con.execute("update book set hc_how = null where reader=? and device=? and content_id=?", (reader, device, b.content_id))
             con.execute(
                 """update book set title=?, author=?, isbn=?, percent=?, status=?, last_read=?,
                    seconds_read=?, first_event=?, first_seen_reading=?, finished_at=?, image_id=?, language=?

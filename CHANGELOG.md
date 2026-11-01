@@ -7,7 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- **Books you put on the Kobo yourself are found by their ISBN.** The Kobo
+  often keeps no ISBN for a sideloaded book; Lastread now reads it from the
+  book's own EPUB file, so a DRM-free book bought elsewhere is matched on
+  Hardcover as surely as a Kobo-store book. A sideloaded book that was
+  waiting for a match gets one more look. The file is only read.
 
 ## 0.20.1 - 2026-10-31
 

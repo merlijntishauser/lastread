@@ -288,6 +288,8 @@ def _sync_here(
                 log.info("unchanged since last import, import skipped")
                 step(Row(OK, "Kobo", f"{_model(mount)}: nothing new since the last sync"))
             else:
+                if filled := kobo_db.fill_isbns(copy, mount):
+                    log.info("ISBN read from the book's own file: %d", filled)
                 try:
                     kobo = kobo_db.open_db(copy, allow_user_table=True)  # the copy never leaves this folder
                     try:
@@ -456,6 +458,8 @@ def _sync_to_server(
             log.info("unchanged since last upload, upload skipped")
             step(Row(OK, "Upload", f"Nothing new for {server.host} since the last upload"))
         else:
+            if filled := kobo_db.fill_isbns(copy, mount):
+                log.info("ISBN read from the book's own file: %d", filled)
             try:
                 small = os.path.join(tmp, "upload.sqlite")
                 kobo_db.export_for_upload(copy, small)

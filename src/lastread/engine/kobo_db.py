@@ -19,6 +19,8 @@ import os
 import sqlite3
 from dataclasses import dataclass
 
+from . import epub
+
 
 class NotAKoboDatabase(ValueError):
     pass
@@ -92,6 +94,46 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
             )
         )
     return books
+
+
+# ---------- books put on the Kobo by hand ----------
+# A sideloaded book's ContentID is its file on the Kobo. The Kobo often
+# keeps no ISBN for it; the EPUB itself usually names one (rule M10).
+ONBOARD = "file:///mnt/onboard/"
+
+
+def fill_isbns(db_path: str, mount: str) -> int:
+    """Give each book put on the Kobo by hand the ISBN its own EPUB names,
+    where the database has none. db_path is the private copy, never the
+    Kobo's own file; the Kobo is only read. Returns how many got one."""
+    root = os.path.realpath(mount)
+    try:
+        con = sqlite3.connect(db_path)
+    except sqlite3.DatabaseError:
+        return 0
+    try:
+        ids = [
+            r[0]
+            for r in con.execute(
+                "select ContentID from content where ContentType = 6 and substr(ContentID, 1, ?) = ? and coalesce(trim(ISBN), '') = ''",
+                (len(ONBOARD), ONBOARD),
+            )
+        ]
+        filled = 0
+        for cid in ids:
+            path = os.path.realpath(os.path.join(root, cid[len(ONBOARD) :]))
+            if not path.lower().endswith(".epub") or not path.startswith(root + os.sep):
+                continue  # a PDF, or a path that leads off the Kobo
+            found = epub.isbn(path)
+            if found:
+                con.execute("update content set ISBN = ? where ContentID = ?", (found, cid))
+                filled += 1
+        con.commit()
+        return filled
+    except sqlite3.DatabaseError:
+        return 0  # read_books says what is wrong with the database
+    finally:
+        con.close()
 
 
 # ---------- the device ----------
