@@ -12,9 +12,10 @@ hundreds of books is not read whole at every plug-in.
 A book with DRM is not copied: it would not open on the Kobo. Nothing is
 ever decrypted; the file is only looked at for the marks DRM leaves.
 
-A plain EPUB goes on the Kobo as kepub when kepubify is installed (P7):
-the Kobo's own renderer, with its reading statistics. kepubify is the
-reader's own program (MIT, by Patrick Gaskin); it is run on a copy in a
+A plain EPUB goes on the Kobo as kepub when kepubify is there (P7): the
+Kobo's own renderer, with its reading statistics. kepubify (MIT, by
+Patrick Gaskin) comes with the Mac app, and elsewhere is the reader's own
+install; it is run on a copy in a
 temporary folder of this computer, never on the Kobo and never on the
 reader's file. Seen with kepubify 4.0.4: `kepubify -o OUT IN` with one
 input and an OUT that does not exist writes OUT, keeps the OPF (and so
@@ -29,6 +30,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 import zipfile
@@ -46,6 +48,8 @@ KEPUB = ".kepub.epub"
 CONVERT_SECONDS = 300  # one book; kepubify takes a second or two
 # Where kepubify is when the plug-in trigger's PATH does not have it: Homebrew's, and `go install`'s.
 KEPUBIFY_DIRS = ("/opt/homebrew/bin", "/usr/local/bin", "~/go/bin")
+# The Mac app's own, next to the Python it runs on (Contents/Resources/bin, build.sh): looked at first.
+BUNDLED = os.path.join(os.path.dirname(sys.prefix), "bin", "kepubify")
 # Font obfuscation is not DRM: the book opens anywhere (EPUB 3, 4.2; Adobe's older one).
 FONTS = {"http://www.idpf.org/2008/embedding", "http://ns.adobe.com/pdf/enc#RC"}
 
@@ -155,7 +159,10 @@ def inside(folder: str, mount: str) -> bool:
 
 
 def find_kepubify() -> str:
-    """kepubify, when it is installed: on the PATH, or where Homebrew and Go put it."""
+    """kepubify: the Mac app's own, else one installed on the PATH, or
+    where Homebrew and Go put it; "" when there is none."""
+    if os.path.isfile(BUNDLED) and os.access(BUNDLED, os.X_OK):
+        return BUNDLED
     for d in ("", *KEPUBIFY_DIRS):
         found = shutil.which("kepubify", path=os.path.expanduser(d) if d else None)
         if found:

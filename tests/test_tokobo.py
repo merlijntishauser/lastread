@@ -335,6 +335,22 @@ CHAPTERED = f"""<?xml version="1.0"?>
 </package>"""
 
 
+def test_the_mac_apps_own_kepubify_goes_first(tmp_path, monkeypatch):
+    own = tmp_path / "Resources" / "bin" / "kepubify"
+    own.parent.mkdir(parents=True)
+    own.write_text("#!/bin/sh\n")
+    own.chmod(0o755)
+    elsewhere = tmp_path / "bin" / "kepubify"
+    elsewhere.parent.mkdir()
+    elsewhere.write_text("#!/bin/sh\n")
+    elsewhere.chmod(0o755)
+    monkeypatch.setenv("PATH", str(elsewhere.parent))
+    monkeypatch.setattr(tokobo, "BUNDLED", str(own))
+    assert REAL_KEPUBIFY() == str(own)
+    monkeypatch.setattr(tokobo, "BUNDLED", str(tmp_path / "Resources" / "bin" / "none"))  # not the app: what is installed
+    assert REAL_KEPUBIFY() == str(elsewhere)
+
+
 @pytest.mark.skipif(not REAL_KEPUBIFY(), reason="kepubify is not installed here")
 def test_the_real_kepubify(tmp_path):
     """With the real program, where it is installed: the kepub keeps its ISBN (M10)."""

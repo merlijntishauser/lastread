@@ -1,8 +1,8 @@
 # A folder of yours, put on the Kobo when it is plugged in
 
-Design, proposed on 2026-11-01. **Steps 1, 2 and 3 built** the same day,
-with the proposals below as they stand (copy and remember; kepub when
-kepubify is installed, not bundled); the open questions are still open.
+Design, proposed on 2026-11-01, **agreed and built** the same day: steps
+1, 2 and 3, then the three open questions decided (below: in scope,
+kepubify bundled, copy).
 Step 2 as built: kepubify on the PATH, or in Homebrew's or Go's folder
 (the plug-in trigger's PATH lacks them); `kepubify -o OUT IN` on the
 computer, five minutes at most per book, a failure goes as EPUB. Rule P7.
@@ -13,8 +13,9 @@ field, since a browser cannot hand over a folder's path; a section in
 the Mac app's Advanced tab, in both modes, with a folder picker. Both
 read `to-kobo --json` / `tokobo.summary` and choose through
 `tokobo.choose`; the question before more than 20 books is a blue
-(question) flash on the page and an alert in the app. kepubify is not
-bundled in the app. It follows rule M10
+(question) flash on the page and an alert in the app. Then kepubify
+bundled: in the Mac app (`Contents/Resources/bin`, looked at first) and
+as a dependency of the Homebrew formula. It follows rule M10
 (`7b2c568`): a sideloaded book is matched on Hardcover by the ISBN in its
 own EPUB. This is the other half: getting the book onto the Kobo.
 
@@ -102,15 +103,16 @@ A new section, *Books put on the Kobo*, each with its test:
 3. The page's and the app's *Advanced* entry and folder picker; the
    first-time question for a large folder.
 
-## Open questions, for the maintainer
+## Decided (2026-11-01, the maintainer)
 
-1. **Is this Lastread's job at all?** It reverses "does not manage
-   books". The alternatives (the Kobo's own Dropbox or Google Drive link,
-   a self-hosted send2ereader) need no code here.
-2. **kepub**: worth the conversion step, and worth bundling in the Mac
-   app later?
-3. **Copy-and-remember or move**: is a folder that empties itself easier
-   to understand than one that stays full?
+1. **Lastread's job**: yes, it is functionality the maintainer needs.
+2. **kepub**: kepubify is bundled. The Mac app carries kepubify 4.0.4
+   (the release binary for Apple silicon, pinned by SHA-256 in build.sh,
+   signed with the app; its licence and those of Go and its libraries in
+   `kepubify-NOTICES.txt`), and the tool looks there first. The Homebrew
+   formula depends on Homebrew's `kepubify`. Installed another way, it is
+   used when the reader has it.
+3. **Copy or move**: copy, and remember. The folder stays the reader's.
 
 ## To find out before building
 

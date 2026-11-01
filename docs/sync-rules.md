@@ -379,15 +379,17 @@ any other you put on it yourself (M10).
   server.
   Tests: `tests/test_tokobo.py::test_only_files_are_written_never_the_database`,
   `tests/test_tokobo.py::test_server_mode_puts_the_books_on_the_kobo_from_this_computer`
-- **P7** A plain EPUB goes on the Kobo as kepub when kepubify is
-  installed on this computer: the Kobo's own renderer, with its reading
-  statistics. It is converted in a temporary folder here; your own file is
+- **P7** A plain EPUB goes on the Kobo as kepub when kepubify is there:
+  the Mac app's own first, else one installed on this computer (Homebrew
+  installs it with Lastread). Kepub is the Kobo's own renderer, with its
+  reading statistics. It is converted in a temporary folder here; your own file is
   not touched. A book kepubify cannot convert in five minutes goes as it
   is, and so do all of them without kepubify; the sync's line says which.
   Tests: `tests/test_tokobo.py::test_a_plain_epub_goes_as_kepub_when_kepubify_is_installed`,
   `tests/test_tokobo.py::test_a_book_kepubify_cannot_convert_goes_as_it_is`,
   `tests/test_tokobo.py::test_without_kepubify_the_books_go_as_epub_and_it_is_said_how_to_get_kepub`,
-  `tests/test_tokobo.py::test_kepubify_is_found_where_homebrew_puts_it_also_without_it_on_the_path`
+  `tests/test_tokobo.py::test_kepubify_is_found_where_homebrew_puts_it_also_without_it_on_the_path`,
+  `tests/test_tokobo.py::test_the_mac_apps_own_kepubify_goes_first`
 
 ## What leaves your computer
 

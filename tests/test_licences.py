@@ -72,3 +72,13 @@ def test_the_list_of_what_is_installed_next_to_it_is_the_real_one():
     permissive = re.compile(r"^(MIT|MIT-0|BSD-3-Clause|BSD-2-Clause|Apache-2\.0|PSF-2\.0|ISC)( OR (MIT|BSD-3-Clause|Apache-2\.0))?$")
     for name, (_, licence) in listed.items():
         assert permissive.match(licence), f"{name}: {licence} needs a look before it is passed on"
+
+
+def test_the_kepubify_in_the_mac_app_travels_with_every_licence_it_needs():
+    notices = (ROOT / "packaging" / "macos" / "kepubify-NOTICES.txt").read_text()
+    for holder in ("Patrick Gaskin", "The Go Authors", "Brett Vickers", "Russ Ross", "Alex Ogier"):
+        assert holder in notices, holder
+    assert notices.count("====================") == 10  # five full texts, each under its heading
+    build = (ROOT / "packaging" / "macos" / "build.sh").read_text()
+    assert "kepubify-NOTICES.txt" in build and re.search(r"KEPUBIFY_SHA256=[0-9a-f]{64}\n", build)
+    assert "kepubify" in NOTICES and "kepubify-NOTICES.txt" in NOTICES

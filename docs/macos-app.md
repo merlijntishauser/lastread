@@ -93,6 +93,8 @@ Lastread.app/Contents/
     python/                              a standalone CPython, with the tool
       bin/python3                        and its packages in site-packages
     python-licenses/                     the licences of what Python is built with
+    bin/kepubify                         kepubify 4.0.4, for the to-kobo folder (rule P7)
+    kepubify-NOTICES.txt                 its licence, and those of Go and its libraries
     AppIcon.icns                         the icon up to macOS 15
     Assets.car                           the icon from macOS 26 on
     LICENSE, THIRD-PARTY-NOTICES.md, PYTHON-LICENSE.txt

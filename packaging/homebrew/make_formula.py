@@ -88,6 +88,7 @@ class Lastread < Formula
   # against OpenSSL, PyYAML against libyaml, cffi against libffi.
   depends_on "pkgconf" => :build
   depends_on "rust" => :build
+  depends_on "kepubify" # the books of a to-kobo folder go on the Kobo as kepub (rule P7)
   depends_on "libyaml"
   depends_on "openssl@3"
   depends_on "{PYTHON}"

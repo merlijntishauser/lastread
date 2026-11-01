@@ -13,10 +13,12 @@ minor version may change behaviour; the notes will say so.
   at every plug-in, the EPUBs in that folder that this Kobo has not had yet
   are copied to a folder `Lastread` on it, and the Kobo lists them after the
   eject. Only files are written, never the Kobo's database or a setting.
+  They go as kepub: the Mac app comes with kepubify 4.0.4, and the
+  Homebrew formula installs it.
   Each book goes on each Kobo once; one deleted on the Kobo stays deleted.
   A book with DRM is not copied, and the sync says so. More than 20 books
-  at once only with `--yes`. With kepubify installed (`brew install
-  kepubify`), each goes as kepub, converted on the computer. The folder is
+  at once only with `--yes`. Installed otherwise, with kepubify on the
+  computer, each goes as kepub too, converted on the computer. The folder is
   chosen with the command, in the Mac app's Settings (Advanced, a folder
   picker), or on the page in local mode (Settings, Advanced); each asks
   before a folder puts more than 20 books on the Kobo at once, and shows

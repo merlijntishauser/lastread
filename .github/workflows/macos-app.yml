@@ -124,6 +124,8 @@ jobs:
           "$py" -I -B -m lastread --version
           KHS_HOME="$RUNNER_TEMP/khs" KHS_APP="$app" "$py" -I -B -m lastread status
           "$py" -I -B -c "import cryptography.fernet as f; f.Fernet(f.Fernet.generate_key()).encrypt(b'x')"
+          "$app/Contents/Resources/bin/kepubify" --version  # the bundled one runs under the hardened runtime
+          "$py" -I -B -c "from lastread.engine import tokobo; p = tokobo.find_kepubify(); print(p); assert p.startswith('$app/')"
           codesign --display --verbose=2 "$app" 2>&1 | grep -E "^(Authority|TeamIdentifier|Runtime)"
       - name: On the release
         run: gh release upload "$TAG" "Lastread-${TAG#v}.dmg" --clobber --repo "$GITHUB_REPOSITORY"

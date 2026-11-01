@@ -91,7 +91,13 @@ bundle as well. Next to these packages it holds a build of CPython from
 built with. The app carries Python's licence as
 `Contents/Resources/PYTHON-LICENSE.txt`, and the licence of each of those
 libraries in `Contents/Resources/python-licenses/`, taken from the same
-build. The app's wrapper and icon are this project's own.
+build. It also holds [kepubify](https://github.com/pgaskin/kepubify) 4.0.4
+(MIT, Patrick Gaskin), the release binary unchanged, which turns the books
+of a `to-kobo` folder into kepub; it is a Go program, and the licences of
+Go and of the libraries it is built from (BSD-2-Clause and BSD-3-Clause)
+travel with it in `Contents/Resources/kepubify-NOTICES.txt`, kept in this
+repository as `packaging/macos/kepubify-NOTICES.txt`. The app's wrapper
+and icon are this project's own.
 
 The tools used only to develop and test (pytest, httpx, ruff, Playwright)
 are not part of what is installed for use.

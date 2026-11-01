@@ -40,6 +40,10 @@ x86_64-unknown-linux-gnu) # only for KHS_PYTHON_ONLY
 	;;
 esac
 RELEASE=https://github.com/astral-sh/python-build-standalone/releases/download/$PYTHON_BUILD
+# kepubify, for the books of a to-kobo folder (rule P7): the release binary, pinned.
+# Its licence and those of what it is built from: kepubify-NOTICES.txt.
+KEPUBIFY=4.0.4
+KEPUBIFY_SHA256=6467d44439ee899113c7f710b509ef9e5ce65e8df711c85192b9ea5b683594b7
 NAME="Lastread"
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -60,9 +64,9 @@ printf '%s' "$short" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
 
 sha256() { if command -v shasum >/dev/null; then shasum -a 256 "$1"; else sha256sum "$1"; fi | cut -d' ' -f1; }
 
-fetch() { # file sha256: into the cache, checked, every time
+fetch() { # file sha256 [release]: into the cache, checked, every time
 	if [ ! -f "$out/cache/$1" ] || [ "$(sha256 "$out/cache/$1")" != "$2" ]; then
-		curl -fsSL --retry 3 -o "$out/cache/$1.part" "$RELEASE/$(printf '%s' "$1" | sed 's/+/%2B/g')"
+		curl -fsSL --retry 3 -o "$out/cache/$1.part" "${3:-$RELEASE}/$(printf '%s' "$1" | sed 's/+/%2B/g')"
 		mv "$out/cache/$1.part" "$out/cache/$1"
 	fi
 	got=$(sha256 "$out/cache/$1")
@@ -111,6 +115,16 @@ if [ -n "${KHS_PYTHON_ONLY:-}" ]; then
 	echo "$NAME.app, the Python half only: $app"
 	exit 0
 fi
+
+# ---------- kepubify ----------
+# Next to Python, where the tool looks first (tokobo.find_kepubify); sign.sh
+# signs it with the rest of Resources.
+fetch kepubify-darwin-arm64 "$KEPUBIFY_SHA256" "https://github.com/pgaskin/kepubify/releases/download/v$KEPUBIFY"
+mkdir -p "$resources/bin"
+cp "$out/cache/kepubify-darwin-arm64" "$resources/bin/kepubify"
+chmod 755 "$resources/bin/kepubify"
+cp "$here/kepubify-NOTICES.txt" "$resources/"
+"$resources/bin/kepubify" --version | grep -q "v$KEPUBIFY" # it runs, and is the one pinned
 full=cpython-$PYTHON+$PYTHON_BUILD-$TRIPLE-pgo+lto-full.tar.zst
 fetch "$full" "$FULL_SHA256"
 mkdir -p "$out/full"

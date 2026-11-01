@@ -34,7 +34,13 @@ def test_the_formula_is_one_homebrew_can_read():
     assert FORMULA.splitlines()[2] == "class Lastread < Formula"
     assert f'  sha256 "{SHA}"\n  license "MIT"' in FORMULA and f'  url "{URL}"\n' in FORMULA
     assert "include Language::Python::Virtualenv" in FORMULA and "virtualenv_install_with_resources" in FORMULA
-    for needs in ('depends_on "rust" => :build', 'depends_on "python@3.13"', 'depends_on "openssl@3"', 'depends_on "libyaml"'):
+    for needs in (
+        'depends_on "rust" => :build',
+        'depends_on "python@3.13"',
+        'depends_on "openssl@3"',
+        'depends_on "libyaml"',
+        'depends_on "kepubify"',
+    ):
         assert needs in FORMULA
     desc = re.search(r'  desc "([^"]+)"', FORMULA).group(1)
     assert len(desc) <= 80 and not desc.endswith(".") and not desc.lower().startswith(("a ", "an ", "the "))
