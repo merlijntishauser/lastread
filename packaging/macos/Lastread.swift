@@ -536,6 +536,15 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model.load()
     }
 
+    /// Not while the update swaps the app's bundle: a quit then would leave half of it, and the disk image attached.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if Updater.shared.installing {
+            NSSound.beep()
+            return .terminateCancel
+        }
+        return .terminateNow
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         model?.signInProcess?.terminate()  // a quit with the sign-in sheet open: its tool goes too
     }

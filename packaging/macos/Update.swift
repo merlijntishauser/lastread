@@ -27,7 +27,8 @@ final class Updater: NSObject, ObservableObject, URLSessionDownloadDelegate, NSW
     private var window: NSWindow?
     private var download: URLSessionDownloadTask?
     private var work: URL?
-    private var installing = false  // the check and the swap: not to be broken off
+    private(set) var installing = false  // the check and the swap: not to be broken off, also not by Quit
+    private var session: URLSession?
 
     // ---------- the start: what can be known before anything is fetched ----------
     func start(_ version: String) {
@@ -55,6 +56,7 @@ final class Updater: NSObject, ObservableObject, URLSessionDownloadDelegate, NSW
         }
         let link = URL(string: "https://github.com/merlijntishauser/lastread/releases/download/v\(version)/Lastread-\(version).dmg")!
         let session = URLSession(configuration: .ephemeral, delegate: self, delegateQueue: .main)
+        self.session = session  // it keeps its delegate until it is invalidated: done in cleanUp
         download = session.downloadTask(with: link)
         download?.resume()
     }
@@ -180,6 +182,8 @@ final class Updater: NSObject, ObservableObject, URLSessionDownloadDelegate, NSW
     }
 
     private func cleanUp() {
+        session?.invalidateAndCancel()
+        session = nil
         download = nil
         if let work { try? FileManager.default.removeItem(at: work) }
         work = nil
