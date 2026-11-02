@@ -60,6 +60,12 @@ minor version may change behaviour; the notes will say so.
 - **Before the first sync, the app's Overview no longer says 0 books.**
   Opening Settings made an empty database, which then counted as a
   library with nothing in it.
+- **A book from the to-Kobo folder is no longer put on the Kobo twice.**
+  The app's list, read just before a sync, could write back over what the
+  sync had just put; and a book still being downloaded into the folder was
+  remembered by half its contents. With kepub conversion, either case put
+  the book there again as "Title (2)". A book still being written now waits
+  for the next plug-in.
 
 ## 0.22.1 - 2026-11-02
 

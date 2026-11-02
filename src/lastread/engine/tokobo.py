@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import contextlib
 import errno
+import fcntl
 import hashlib
 import json
 import logging
@@ -243,6 +244,9 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
         if shutil.disk_usage(mount).free < size + SPARE:
             r.left, r.why_left = len(todo) - n, "full"
             break
+        if _changed(remembered, path):  # still being written: it waits for a plug-in when it has settled
+            log.info("a book changed since it was read, left for the next sync")
+            continue
         source, as_name = path, fat_name(name)
         if not name.lower().endswith(KEPUB):
             converted = _kepub(r.kepubify, path, tmp) if r.kepubify else ""
@@ -271,6 +275,11 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
         finally:
             if source != path:
                 os.unlink(source)
+        if _changed(remembered, path):  # written to during the copy: what landed may be neither version
+            log.info("a book changed while it was copied, taken off and left for the next sync")
+            with contextlib.suppress(OSError):
+                os.unlink(os.path.join(target, landed))
+            continue
         r.put.append(landed)
         done[sha] = {"name": landed, "at": _now()}
         _keep(state_dir, remembered)
@@ -366,6 +375,15 @@ def _hash(remembered: dict, path: str) -> str:
     return sha
 
 
+def _changed(remembered: dict, path: str) -> bool:
+    """Whether the file is no longer as it was when it was hashed (_hash)."""
+    try:
+        st = os.stat(path)
+    except OSError:
+        return True
+    return remembered["files"].get(path, [])[:2] != [st.st_size, st.st_mtime_ns]
+
+
 def _where(given: dict) -> str:
     """Where on the Kobo a book went, from its root; "" for one that was
     found there before this was remembered."""
@@ -402,20 +420,35 @@ def _keep(state_dir: str, remembered: dict) -> None:
     """After every book, so a sync that dies keeps what it did. Files gone
     from the folder are forgotten from the hashes; the Kobos keep theirs.
     Written only when it changed: the Mac app refreshes when the state
-    folder is written to, and asks for the list on every refresh."""
-    remembered["files"] = {p: v for p, v in remembered["files"].items() if os.path.exists(p)}
-    path = os.path.join(state_dir, REMEMBERED)
-    text = json.dumps(remembered, indent=1, sort_keys=True)
-    try:
-        with open(path) as fh:
-            if fh.read() == text:
-                return
-    except OSError:
-        pass
+    folder is written to, and asks for the list on every refresh.
+
+    Readers (the list, the app) keep the hashes too, so a sync and a
+    reader can write at the same time. Under a lock, the file is read
+    again and merged: what was put on a Kobo is only ever added, so a
+    reader that loaded before a sync's write cannot take it away.
+    `remembered` is brought up to the merge in place."""
     os.makedirs(state_dir, exist_ok=True)
-    with open(path + ".tmp", "w") as fh:
-        fh.write(text)
-    os.replace(path + ".tmp", path)
+    path = os.path.join(state_dir, REMEMBERED)
+    with open(path + ".lock", "a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        there = _remembered(state_dir)
+        for device, theirs in there["kobos"].items():
+            mine = remembered["kobos"].setdefault(device, {})
+            for sha, given in theirs.items():
+                mine.setdefault(sha, given)
+        for p, kept in there["files"].items():
+            remembered["files"].setdefault(p, kept)
+        remembered["files"] = {p: v for p, v in remembered["files"].items() if os.path.exists(p)}
+        text = json.dumps(remembered, indent=1, sort_keys=True)
+        try:
+            with open(path) as fh:
+                if fh.read() == text:
+                    return
+        except OSError:
+            pass
+        with open(path + ".tmp", "w") as fh:
+            fh.write(text)
+        os.replace(path + ".tmp", path)
 
 
 def _now() -> str:

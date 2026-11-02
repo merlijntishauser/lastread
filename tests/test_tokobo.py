@@ -77,6 +77,10 @@ def on_kobo(home):
     return sorted(os.listdir(shelf)) if shelf.is_dir() else []
 
 
+def tokobo_state(home):
+    return str(home / "state")
+
+
 def mount(home):
     return str(home / "Volumes" / "KOBOeReader")
 
@@ -251,6 +255,38 @@ def test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time(plugged, h
     assert out.message == "2 books not put on the Kobo: it refused to be written to (Read-only file system); the rest go next time."
     monkeypatch.setattr(tokobo, "_copy", real)
     assert runner.sync(mac, cfg).message == "2 books put on the Kobo. Eject before unplugging."
+
+
+def test_a_list_read_before_a_sync_cannot_take_away_what_the_sync_put(plugged, home):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    stale = tokobo._remembered(tokobo_state(home))  # the app's list, loaded just before the sync wrote
+    assert runner.sync(mac, cfg).message == "1 book put on the Kobo. Eject before unplugging."
+    tokobo._keep(tokobo_state(home), stale)  # and written back after it
+    kobos = json.load(open(os.path.join(tokobo_state(home), tokobo.REMEMBERED)))["kobos"]
+    assert sum(len(v) for v in kobos.values()) == 1
+    assert runner.sync(mac, cfg).message == "" and on_kobo(home) == ["One.epub"]
+
+
+def test_a_book_still_being_written_waits_until_it_has_settled(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    book = a_book(books / "One.epub", "One")
+    real, grown = tokobo._sha256, []
+
+    def written_to_while_hashed(path):
+        sha = real(path)
+        if not grown:
+            grown.append(True)
+            with open(path, "ab") as fh:  # the rest of the download lands after it was read
+                fh.write(b"\0" * 10)
+        return sha
+
+    monkeypatch.setattr(tokobo, "_sha256", written_to_while_hashed)
+    assert runner.sync(mac, cfg).message == "" and on_kobo(home) == []  # not put with a hash of half the file
+    assert runner.sync(mac, cfg).message == "1 book put on the Kobo. Eject before unplugging."
+    assert runner.sync(mac, cfg).message == "" and on_kobo(home) == ["One.epub"]  # and once only
+    given = json.load(open(os.path.join(tokobo_state(home), tokobo.REMEMBERED)))["kobos"]
+    assert list(next(iter(given.values()))) == [real(book)]
 
 
 def test_only_files_are_written_never_the_database(plugged, home):
