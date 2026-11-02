@@ -90,6 +90,9 @@ minor version may change behaviour; the notes will say so.
 - **A re-read is no longer put on Hardcover twice** when the answer to
   adding it got lost. The next sync added a second read-through; it now
   finds the first and goes on with that one.
+- **The Mac app's local page starts as the app's own tool does**, so
+  Python packages installed elsewhere on the Mac can no longer stand in
+  for the ones the app brings.
 
 ## 0.22.1 - 2026-11-02
 

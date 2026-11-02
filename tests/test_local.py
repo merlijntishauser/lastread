@@ -11,6 +11,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -552,6 +553,17 @@ def test_open_reuses_the_running_page_or_starts_one(home, monkeypatch):
     with open(home / "state" / "page.json", "w") as fh:
         fh.write('{"port": 4002, "pid": 999999999}')  # a page that is gone
     assert page.running() is None and page.link().startswith("http://127.0.0.1:4000/") and started == [1, 1]
+
+
+def test_the_page_is_started_as_isolated_as_this_process_was(home, monkeypatch):
+    os.makedirs(home / "state")
+    started = []
+    monkeypatch.setattr(page.subprocess, "Popen", lambda args, **kw: started.append(args))
+    monkeypatch.setattr(page, "running", lambda: {"port": 4000, "pid": os.getpid()})
+    for isolated, expected in ((1, ["-I", "-B"]), (0, [])):  # the Mac app's Python, and a plain install
+        monkeypatch.setattr(page.sys, "flags", SimpleNamespace(isolated=isolated, dont_write_bytecode=isolated))
+        page.start()
+        assert started[-1] == [page.sys.executable, *expected, "-m", "lastread", "page"]
 
 
 # ---------- the commands ----------

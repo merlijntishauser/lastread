@@ -158,8 +158,11 @@ def start(timeout: float = 15.0) -> dict:
         os.unlink(_info_path())
     except OSError:
         pass
+    # As this process was started: the Mac app runs its Python isolated (-I -B), so that nothing in
+    # the reader's own site-packages or PYTHONPATH can stand in for the bundled FastAPI.
+    flags = (["-I"] if sys.flags.isolated else []) + (["-B"] if sys.flags.dont_write_bytecode else [])
     subprocess.Popen(
-        [sys.executable, "-m", "lastread", "page"],
+        [sys.executable, *flags, "-m", "lastread", "page"],
         stdin=subprocess.DEVNULL,
         stdout=log,
         stderr=log,
