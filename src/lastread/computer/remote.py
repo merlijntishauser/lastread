@@ -28,13 +28,18 @@ class Server:
         self._token = token
         self._open = opener or urllib.request.urlopen
 
-    def _request(self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = ""):
+    def _request(
+        self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = "", with_type: bool = False
+    ):
+        """(status, body), or (status, body, media type) with with_type."""
         headers = {"Authorization": "Bearer " + self._token, "User-Agent": f"lastread/{__version__}"}  # the server notes it
         if content_type:
             headers["Content-Type"] = content_type
         req = urllib.request.Request(self.url + path, data=body, method=method, headers=headers)
         try:
             with self._open(req, timeout=timeout) as r:
+                if with_type:
+                    return r.status, r.read(), r.headers.get_content_type()  # text/plain when none was sent
                 return r.status, r.read()
         except urllib.error.HTTPError as ex:
             detail = ex.read()[:300].decode("utf-8", "replace")
@@ -78,13 +83,17 @@ class Server:
 
     def collection(self) -> tuple[str, list[str]] | None:
         """(name, book ids) of the collection to keep on the Kobo, or None
-        when the reader set no collection name."""
-        status, raw = self._request("GET", "/collection")
+        when the reader set no collection name. ServerError for an answer
+        lastread never gives, such as a proxy's sign-in page: read as a
+        collection, it would empty the one on the Kobo."""
+        status, raw, kind = self._request("GET", "/collection", with_type=True)
         text = raw.decode("utf-8", "replace")
         if status == 204 or not text.strip():
             return None
-        name, _, rest = text.partition("\n")
-        return name.strip(), [i for i in rest.split("\n") if i.strip()]
+        lines = text.split("\n")
+        if kind != "text/plain" or any(line.strip().startswith("<") for line in lines):
+            raise ServerError(f"{self.host} gave an answer that is not from lastread.")
+        return lines[0].strip(), [i for i in lines[1:] if i.strip()]
 
     def app(self, method: str, path: str, payload: dict | None = None) -> dict:
         """One of the server's answers for the Mac app (/api/app/), as JSON.

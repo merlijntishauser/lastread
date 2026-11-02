@@ -3,6 +3,7 @@ temporary folder plays the mounted Kobo, a real server on the loopback
 address plays the server, and macOS is a recording of the commands it would
 have been given."""
 
+import email.message
 import gzip
 import hashlib
 import importlib
@@ -262,6 +263,36 @@ def test_in_server_mode_a_cleared_name_removes_the_collection_but_a_server_out_o
     assert members(db, "Another name") == set() and runner.sync(mac, cfg).message == ""
 
 
+@pytest.mark.parametrize(
+    "answer",
+    [
+        (200, b"<!DOCTYPE html>\n<html><body>Sign in</body></html>\n", "text/plain"),  # a proxy's page, labelled as text
+        (200, b"Sign in\nwith your account\n", "text/html"),
+    ],
+)
+def test_a_sign_in_page_in_place_of_the_collection_leaves_the_kobo_as_it_is(home, server, monkeypatch, answer):
+    db = plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cfg = config.Config(server=server.url)
+    runner.sync(mac, cfg)
+    server.page.post("/settings/collection", data={"collection": COLLECTION})
+    server.page.post("/mode", data={"ids": ",".join(BOOKS[:3]), "mode": "on"})
+    runner.sync(mac, cfg)
+    assert members(db) == set(BOOKS[:3])
+    real = remote.Server._request
+
+    def proxied(self, method, path, *a, **k):
+        if path == "/collection":
+            return answer if k.get("with_type") else answer[:2]
+        return real(self, method, path, *a, **k)
+
+    monkeypatch.setattr(remote.Server, "_request", proxied)
+    out = runner.sync(mac, cfg)
+    assert members(db) == set(BOOKS[:3]) and "removed" not in out.message
+    assert "collection request failed: 127.0.0.1 gave an answer that is not from lastread" in open(home / "state" / "agent.log").read()
+
+
 def test_eject_after_sync_when_asked(home, server):
     db = plug_in(home)
     mac = FakeComputer(home / "Volumes")
@@ -398,8 +429,10 @@ def test_whether_plugging_in_starts_a_sync_on_a_mac(home):
 
 def test_the_server_client_says_what_a_person_can_act_on():
     class Answer:
-        def __init__(self, status, body):
+        def __init__(self, status, body, kind="text/plain; charset=utf-8"):
             self.status, self._body = status, body
+            self.headers = email.message.Message()
+            self.headers["Content-Type"] = kind
 
         def read(self):
             return self._body
@@ -422,6 +455,9 @@ def test_the_server_client_says_what_a_person_can_act_on():
     with pytest.raises(remote.ServerError, match="not from lastread"):
         s.upload(__file__)
     assert remote.Server("https://x.example", "t", lambda req, timeout: Answer(204, b"")).collection() is None
+    html = remote.Server("https://x.example", "t", lambda req, timeout: Answer(200, b"Shelf\nid-1\n", "text/html"))
+    with pytest.raises(remote.ServerError, match="not from lastread"):
+        html.collection()
     # The app's questions (/api/app/): a sign-in page means the proxy does not let them through.
     with pytest.raises(remote.ServerError, match="older than 0.15.0, or its proxy does not route /api/app/"):
         s.app("GET", "books")

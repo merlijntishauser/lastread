@@ -22,6 +22,10 @@ minor version may change behaviour; the notes will say so.
 - The Trigger check (`lastread doctor`, and the Overview in the app) says
   so when the launch agent starts a program the app no longer has; it
   called that trigger in order.
+- **Server mode no longer empties the collection on the Kobo** when a
+  proxy in front of the server answers with its sign-in page. That page was
+  read as a collection without books; an answer that is not the server's own
+  now leaves the Kobo as it is.
 
 ## 0.22.1 - 2026-11-02
 
