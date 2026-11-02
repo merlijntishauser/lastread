@@ -32,6 +32,12 @@ minor version may change behaviour; the notes will say so.
 - **A sync cut off by a restart of the server** no longer shows as
   running in the sidebar until the next one ends; it says it was
   interrupted.
+- **One book the Kobo will not take no longer holds up the others** in the
+  to-Kobo folder. Any error while copying was taken for an unplugged Kobo,
+  so the queue stopped at that book at every plug-in. Now that book is said
+  once and the rest still go. Long names fit where they did not, and the
+  characters the Kobo's storage cannot hold in a name, such as `?` and
+  `:`, become `_`.
 
 ## 0.22.1 - 2026-11-02
 

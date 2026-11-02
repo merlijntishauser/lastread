@@ -14,6 +14,7 @@ Findings on a real database (2026-09-30, firmware 6.0) that shape this:
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import os
 import sqlite3
@@ -100,6 +101,8 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
 # A sideloaded book's ContentID is its file on the Kobo. The Kobo often
 # keeps no ISBN for it; the EPUB itself usually names one (rule M10).
 ONBOARD = "file:///mnt/onboard/"
+# What reading or writing a file says when the device under it went away.
+GONE = (errno.ENOENT, errno.ENODEV, errno.ENXIO, errno.EIO, errno.ENOTDIR, errno.ESTALE)
 
 
 def fill_isbns(db_path: str, mount: str) -> int:

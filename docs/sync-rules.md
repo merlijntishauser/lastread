@@ -368,12 +368,18 @@ any other you put on it yourself (M10).
   is not put there twice. Another Kobo gets every book of the folder.
   Tests: `tests/test_tokobo.py::test_a_book_goes_on_each_kobo_once_and_a_delete_on_the_kobo_stays`
 - **P4** Never over another file: a name the Kobo has already gets a
-  number.
-  Tests: `tests/test_tokobo.py::test_never_over_another_file_a_name_that_is_taken_gets_a_number`
+  number. A character the Kobo's storage cannot hold in a name
+  (`< > : " / \ | ? *`) becomes `_`.
+  Tests: `tests/test_tokobo.py::test_never_over_another_file_a_name_that_is_taken_gets_a_number`,
+  `tests/test_tokobo.py::test_a_name_the_kobo_cannot_hold_goes_with_those_characters_replaced`
 - **P5** A book is on the Kobo whole or not at all, also when the Kobo is
   pulled out halfway; what was left half is cleared at the next plug-in.
-  A Kobo without room gets nothing half; the books wait.
-  Tests: `tests/test_tokobo.py::test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out`
+  A Kobo without room gets nothing half; the books wait, and so they do
+  when the Kobo refuses every copy (read-only, for one). A book the Kobo
+  refuses for itself is said once, and the books after it still go.
+  Tests: `tests/test_tokobo.py::test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out`,
+  `tests/test_tokobo.py::test_a_long_name_goes_and_a_book_the_kobo_will_not_take_is_said_once`,
+  `tests/test_tokobo.py::test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time`
 - **P6** Only files are written: the Kobo's database is never touched for
   this. In server mode the computer does it, and no book goes to the
   server.

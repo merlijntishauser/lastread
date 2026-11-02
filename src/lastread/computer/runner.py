@@ -8,7 +8,6 @@ secret store."""
 
 from __future__ import annotations
 
-import errno
 import fcntl
 import getpass
 import gzip
@@ -35,8 +34,7 @@ LOCK = "sync.lock"
 RUNNING = "sync.running"  # what started the sync that runs now; there only while it runs, which the Mac app's window notices
 log = logging.getLogger(__name__)
 
-# What reading a file says when the device under it went away.
-GONE = (errno.ENOENT, errno.ENODEV, errno.ENXIO, errno.EIO, errno.ENOTDIR, errno.ESTALE)
+GONE = kobo_db.GONE  # what reading a file says when the device under it went away
 DAMAGED = (
     "The Kobo's database could not be read: it is damaged, or the Kobo was still writing it. Unplug the Kobo, let it "
     "start, and plug it in again."
@@ -420,7 +418,9 @@ def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -
     if r.left:
         told.append(
             f"{plural(r.left, 'book')} not put on the Kobo: "
-            + ("it is full." if r.why_left == "full" else "it was unplugged; the rest go next time.")
+            + {"full": "it is full.", "unplugged": "it was unplugged; the rest go next time."}.get(
+                r.why_left, f"it refused to be written to ({r.why_left}); the rest go next time."
+            )
         )
     said += told
     if not told:

@@ -190,7 +190,8 @@ def test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out(plugged, 
 
     monkeypatch.setattr(shutil, "copyfileobj", pulled_out)
     assert runner.sync(mac, cfg).message == "2 books not put on the Kobo: it was unplugged; the rest go next time."
-    assert on_kobo(home) == [".lastread-One.epub.partial"]  # hidden: the Kobo does not list it
+    [partial] = on_kobo(home)
+    assert partial.startswith(".lastread-") and partial.endswith(".partial")  # hidden: the Kobo does not list it
     # Plugged in again: the half copy is cleared away, and both go.
     monkeypatch.setattr(shutil, "copyfileobj", real)
     assert runner.sync(mac, cfg).message == "2 books put on the Kobo. Eject before unplugging."
@@ -200,6 +201,56 @@ def test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out(plugged, 
     monkeypatch.setattr(shutil, "disk_usage", lambda path: shutil._ntuple_diskusage(10**9, 10**9 - 10, 10))
     assert runner.sync(mac, cfg).message == "1 book not put on the Kobo: it is full."
     assert on_kobo(home) == ["One.epub", "Two.epub"]
+
+
+def test_a_long_name_goes_and_a_book_the_kobo_will_not_take_is_said_once(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    long = "A" * 240 + ".epub"  # with the hidden copy's prefix and suffix around it, too long for a name on the Kobo
+    a_book(books / long, "Long")
+    assert runner.sync(mac, cfg).message == "1 book put on the Kobo. Eject before unplugging."
+    assert on_kobo(home) == [long]
+    # One book the Kobo refuses for itself: said once, and the books sorted after it still go.
+    a_book(books / "Bad.epub", "Bad")
+    a_book(books / "Zed.epub", "Zed")
+    real = tokobo._copy
+
+    def refuses_one(path, target, name, sha):
+        if name == "Bad.epub":
+            raise OSError(36, "File name too long")
+        return real(path, target, name, sha)
+
+    monkeypatch.setattr(tokobo, "_copy", refuses_one)
+    out = runner.sync(mac, cfg)
+    assert on_kobo(home) == [long, "Zed.epub"]
+    assert (
+        out.message
+        == "1 book put on the Kobo. Bad.epub not put on the Kobo: the Kobo would not take it (File name too long). Eject before unplugging."
+    )
+    assert runner.sync(mac, cfg).message == ""  # said once
+
+
+def test_a_name_the_kobo_cannot_hold_goes_with_those_characters_replaced(plugged, home):
+    mac, books, cfg, _ = plugged
+    a_book(books / 'What? A "Story": Part 1|2.epub', "Story")
+    assert runner.sync(mac, cfg).message == "1 book put on the Kobo. Eject before unplugging."
+    assert on_kobo(home) == ["What_ A _Story__ Part 1_2.epub"]
+    assert tokobo.fat_name("Notes. ") == "Notes" and tokobo.fat_name("...") == "_"
+
+
+def test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    a_book(books / "Two.epub", "Two")
+    real = tokobo._copy
+
+    def read_only(*a):
+        raise OSError(30, "Read-only file system")
+
+    monkeypatch.setattr(tokobo, "_copy", read_only)
+    out = runner.sync(mac, cfg)
+    assert out.message == "2 books not put on the Kobo: it refused to be written to (Read-only file system); the rest go next time."
+    monkeypatch.setattr(tokobo, "_copy", real)
+    assert runner.sync(mac, cfg).message == "2 books put on the Kobo. Eject before unplugging."
 
 
 def test_only_files_are_written_never_the_database(plugged, home):

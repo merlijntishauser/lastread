@@ -24,6 +24,8 @@ the ISBN, M10), and exits non-zero on a book it cannot read.
 
 from __future__ import annotations
 
+import contextlib
+import errno
 import hashlib
 import json
 import logging
@@ -38,7 +40,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
 from . import epub
-from .kobo_db import ONBOARD
+from .kobo_db import GONE, ONBOARD
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +57,10 @@ KEPUBIFY_DIRS = ("/opt/homebrew/bin", "/usr/local/bin", "~/go/bin")
 BUNDLED = os.path.join(os.path.dirname(sys.prefix), "bin", "kepubify")
 # Font obfuscation is not DRM: the book opens anywhere (EPUB 3, 4.2; Adobe's older one).
 FONTS = {"http://www.idpf.org/2008/embedding", "http://ns.adobe.com/pdf/enc#RC"}
+# A copy refused for the whole Kobo, not for one book: the rest would hear the same.
+WHOLE_KOBO = (errno.EROFS, errno.EACCES, errno.EPERM, errno.ENOSPC, errno.EDQUOT)
+# Not allowed in a name on the Kobo's FAT storage; put as "_" instead.
+NOT_ON_FAT = str.maketrans({c: "_" for c in '<>:"/\\|?*'} | {chr(c): "_" for c in range(32)})
 
 
 @dataclass
@@ -65,7 +71,7 @@ class Result:
     kepubify: str = ""  # the kepubify that converted, "" when there is none
     as_epub: list[str] = field(default_factory=list)  # plain EPUBs put on the Kobo as they are
     unconverted: list[str] = field(default_factory=list)  # of those, the ones kepubify could not convert
-    why_left: str = ""  # "full" or "unplugged"
+    why_left: str = ""  # "full", "unplugged", or what the Kobo said when it refused every copy
 
 
 def books_in(folder: str) -> list[str]:
@@ -237,20 +243,31 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
         if shutil.disk_usage(mount).free < size + SPARE:
             r.left, r.why_left = len(todo) - n, "full"
             break
-        source, as_name = path, name
+        source, as_name = path, fat_name(name)
         if not name.lower().endswith(KEPUB):
             converted = _kepub(r.kepubify, path, tmp) if r.kepubify else ""
             if converted:
-                source, as_name = converted, os.path.basename(converted)
+                source, as_name = converted, fat_name(os.path.basename(converted))
             else:
                 r.as_epub.append(name)
                 if r.kepubify:
                     r.unconverted.append(name)
         try:
-            landed = _copy(source, target, as_name)
-        except OSError:
-            r.left, r.why_left = len(todo) - n, "unplugged"
-            break
+            landed = _copy(source, target, as_name, sha)
+        except OSError as ex:
+            if not os.path.isdir(mount) or ex.errno in GONE:
+                r.left, r.why_left = len(todo) - n, "unplugged"
+                break
+            why = ex.strerror or str(ex)
+            if ex.errno in WHOLE_KOBO:
+                r.left, r.why_left = len(todo) - n, why
+                break
+            # This book's own trouble, such as a name too long for the Kobo: said once, the rest still go.
+            log.warning("a book was not put on the Kobo: %s", why)
+            r.refused.append((name, f"the Kobo would not take it ({why})"))
+            done[sha] = {"name": name, "at": _now(), "refused": why}
+            _keep(state_dir, remembered)
+            continue
         finally:
             if source != path:
                 os.unlink(source)
@@ -280,16 +297,28 @@ def _kepub(kepubify: str, path: str, tmp: str) -> str:
     return ""
 
 
-def _copy(path: str, target: str, name: str) -> str:
+def fat_name(name: str) -> str:
+    """name as the Kobo's FAT storage can hold it."""
+    return name.translate(NOT_ON_FAT).rstrip(" .") or "_"
+
+
+def _copy(path: str, target: str, name: str, sha: str) -> str:
     """One book into target as name, completely or not at all (P4, P5): a
-    hidden partial copy, flushed, then renamed to a name nothing else has."""
-    partial = os.path.join(target, PARTIAL + name + ".partial")
-    with open(path, "rb") as src, open(partial, "wb") as dst:
-        shutil.copyfileobj(src, dst, 1 << 20)
-        dst.flush()
-        os.fsync(dst.fileno())
-    landed = _free_name(target, name)
-    os.rename(partial, os.path.join(target, landed))
+    hidden partial copy, flushed, then renamed to a name nothing else has.
+    The partial copy is named by the book's hash, short whatever the name."""
+    partial = os.path.join(target, PARTIAL + sha[:16] + ".partial")
+    try:
+        with open(path, "rb") as src, open(partial, "wb") as dst:
+            shutil.copyfileobj(src, dst, 1 << 20)
+            dst.flush()
+            os.fsync(dst.fileno())
+        landed = _free_name(target, name)
+        os.rename(partial, os.path.join(target, landed))
+    except OSError as ex:
+        if ex.errno not in GONE:  # a Kobo pulled out takes it along; the next plug-in clears what is left
+            with contextlib.suppress(OSError):
+                os.unlink(partial)
+        raise
     return landed
 
 
