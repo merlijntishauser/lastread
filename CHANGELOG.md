@@ -70,6 +70,10 @@ minor version may change behaviour; the notes will say so.
   ran where every other request waits, so the page, the Mac app and the
   health check stalled for its length, up to half a minute when the
   Hardcover connection was renewed with it.
+- **Covers come back as soon as the network does.** Opening the page or
+  the Mac app offline marked every cover not yet fetched as missing for a
+  week. Now only Kobo's answer that a book has no cover does that; when
+  Kobo cannot be reached, covers are asked for again a minute later.
 
 ## 0.22.1 - 2026-11-02
 

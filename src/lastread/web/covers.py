@@ -3,14 +3,19 @@ ImageId, kept in DATA/covers, served by the app itself. The browser never
 talks to Kobo; the page loads nothing from outside.
 
 A book without a usable cover gets a marker file, so a missing cover is
-asked for once a week, not on every page view.
+asked for once a week, not on every page view. Only an answer from the
+CDN says a cover is missing: when it cannot be reached (offline, a
+timeout, its own trouble) nothing is marked, and it is asked again after
+a minute.
 """
 
 from __future__ import annotations
 
 import os
 import re
+import tempfile
 import time
+import urllib.error
 import urllib.request
 
 CDN = os.environ.get("KHS_COVER_URL") or "https://cdn.kobo.com/book-images/{id}/{size}/False/image.jpg"
@@ -20,18 +25,29 @@ SIZES = {"thumb": "240/360/85", "large": "1200/1800/90"}
 ID_OK = re.compile(r"^[A-Za-z0-9_-]{1,80}$")  # the id goes into a URL and a filename
 RETRY_MISSING_AFTER = 7 * 86400
 MAX_BYTES = 4 * 1024 * 1024
+RETRY_UNREACHABLE_AFTER = 60  # seconds, for every cover at once: offline, each would wait for its own timeout
+_unreachable_since = 0.0
+
+
+class Unreachable(Exception):
+    """The CDN could not be asked; this says nothing about the cover."""
 
 
 def download(image_id: str, size: str = "thumb") -> bytes | None:
-    """The cover as JPEG bytes, or None. Separate so tests can replace it."""
+    """The cover as JPEG bytes, or None when the CDN says there is none;
+    Unreachable when it could not say. Separate so tests can replace it."""
     req = urllib.request.Request(CDN.format(id=image_id, size=SIZES[size]), headers={"User-Agent": "lastread"})
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
             if r.status != 200 or "image" not in r.headers.get("Content-Type", ""):
                 return None
             data = r.read(MAX_BYTES + 1)
-    except Exception:
+    except urllib.error.HTTPError as ex:
+        if ex.code == 429 or ex.code >= 500:  # the CDN's own trouble, not an answer about the cover
+            raise Unreachable(str(ex)) from ex
         return None
+    except Exception as ex:  # no network, DNS, a timeout, a connection cut halfway
+        raise Unreachable(str(ex)) from ex
     return data if 0 < len(data) <= MAX_BYTES else None
 
 
@@ -47,14 +63,26 @@ def cover_path(data_dir: str, image_id: str, size: str = "thumb") -> str | None:
         return path
     if os.path.exists(missing) and time.time() - os.path.getmtime(missing) < RETRY_MISSING_AFTER:
         return None
-    data = download(image_id, size)
+    global _unreachable_since
+    if time.time() - _unreachable_since < RETRY_UNREACHABLE_AFTER:
+        return None
+    try:
+        data = download(image_id, size)
+    except Unreachable:
+        _unreachable_since = time.time()
+        return None
     if data is None:
         open(missing, "w").close()
         return None
-    tmp = f"{path}.{os.getpid()}.tmp"
-    with open(tmp, "wb") as fh:
-        fh.write(data)
-    os.replace(tmp, path)
+    fd, tmp = tempfile.mkstemp(dir=d, prefix=f".{stem}.", suffix=".tmp")  # one per call: the page's threads fetch at once
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+        os.replace(tmp, path)
+    except OSError:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
     if os.path.exists(missing):
         os.unlink(missing)
     return path

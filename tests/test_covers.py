@@ -1,6 +1,8 @@
 import os
 import time
 
+import pytest
+
 from lastread.engine import kobo_db, state
 from lastread.web import covers
 from tests.test_core import make_kobo
@@ -25,6 +27,45 @@ def test_missing_cover_is_remembered_and_retried_after_a_week(tmp_path, monkeypa
     os.utime(marker, (old, old))
     covers.cover_path(str(tmp_path), "gone")
     assert len(calls) == 2
+
+
+def test_an_unreachable_cdn_marks_no_cover_missing(tmp_path, monkeypatch):
+    calls = []
+
+    def offline(i, size="thumb"):
+        calls.append(i)
+        raise covers.Unreachable("no network")
+
+    monkeypatch.setattr(covers, "_unreachable_since", 0.0)
+    monkeypatch.setattr(covers, "download", offline)
+    assert covers.cover_path(str(tmp_path), "one") is None and covers.cover_path(str(tmp_path), "two") is None
+    assert calls == ["one"]  # the second does not wait for a timeout of its own
+    assert not list((tmp_path / "covers").glob("*.none"))  # nothing said about the covers themselves
+    monkeypatch.setattr(covers, "_unreachable_since", time.time() - covers.RETRY_UNREACHABLE_AFTER - 1)
+    monkeypatch.setattr(covers, "download", lambda i, size="thumb": b"\xff\xd8jpeg")
+    assert covers.cover_path(str(tmp_path), "two")  # back online: there it is, not a week later
+    assert sorted(f.name for f in (tmp_path / "covers").iterdir()) == ["two.jpg"]  # no temporary file left
+
+
+def test_what_the_cdn_answers_tells_a_missing_cover_from_trouble(monkeypatch):
+    import io
+    import urllib.error
+
+    def answers(code):
+        def urlopen(req, timeout):
+            raise urllib.error.HTTPError(req.full_url, code, "x", {}, io.BytesIO(b""))
+
+        return urlopen
+
+    monkeypatch.setattr(covers.urllib.request, "urlopen", answers(404))
+    assert covers.download("x") is None
+    for trouble in (429, 503):
+        monkeypatch.setattr(covers.urllib.request, "urlopen", answers(trouble))
+        with pytest.raises(covers.Unreachable):
+            covers.download("x")
+    monkeypatch.setattr(covers.urllib.request, "urlopen", lambda req, timeout: (_ for _ in ()).throw(urllib.error.URLError("offline")))
+    with pytest.raises(covers.Unreachable):
+        covers.download("x")
 
 
 def test_bad_image_ids_never_reach_the_network_or_disk(tmp_path, monkeypatch):
