@@ -93,6 +93,8 @@ minor version may change behaviour; the notes will say so.
 - **The Mac app's local page starts as the app's own tool does**, so
   Python packages installed elsewhere on the Mac can no longer stand in
   for the ones the app brings.
+- **A full disk at the very end of a sync** no longer turns it into an
+  unexpected failure; the sync is kept in the history as it went.
 
 ## 0.22.1 - 2026-11-02
 

@@ -20,7 +20,7 @@ import httpx
 import pytest
 
 from lastread import cli, doctor
-from lastread.computer import config, macos, remote, runner
+from lastread.computer import config, history, macos, remote, runner
 from lastread.computer.platform import UPLOAD, Computer
 from lastread.engine import collection, kobo_db
 from tests import said
@@ -313,6 +313,16 @@ def test_a_kobo_unplugged_right_after_its_collection_was_written_is_no_failure(h
     out = runner.sync(mac, cfg)
     assert out.ok and out.message == f"Collection '{COLLECTION}': 1 book (+1, -0). Eject before unplugging."
     assert members(db) == {BOOKS[0]} and len(calls) == 2
+
+
+def test_a_last_message_that_cannot_be_kept_does_not_undo_the_sync(home, server):
+    plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    os.makedirs(home / "state" / "last-message.txt.tmp")  # stands in for a full disk: the write fails
+    out = runner.sync(mac, config.Config(server=server.url))
+    assert (out.ok, out.message) == (True, "9 books updated.")
+    assert history.syncs()[0]["ok"] and "could not keep the last message" in open(home / "state" / "agent.log").read()
 
 
 def test_a_new_token_or_another_server_gets_the_kobo_although_it_has_not_changed(home, server):

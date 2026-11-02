@@ -76,8 +76,13 @@ def damaged(computer: Computer) -> str:
 def remember(out: Outcome) -> Outcome:
     """Keep the last thing told, for the small app that shows it on a click."""
     if out.message:
-        with open(os.path.join(config.state_dir(), "last-message.txt"), "w") as fh:
-            fh.write(f"{out.title}\n{out.message}\n\n{datetime.now():%-d %b %Y, %H:%M}\n")
+        path = os.path.join(config.state_dir(), "last-message.txt")
+        try:  # after the sync's own guard: a full disk here must not undo what the sync did
+            with open(path + ".tmp", "w") as fh:
+                fh.write(f"{out.title}\n{out.message}\n\n{datetime.now():%-d %b %Y, %H:%M}\n")
+            os.replace(path + ".tmp", path)
+        except OSError as ex:
+            log.warning("could not keep the last message: %s", ex)
     return out
 
 
