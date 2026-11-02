@@ -95,6 +95,25 @@ minor version may change behaviour; the notes will say so.
   for the ones the app brings.
 - **A full disk at the very end of a sync** no longer turns it into an
   unexpected failure; the sync is kept in the history as it went.
+- **The Mac app:**
+  - Closing the window during Sync now no longer cuts the sync off; the
+    app stays until the sync has said how it went.
+  - Sync now is available again as soon as the sync has said how it went,
+    not a few seconds later, and is no longer called "started elsewhere".
+  - On a fresh install, the window follows a sync started by plugging in
+    from the first session on.
+  - Moving the app, say from Downloads to Applications, no longer stops
+    plugging in from starting a sync.
+  - The arrow keys on Covers no longer crash the app after its rows change.
+  - Closing the window or quitting ends a Hardcover sign-in still waiting
+    for approval, instead of leaving it running.
+  - Quit waits while an update replaces the app.
+  - Remove… takes the caret icon off the EPUB folder, and the window keeps
+    drawing while it works.
+  - Setting up again from a check can be cancelled, and Sync now waits
+    while setup shows.
+  - The Books list no longer jumps back to the top when a refresh brings
+    nothing new.
 
 ## 0.22.1 - 2026-11-02
 
