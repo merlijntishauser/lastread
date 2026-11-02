@@ -26,6 +26,9 @@ minor version may change behaviour; the notes will say so.
   proxy in front of the server answers with its sign-in page. That page was
   read as a collection without books; an answer that is not the server's own
   now leaves the Kobo as it is.
+- **A sync to Hardcover that breaks on something unexpected now ends.**
+  The page went on showing it as running, with Sync now unavailable, until
+  the server was restarted; it now says the sync failed and why.
 
 ## 0.22.1 - 2026-11-02
 

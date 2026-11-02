@@ -1,5 +1,8 @@
 import copy
 import json
+import sqlite3
+
+import pytest
 
 from lastread.engine import hardcover, job, kobo_db, state
 from lastread.engine.plan import action
@@ -398,3 +401,20 @@ def test_edition_chosen_on_hardcover_is_adopted_and_never_overwritten(tmp_path):
     st.commit()
     run(tmp_path, fake)
     assert fake.books[ub]["edition_id"] == 5 and fake.books[ub]["user_book_reads"][0]["progress_pages"] == 145  # 50% of 290
+
+
+def test_a_run_that_breaks_on_something_unexpected_still_ends(tmp_path, monkeypatch):
+    setup(tmp_path, [OLD]).close()
+
+    def broken(*a, **k):
+        raise KeyError("status_id")
+
+    monkeypatch.setattr(job.syncback, "pull", broken)
+    with pytest.raises(KeyError):
+        run(tmp_path, FakeHC(), live=True)
+    con = sqlite3.connect(tmp_path / "state.db")
+    status, detail = con.execute("select status, detail from job order by started desc limit 1").fetchone()
+    assert "alice" not in job.progress and "alice" not in job._running  # the page stops showing it, the next run may start
+    assert status == "failed" and json.loads(detail)["fatal"] == "Stopped by something this tool did not expect (KeyError: 'status_id')"
+    monkeypatch.undo()
+    assert run(tmp_path, FakeHC(), live=True)["status"] == "ok"

@@ -43,11 +43,7 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
         if reader in _running:
             return {"status": "already running"}
         _running.add(reader)
-    progress[reader] = {"phase": "shelf" if live else "match", "done": 0, "total": 0}
-    con = state.connect(db_path)
-    started = state.now()
-    con.execute("insert into job (reader, started, live, status) values (?,?,?,?)", (reader, started, int(live), "running"))
-    con.commit()
+    con, started, status = None, "", "failed"
     counts = {"matched": 0, "uncertain": 0, "sent": 0, "planned": 0, "errors": 0, "adopted": 0, "removed": 0, "editions": 0}
     # The books this run was about, for a reader watching it (the command, by hand). They are handed back
     # and nowhere else: not kept with the run, not logged.
@@ -67,89 +63,104 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
             }
         )
 
+    # Whatever goes wrong, the run ends: the reader is free for the next one, the page stops showing
+    # it as running, and the job row says it failed and why.
     try:
-        client = client or hardcover.Client(token)
-        shelf = []
-        if live:
-            check_account(con, reader, client.whoami())
-            shelf = client.shelf()
-            counts.update(syncback.pull(con, reader, shelf))
-        progress[reader] = {"phase": "match", "done": 0, "total": 0}
-        # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
-        todo = [
-            r
-            for r in syncing_rows(con, reader)
-            if not r["hc_book_id"] and (r["hc_how"] not in ("uncertain", "none") or (r["hc_looked"] or 1) < hardcover.MATCH_RULES)
-        ]
-        for cid, m in hardcover.match_books(client, todo).items():
-            con.execute(
-                """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?, hc_looked=?
-                           where reader=? and content_id=?""",
-                (
-                    m["how"],
-                    m["book_id"],
-                    m["edition_id"],
-                    m["pages"],
-                    m["title"],
-                    json.dumps(m["candidates"]),
-                    hardcover.MATCH_RULES,
-                    reader,
-                    cid,
-                ),
-            )
-            counts["matched" if m["book_id"] else "uncertain"] += 1
-            if m["book_id"]:
-                log.debug("matched %r: Hardcover book %s (%s)", m["title"], m["book_id"], m["how"])
-            else:
-                log.debug("no sure match for Kobo book %s: left for the reader to choose", cid)
+        progress[reader] = {"phase": "shelf" if live else "match", "done": 0, "total": 0}
+        con = state.connect(db_path)
+        started = state.now()
+        con.execute("insert into job (reader, started, live, status) values (?,?,?,?)", (reader, started, int(live), "running"))
         con.commit()
-        counts["editions"] = choose_editions(con, reader, client)
-        existing = {u["book_id"]: u for u in shelf}
-        rows = syncing_rows(con, reader)
-        silent = quiet(rows)
-        rows = [r for r in rows if r["hc_book_id"] and (r["device"], r["content_id"]) not in silent and action(r)]
-        progress[reader] = {"phase": "send", "done": 0, "total": len(rows)}
-        for i, r in enumerate(rows):
-            progress[reader] = {"phase": "send", "done": i, "total": len(rows)}
-            what = action(r)
-            if not live:
-                counts["planned"] += 1
-                log.debug("would send %r: %s", r["title"], what)
-                about(r, what, "planned")
-                continue
-            try:
-                sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
-                new = hardcover.apply(client, r, desired(r), sent, existing.get(r["hc_book_id"]))
-                new["at"] = state.now()
-                state.record_sent(con, reader, r, json.dumps(new))
-                con.execute("update book set hc_error=null where reader=? and content_id=?", (reader, r["content_id"]))
-                counts["sent"] += 1
-                log.debug("sent %r: %s", r["title"], what)
-                about(r, what, "sent")
-            except hardcover.HardcoverError as e:
-                if e.stops_the_run:  # no token, no connection, too many requests: the next book would hear the same
-                    con.commit()
-                    raise
-                con.execute("update book set hc_error=? where reader=? and content_id=?", (str(e)[:300], reader, r["content_id"]))
-                counts["errors"] += 1
-                log.warning("a book could not be sent (%s); its row on the page says why", e.kind)
-                log.debug("not sent %r: %s", r["title"], e)
-                about(r, what, "failed", str(e))
+        try:
+            client = client or hardcover.Client(token)
+            shelf = []
+            if live:
+                check_account(con, reader, client.whoami())
+                shelf = client.shelf()
+                counts.update(syncback.pull(con, reader, shelf))
+            progress[reader] = {"phase": "match", "done": 0, "total": 0}
+            # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
+            todo = [
+                r
+                for r in syncing_rows(con, reader)
+                if not r["hc_book_id"] and (r["hc_how"] not in ("uncertain", "none") or (r["hc_looked"] or 1) < hardcover.MATCH_RULES)
+            ]
+            for cid, m in hardcover.match_books(client, todo).items():
+                con.execute(
+                    """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?, hc_looked=?
+                               where reader=? and content_id=?""",
+                    (
+                        m["how"],
+                        m["book_id"],
+                        m["edition_id"],
+                        m["pages"],
+                        m["title"],
+                        json.dumps(m["candidates"]),
+                        hardcover.MATCH_RULES,
+                        reader,
+                        cid,
+                    ),
+                )
+                counts["matched" if m["book_id"] else "uncertain"] += 1
+                if m["book_id"]:
+                    log.debug("matched %r: Hardcover book %s (%s)", m["title"], m["book_id"], m["how"])
+                else:
+                    log.debug("no sure match for Kobo book %s: left for the reader to choose", cid)
             con.commit()
-        status = "ok" if not counts["errors"] else "errors"
-        if live and state.has_records(con, reader):
-            state.bind_account(con, reader, client.whoami())  # the shelf the records are on, from now on
-    except hardcover.HardcoverError as e:
-        status, counts["fatal"] = "failed", str(e)[:300]
+            counts["editions"] = choose_editions(con, reader, client)
+            existing = {u["book_id"]: u for u in shelf}
+            rows = syncing_rows(con, reader)
+            silent = quiet(rows)
+            rows = [r for r in rows if r["hc_book_id"] and (r["device"], r["content_id"]) not in silent and action(r)]
+            progress[reader] = {"phase": "send", "done": 0, "total": len(rows)}
+            for i, r in enumerate(rows):
+                progress[reader] = {"phase": "send", "done": i, "total": len(rows)}
+                what = action(r)
+                if not live:
+                    counts["planned"] += 1
+                    log.debug("would send %r: %s", r["title"], what)
+                    about(r, what, "planned")
+                    continue
+                try:
+                    sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
+                    new = hardcover.apply(client, r, desired(r), sent, existing.get(r["hc_book_id"]))
+                    new["at"] = state.now()
+                    state.record_sent(con, reader, r, json.dumps(new))
+                    con.execute("update book set hc_error=null where reader=? and content_id=?", (reader, r["content_id"]))
+                    counts["sent"] += 1
+                    log.debug("sent %r: %s", r["title"], what)
+                    about(r, what, "sent")
+                except hardcover.HardcoverError as e:
+                    if e.stops_the_run:  # no token, no connection, too many requests: the next book would hear the same
+                        con.commit()
+                        raise
+                    con.execute("update book set hc_error=? where reader=? and content_id=?", (str(e)[:300], reader, r["content_id"]))
+                    counts["errors"] += 1
+                    log.warning("a book could not be sent (%s); its row on the page says why", e.kind)
+                    log.debug("not sent %r: %s", r["title"], e)
+                    about(r, what, "failed", str(e))
+                con.commit()
+            status = "ok" if not counts["errors"] else "errors"
+            if live and state.has_records(con, reader):
+                state.bind_account(con, reader, client.whoami())  # the shelf the records are on, from now on
+        except hardcover.HardcoverError as e:
+            status, counts["fatal"] = "failed", str(e)[:300]
+        except Exception as e:
+            counts["fatal"] = f"Stopped by something this tool did not expect ({type(e).__name__}: {e})"[:300]
+            log.exception("hardcover sync for %s stopped", reader)
+            raise
     finally:
-        with _lock:
-            _running.discard(reader)
-    con.execute(
-        "update job set finished=?, status=?, detail=? where reader=? and started=?",
-        (state.now(), status, json.dumps(counts), reader, started),
-    )
-    con.commit()
-    progress.pop(reader, None)  # after the job is recorded: the page then finds the result where it looks
+        try:
+            if started:
+                con.execute(
+                    "update job set finished=?, status=?, detail=? where reader=? and started=?",
+                    (state.now(), status, json.dumps(counts), reader, started),
+                )
+                con.commit()
+        finally:
+            with _lock:
+                _running.discard(reader)
+            progress.pop(reader, None)  # after the job is recorded: the page then finds the result where it looks
     log.log(
         logging.INFO if status == "ok" else logging.ERROR,
         "hardcover (%s) for %s: %s",
