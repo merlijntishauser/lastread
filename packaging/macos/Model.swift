@@ -65,8 +65,8 @@ struct DoctorAnswer: Codable {
 
 /// `books --json`: every book with its row and its Details, in the page's
 /// words; searching, filtering and sorting happen in the app.
-struct BooksAnswer: Codable {
-    struct Book: Codable, Identifiable {
+struct BooksAnswer: Codable, Equatable {
+    struct Book: Codable, Equatable, Identifiable {
         let id: String
         let title: String
         let author: String
@@ -89,13 +89,13 @@ struct BooksAnswer: Codable {
         let details: Details
     }
 
-    struct Status: Codable {
+    struct Status: Codable, Equatable {
         let kind: String  // a mark: "ok", "next", "wait", "warn", "err", "none"
         let text: String
     }
 
-    struct Details: Codable {
-        struct Candidate: Codable {
+    struct Details: Codable, Equatable {
+        struct Candidate: Codable, Equatable {
             let id: Int  // the book on Hardcover
             let title: String
             let author: String
@@ -110,8 +110,8 @@ struct BooksAnswer: Codable {
 
     /// Getting started (start.py): the four steps from a new reader to a live
     /// shelf, the same as above the page's books; nil once live with books.
-    struct Start: Codable {
-        struct Step: Codable, Identifiable {
+    struct Start: Codable, Equatable {
+        struct Step: Codable, Equatable, Identifiable {
             let key: String  // "connect", "kobo", "books", "live"
             let n: Int
             let title: String
@@ -130,7 +130,7 @@ struct BooksAnswer: Codable {
     }
 
     /// Once live, the books switched on that wait for you (start.py); nil when none do.
-    struct NeedsYou: Codable {
+    struct NeedsYou: Codable, Equatable {
         let n: Int
         let match: Int  // without a Hardcover match: the filter Needs a match
         let failed: Int  // not sent at the last sync
@@ -138,20 +138,20 @@ struct BooksAnswer: Codable {
     }
 
     /// One book from your own shelf, as a question (tip.py); nil when no rule finds one.
-    struct Tip: Codable {
+    struct Tip: Codable, Equatable {
         let id: String
         let rule: String  // "left_off", "wanted", "never_opened"
         let text: String
     }
 
-    struct Sort: Codable {
+    struct Sort: Codable, Equatable {
         let key: String
         let label: String
         let order: [Int]  // places in books
     }
 
-    struct Words: Codable {
-        struct Group: Codable {
+    struct Words: Codable, Equatable {
+        struct Group: Codable, Equatable {
             let group: String
             let keys: [[String]]  // key, label
         }

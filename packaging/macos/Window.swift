@@ -169,9 +169,13 @@ final class WindowModel: ObservableObject {
             DispatchQueue.main.async {
                 switch found {
                 case .success(let list):
-                    self.books = list
                     self.booksBroken = nil
-                    DispatchQueue.global(qos: .utility).async { indexBooks(list.books) }
+                    // The same answer again (most refreshes: a sync wrote the folder, nothing about the books
+                    // changed): the table, the widget's shelf and Spotlight are left as they are.
+                    if list != self.books {
+                        self.books = list
+                        DispatchQueue.global(qos: .utility).async { indexBooks(list.books) }
+                    }
                     if !covers && !self.coversFetched && list.books.contains(where: { $0.cover.isEmpty }) {
                         self.coversFetched = true
                         self.loadBooks(covers: true)
