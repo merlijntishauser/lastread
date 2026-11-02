@@ -324,7 +324,13 @@ struct CoversPane: View {
     /// Arrows move along a row and between rows; the run stands while the keyboard is in it.
     private func move(_ direction: MoveCommandDirection, rows: [[BooksAnswer.Book]], k: CGFloat, width: CGFloat) {
         let filled = RunRow.allCases.filter { !rows[$0.rawValue].isEmpty }
-        guard let front = filled.last else { return }
+        guard let front = filled.last else {
+            lifted = nil
+            return
+        }
+        if let held = lifted, !rows[held.row.rawValue].contains(where: { $0.id == held.id }) {
+            lifted = nil  // a reload took that book off its row, or emptied the row: start again at the front
+        }
         var row = lifted?.row ?? front
         var index = lifted.flatMap { l in rows[l.row.rawValue].firstIndex { $0.id == l.id } } ?? 0
         if lifted != nil {
@@ -337,6 +343,10 @@ struct CoversPane: View {
             }
         }
         let books = rows[row.rawValue]
+        guard !books.isEmpty else {
+            lifted = nil
+            return
+        }
         index = (index % books.count + books.count) % books.count
         keyed = true
         lifted = (row, books[index].id)
