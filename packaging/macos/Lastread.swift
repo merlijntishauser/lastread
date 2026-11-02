@@ -640,18 +640,23 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         UserDefaults.standard.removeObject(forKey: agentRegisteredByKey)
         forgetBooks()  // out of Spotlight: the app no longer looks after them here
         forgetShelf()  // and the widget shows none
-        let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
-        let done = NSAlert()
-        done.messageText = ok ? "\(name) no longer syncs on this Mac" : "Not everything was removed"
-        done.informativeText = ok
-            ? "\(purge ? "What it kept here is deleted. " : "")To remove the app as well, drag it from Applications to the Bin."
-            : output.replacingOccurrences(of: "lastread: ", with: "")
-        done.addButton(withTitle: "Quit")
-        done.addButton(withTitle: "Show the App in Finder")
-        if done.runModal() == .alertSecondButtonReturn {
-            NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+        model?.stop()  // the folder is about to change, or go: no refresh for each file of it
+        DispatchQueue.global(qos: .userInitiated).async {  // the window keeps drawing while the tool removes
+            let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
+            DispatchQueue.main.async {
+                let done = NSAlert()
+                done.messageText = ok ? "\(name) no longer syncs on this Mac" : "Not everything was removed"
+                done.informativeText = ok
+                    ? "\(purge ? "What it kept here is deleted. " : "")To remove the app as well, drag it from Applications to the Bin."
+                    : output.replacingOccurrences(of: "lastread: ", with: "")
+                done.addButton(withTitle: "Quit")
+                done.addButton(withTitle: "Show the App in Finder")
+                if done.runModal() == .alertSecondButtonReturn {
+                    NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+                }
+                NSApp.terminate(nil)
+            }
         }
-        NSApp.terminate(nil)
     }
 
     func mainMenu() -> NSMenu {
