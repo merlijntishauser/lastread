@@ -462,6 +462,23 @@ def test_a_sync_with_steps_says_each_step_then_the_outcome(mac, home, capsys):
     assert "Made-up Book" not in json.dumps(lines)  # no book named: the window shows steps, not titles (a finished one aside)
 
 
+def test_a_window_closed_during_a_sync_with_steps_lets_the_sync_finish(mac, home, monkeypatch):
+    real, lines, quieted = cli._json, [], []
+
+    def window_gone_after_the_first_line(data):
+        lines.append(data)
+        if len(lines) >= 2:
+            raise BrokenPipeError(32, "Broken pipe")
+        real(data)
+
+    monkeypatch.setattr(cli, "_json", window_gone_after_the_first_line)
+    monkeypatch.setattr(cli, "_stdout_gone", lambda: quieted.append(True))
+    cli.main(["sync", "--trigger", "app", "--steps"], computer=mac)
+    assert len(lines) == 2 and quieted == [True]  # nothing more written to the dead pipe
+    last = history.syncs()[0]  # newest first
+    assert last["ok"] and last["message"] == "9 books updated."
+
+
 # ---------- what Settings changes ----------
 def test_setup_with_check_asks_the_server_first_and_changes_nothing_when_it_does_not_answer(home, server, capsys):  # noqa: F811
     computer = FakeComputer(home / "Volumes")

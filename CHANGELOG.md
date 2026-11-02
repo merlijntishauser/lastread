@@ -38,6 +38,9 @@ minor version may change behaviour; the notes will say so.
   once and the rest still go. Long names fit where they did not, and the
   characters the Kobo's storage cannot hold in a name, such as `?` and
   `:`, become `_`.
+- **Quitting the Mac app during Sync now** no longer records that sync as
+  an unexpected failure to report. The sync runs to its end, and the
+  history says how it went.
 
 ## 0.22.1 - 2026-11-02
 

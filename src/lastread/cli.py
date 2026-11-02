@@ -629,12 +629,22 @@ def _sync(a, computer) -> None:
     from .computer import runner
 
     if a.steps:  # the Mac app's window: each step as it finishes, then the outcome, a line of JSON each
+        gone = []  # the window stopped reading (the app quit): the sync still runs to its end, quietly
+
+        def say(data: dict) -> None:
+            if gone:
+                return
+            try:
+                _json(data)
+            except BrokenPipeError:
+                gone.append(True)
+                _stdout_gone()
 
         def step(row: Row) -> None:
-            _json({"step": row.what, "state": row.state, "text": row.text})
+            say({"step": row.what, "state": row.state, "text": row.text})
 
         out = runner.sync(computer, trigger=a.trigger, verbose=a.verbose, on_step=step)
-        _json({"done": {"ok": out.ok, "title": out.title, "message": out.message, "finished": out.finished}})
+        say({"done": {"ok": out.ok, "title": out.title, "message": out.message, "finished": out.finished}})
         if computer.in_app and a.trigger:
             from .computer import update
 
@@ -697,6 +707,16 @@ def _books(screen: term.Screen, books: list[dict], live: bool) -> None:
 
 def _json(data: dict) -> None:
     print(json.dumps({"schema": SCHEMA, **data}), flush=True)
+
+
+def _stdout_gone() -> None:
+    """After a broken pipe: what is still buffered for stdout, and whatever
+    comes later, goes nowhere, so the exit does not fail on it (the recipe
+    in Python's documentation of SIGPIPE)."""
+    try:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+    except (OSError, ValueError):
+        pass
 
 
 def _last_sync() -> dict | None:
