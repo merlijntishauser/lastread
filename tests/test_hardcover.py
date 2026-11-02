@@ -203,6 +203,35 @@ def test_reread_of_a_shelf_book_adds_a_read_but_a_new_book_never_gets_two(tmp_pa
     assert [c[0] for c in fake2.calls] == ["insert_ub", "update_read"]
 
 
+def test_a_reread_whose_answer_was_lost_is_not_added_twice(tmp_path, monkeypatch):
+    st = setup(tmp_path, [OLD])
+    fake = FakeHC(isbn=OLD_ED)
+    run(tmp_path, fake)
+    ub = sent(st, "old")["user_book_id"]
+    first = json.dumps({**sent(st, "old"), "at": "2026-09-30T10:00:00Z"})  # the first sync, a day before the re-read began
+    st.execute("update book set last_sent=? where content_id='old'", (first,))
+    st.commit()
+    state.set_state(st, "alice", "old", "rereading", "2026-10-01")
+    real = fake.insert_read
+
+    def added_then_lost(ub_id, r):
+        real(ub_id, r)  # on the shelf at Hardcover...
+        raise hardcover.HardcoverError("Hardcover did not answer in time", "refused")  # ...but not heard back here
+
+    monkeypatch.setattr(fake, "insert_read", added_then_lost)
+    run(tmp_path, fake)
+    monkeypatch.setattr(fake, "insert_read", real)
+    fake.calls.clear()
+    run(tmp_path, fake)
+    reads = fake.books[ub]["user_book_reads"]
+    # The re-read's one read-through, used; the status is said once more, as nothing recorded it.
+    assert len(reads) == 2 and [c[0] for c in fake.calls] == ["update_ub", "update_read"] and fake.calls[1][1] == reads[-1]["id"]
+    assert sent(st, "old")["reread"] and sent(st, "old")["read_id"] == reads[-1]["id"]
+    fake.calls.clear()
+    run(tmp_path, fake)
+    assert fake.calls == []
+
+
 # ---------- Hardcover -> lastread ----------
 def test_read_on_hardcover_becomes_a_pinned_finished_state(tmp_path):
     st = setup(tmp_path, [READING])

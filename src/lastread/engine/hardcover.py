@@ -582,7 +582,17 @@ def apply(client: Client, row, want: dict, sent: dict, existing: dict | None) ->
             if p is not None:
                 read["progress_pages"] = p
         if want.get("reread") and not sent.get("reread") and was_on_shelf:
-            read_id = None  # a re-read of a book already on the shelf is a new read-through
+            # A re-read of a book already on the shelf is a new read-through. One this sent before
+            # whose answer was lost, or whose record a crash kept from being written, is there
+            # already: the same start, not finished, not the read-through before. That one is used.
+            read_id = next(
+                (
+                    r["id"]
+                    for r in client.reads(ub_id)
+                    if r["id"] != sent.get("read_id") and not r.get("finished_at") and r.get("started_at") == read.get("started_at")
+                ),
+                None,
+            )
         elif read and not read_id:
             # Hardcover creates a read entry by itself when a book lands on the
             # shelf (dated that day). Use that one; inserting another made every

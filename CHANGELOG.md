@@ -87,6 +87,9 @@ minor version may change behaviour; the notes will say so.
   next sync asked again with the same renewal key, which Hardcover takes
   for a stolen one and ends the connection. It now asks again only once
   the current access has run out.
+- **A re-read is no longer put on Hardcover twice** when the answer to
+  adding it got lost. The next sync added a second read-through; it now
+  finds the first and goes on with that one.
 
 ## 0.22.1 - 2026-11-02
 
