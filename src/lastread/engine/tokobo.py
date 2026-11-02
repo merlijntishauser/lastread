@@ -371,12 +371,21 @@ def _remembered(state_dir: str) -> dict:
 
 def _keep(state_dir: str, remembered: dict) -> None:
     """After every book, so a sync that dies keeps what it did. Files gone
-    from the folder are forgotten from the hashes; the Kobos keep theirs."""
+    from the folder are forgotten from the hashes; the Kobos keep theirs.
+    Written only when it changed: the Mac app refreshes when the state
+    folder is written to, and asks for the list on every refresh."""
     remembered["files"] = {p: v for p, v in remembered["files"].items() if os.path.exists(p)}
-    os.makedirs(state_dir, exist_ok=True)
     path = os.path.join(state_dir, REMEMBERED)
+    text = json.dumps(remembered, indent=1, sort_keys=True)
+    try:
+        with open(path) as fh:
+            if fh.read() == text:
+                return
+    except OSError:
+        pass
+    os.makedirs(state_dir, exist_ok=True)
     with open(path + ".tmp", "w") as fh:
-        json.dump(remembered, fh, indent=1, sort_keys=True)
+        fh.write(text)
     os.replace(path + ".tmp", path)
 
 

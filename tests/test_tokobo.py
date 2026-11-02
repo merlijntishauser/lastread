@@ -295,6 +295,29 @@ def test_the_list_says_of_each_book_where_it_is_with_the_kobo(plugged, home):
         assert [b["title"] for b in tokobo.summary(str(books), config.state_dir())["list"]] == ["Locked", "Mine", "One", "Two"]
 
 
+def test_asking_for_the_list_writes_nothing_when_nothing_changed(plugged, home, monkeypatch):
+    """The Mac app refreshes when its folder is written to, and asks for the
+    list on every refresh: a list that rewrote to-kobo.json each time kept
+    the app refreshing every second."""
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    runner.sync(mac, cfg)
+    tokobo.summary(str(books), config.state_dir())  # the first look may still keep what the book says of itself
+    kept = os.path.join(config.state_dir(), tokobo.REMEMBERED)
+    before = (os.stat(kept).st_mtime_ns, open(kept).read())
+    replaced = []
+    real = os.replace
+    monkeypatch.setattr(os, "replace", lambda a, b: (replaced.append(b), real(a, b)))
+    tokobo.summary(str(books), config.state_dir())
+    tokobo.books(str(books), config.state_dir())
+    tokobo.waiting(str(books), "", config.state_dir())
+    assert replaced == [] and (os.stat(kept).st_mtime_ns, open(kept).read()) == before
+    assert not os.path.exists(kept + ".tmp")
+    a_book(books / "Two.epub", "Two")  # something new is still kept
+    tokobo.books(str(books), config.state_dir())
+    assert replaced == [kept] and "Two.epub" in open(kept).read()
+
+
 def test_a_plain_epub_goes_as_kepub_when_kepubify_is_installed(plugged, home, monkeypatch):
     mac, books, cfg, _ = plugged
     kepubify = a_kepubify(home, monkeypatch)
