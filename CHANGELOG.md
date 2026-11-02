@@ -78,6 +78,9 @@ minor version may change behaviour; the notes will say so.
   the old `kobo-hardcover-sync.service` in place, so each plug-in started
   two syncs, and uninstalling left one running. Setup and uninstall now
   remove it, and `lastread doctor` says so when it is there.
+- **Plugging in while the Mac app is open no longer skips the sync now and
+  then.** The app's look at whether a sync runs could, for an instant,
+  pass for a sync already running.
 
 ## 0.22.1 - 2026-11-02
 

@@ -363,6 +363,19 @@ def test_no_kobo_no_server_no_setup(home):
     assert runner.sync(mac, config.Config()).message == "Not set up yet: run `lastread setup`."
 
 
+def test_a_look_at_whether_a_sync_runs_does_not_turn_a_sync_away(home, server):
+    import fcntl
+
+    plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    os.makedirs(home / "state")
+    held = open(home / "state" / "sync.lock", "w")  # noqa: SIM115
+    fcntl.flock(held, fcntl.LOCK_EX)  # as running() holds it, for an instant, when status --json is asked
+    threading.Timer(0.15, held.close).start()
+    assert runner.sync(mac, config.Config(server=server.url), trigger="mount").message == "9 books updated."
+
+
 def test_a_second_sync_at_the_same_time_leaves_quietly(home, server):
     import fcntl
 

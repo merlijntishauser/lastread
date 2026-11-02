@@ -16,6 +16,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from dataclasses import dataclass, field, replace
 from datetime import datetime
 
@@ -140,9 +141,7 @@ def sync(
     marker = os.path.join(state_dir, RUNNING)
     held = False
     try:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
+        if not _take(lock):
             step(Row(NOTE, "Sync", "Another sync is running; it carries on."))
             if trigger == CLICKED:
                 return Outcome(True, message="A sync is already running. It says so when it is done.")
@@ -178,6 +177,23 @@ def sync(
             except FileNotFoundError:
                 pass
         lock.close()
+
+
+LOCK_TRIES = 5  # running() holds the lock for a moment to look: that is not another sync
+
+
+def _take(lock) -> bool:
+    """The sync lock, unless another sync holds it: tried a few times over half
+    a second, since `status --json` (asked every few seconds by the Mac app)
+    takes it for an instant to see whether a sync runs."""
+    for i in range(LOCK_TRIES):
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return True
+        except OSError:
+            if i < LOCK_TRIES - 1:
+                time.sleep(0.1)
+    return False
 
 
 def running() -> str:
