@@ -99,7 +99,9 @@ final class WindowModel: ObservableObject {
                 case .success(let found):
                     self.status = found
                     self.broken = nil
-                    self.elsewhere = found.syncing ?? ""
+                    // Started by the app while this window runs its own Sync now: that one, not one elsewhere.
+                    let started = found.syncing ?? ""
+                    self.elsewhere = self.syncing && started == "app" ? "" : started
                     self.loadBooks()
                     self.loadFolder()
                 case .failure(let why):
