@@ -76,6 +76,7 @@ final class WindowModel: ObservableObject {
     private var elsewhereSince: String?  // the newest sync in History when a sync elsewhere began
     private var run = 0  // which Sync now the steps on screen belong to
     private var watcher: DispatchSourceFileSystemObject?
+    private var stopped = false
     private var pending: DispatchWorkItem?
 
     init(register: @escaping () -> String?) {
@@ -117,6 +118,7 @@ final class WindowModel: ObservableObject {
                     announce("\(last.ok ? "Synced" : "The sync failed"). \(message)")
                 }
                 self.newer = newer
+                self.watch()  // the folder may be there only now, after setup
             }
             guard check else { return }
             let doctor = answer(DoctorAnswer.self, ["doctor", "--json"])
@@ -245,7 +247,10 @@ final class WindowModel: ObservableObject {
 
     /// History and the top line follow a sync the Kobo started in another
     /// process: the history file is replaced at the end of every sync.
+    /// Once per window. On a fresh install there is no folder yet (only `setup` makes one), so
+    /// each refresh tries again until there is: the first session's window then follows a plug-in too.
     func watch() {
+        guard watcher == nil, !stopped else { return }
         let fd = open(stateDir().path, O_EVTONLY)
         guard fd >= 0 else { return }
         let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fd, eventMask: .write, queue: .main)
@@ -262,6 +267,7 @@ final class WindowModel: ObservableObject {
     }
 
     func stop() {
+        stopped = true  // the window is gone: a refresh still on its way arms nothing
         watcher?.cancel()
         watcher = nil
     }
