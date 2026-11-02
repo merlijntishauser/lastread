@@ -22,9 +22,12 @@ import UserNotifications
 let name = "Lastread"
 let site = URL(string: "https://lastread.app/")!  // the tool's site, in About
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
-/// The version of the app that last registered the launch agent (registerAgent).
+/// The version and the place of the app that last registered the launch agent (registerAgent):
+/// launchd keeps the program's path from registration, so a new version, or the same one moved
+/// (from Downloads to Applications), registers it again.
 let agentRegisteredByKey = "AgentRegisteredBy"
 func agentRegisteredBy() -> String? { UserDefaults.standard.string(forKey: agentRegisteredByKey) }
+func thisApp() -> String { "\(bundleVersion())\n\(Bundle.main.bundlePath)" }
 let releases = "https://github.com/merlijntishauser/lastread/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
@@ -457,7 +460,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             if !isPreview && stateFile("config.toml") != nil {
                 // Set up by the tool in a terminal, not allowed yet, or registered by an older
                 // version: what macOS still asks, the overview's Trigger check says.
-                _ = registerAgent(again: agentRegisteredBy() != bundleVersion())
+                _ = registerAgent(again: agentRegisteredBy() != thisApp())
             }
             showWindow()
         }
@@ -789,7 +792,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 }
             }
         }
-        if agent.status == .enabled { UserDefaults.standard.set(bundleVersion(), forKey: agentRegisteredByKey) }
+        if agent.status == .enabled { UserDefaults.standard.set(thisApp(), forKey: agentRegisteredByKey) }
         if agent.status == .requiresApproval {
             SMAppService.openSystemSettingsLoginItems()
             return "macOS asks you to allow \(name) under Login Items first. Allow it there, then open the app again."
