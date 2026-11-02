@@ -190,11 +190,16 @@ final class WindowModel: ObservableObject {
         foldSince = syncs.first?.id ?? ""
         run += 1
         if isPreview { return playSampleSync() }
+        // The sync keeps the app until it has said how it went, also when the window is closed in between
+        // (as a sync the Kobo starts does): closing the last window otherwise quits the app mid-sync.
+        let app = NSApp.delegate as? App
+        app?.begin()
         DispatchQueue.global(qos: .userInitiated).async {
             if case .success(let now) = answer(StatusAnswer.self, ["status", "--json"]), let started = now.syncing, !started.isEmpty {
                 DispatchQueue.main.async {
                     self.syncing = false
                     self.elsewhere = started
+                    app?.end()
                 }
                 return
             }
@@ -213,6 +218,7 @@ final class WindowModel: ObservableObject {
                 }
                 self.syncing = false
                 self.refresh(check: false)
+                app?.end()
             }
         }
     }
