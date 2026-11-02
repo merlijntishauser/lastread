@@ -105,8 +105,11 @@ that is used twice ends the whole connection. So renewing happens in one
 place (`engine/oauth.py`, `usable`), for one reader at a time: a lock in
 the server's process, and on a reader's own computer a lock on a file,
 because a sync and the page are two programs. The new pair is kept before
-it is used. A renewal that got no answer is not sent again while the old
-access token still works. The connection is kept where a pasted token is
+it is used. A renewal that got no answer is marked as such where the
+tokens are kept, and is not sent again while the old access token still
+works: Hardcover may have renewed and the answer got lost, and the same
+refresh token a second time would end the connection. Once the access
+token has run out it is tried once more. The connection is kept where a pasted token is
 kept: encrypted in the server's database, or in the computer's secret
 store.
 

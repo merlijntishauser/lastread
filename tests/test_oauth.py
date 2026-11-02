@@ -4,6 +4,7 @@ documentation says: codes that wait for approval, tokens that are replaced
 on every renewal, and a refresh token that ends the whole connection when
 it is used twice."""
 
+import dataclasses
 import fcntl
 import io
 import re
@@ -32,7 +33,7 @@ class Hardcover:
 
     def __init__(self):
         self.posts, self.n = [], 0
-        self.approved = self.denied = self.hurried = self.down = self.ended = False
+        self.approved = self.denied = self.hurried = self.down = self.ended = self.lost = False
         self.refresh, self.spent = None, set()
 
     def pair(self):
@@ -43,6 +44,11 @@ class Hardcover:
     def __call__(self, url, fields, opener=None):
         self.posts.append((url.rsplit("/", 1)[-1], dict(fields)))
         if self.down:
+            return 0, {}
+        if self.lost and fields.get("grant_type") == "refresh_token":  # renewed here, but the answer never arrived
+            self.lost = False
+            self.spent.add(fields["refresh_token"])
+            self.pair()
             return 0, {}
         if url == oauth.DEVICE_URL:
             return 200, {
@@ -206,14 +212,31 @@ def test_a_connection_about_to_run_out_is_renewed_and_kept_before_it_is_used(hc)
 
 
 def test_when_hardcover_does_not_answer_the_spent_token_is_not_sent_blindly(hc):
-    kept = Kept(connection(hc, left=3600))
+    kept = Kept(connection_was := connection(hc, left=3600))
     hc.down = True
-    assert oauth.usable(kept.read, kept.write, kept) == "hc_at_1"  # still good for an hour: used, and nothing kept anew
-    assert kept.writes == []
+    assert oauth.usable(kept.read, kept.write, kept) == "hc_at_1"  # still good for an hour: used
+    assert [oauth.unpack(w) for w in kept.writes] == [dataclasses.replace(oauth.unpack(connection_was), unanswered=True)]
     run_out = Kept(connection(hc, left=-60))
     with pytest.raises(hardcover.HardcoverError, match="could not be reached to renew") as ex:
         oauth.usable(run_out.read, run_out.write, run_out)
     assert ex.value.kind == "unreachable" and run_out.writes == []
+
+
+def test_a_renewal_whose_answer_was_lost_is_not_sent_again_while_the_token_works(hc):
+    kept = Kept(connection(hc, left=3600))
+    hc.lost = True  # Hardcover renewed, and the answer got lost on the way
+    assert oauth.usable(kept.read, kept.write, kept) == "hc_at_1"
+    for _ in range(3):  # the next syncs of that hour: the old access token, and no second use of the spent refresh token
+        assert oauth.usable(kept.read, kept.write, kept) == "hc_at_1"
+    assert len(hc.asked("token")) == 1 and not hc.ended
+    # Unanswered because Hardcover was not reached at all: once the token has run out, it is tried again, and works.
+    hc.down = True
+    out = Kept(connection(hc, left=3600))
+    oauth.usable(out.read, out.write, out)
+    hc.down = False
+    assert oauth.unpack(out.text).unanswered
+    out.text = dataclasses.replace(oauth.unpack(out.text), expires=int(time.time()) - 60).pack()
+    assert oauth.usable(out.read, out.write, out) == hc.access and not oauth.unpack(out.text).unanswered
 
 
 def test_a_connection_hardcover_ended_says_connect_again(hc):

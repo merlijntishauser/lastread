@@ -40,6 +40,7 @@ stays, for a server and as the way back.
 from __future__ import annotations
 
 import base64
+import dataclasses
 import hashlib
 import hmac
 import json
@@ -107,11 +108,13 @@ class Tokens:
     access: str
     refresh: str
     expires: int  # when the access token stops working, in seconds since 1970
+    unanswered: bool = False  # a renewal went out and got no answer: the refresh token may be spent already
 
     def pack(self) -> str:
         """As one word that every place a token is kept in can hold (the
         Keychain helper takes letters, digits and a few signs)."""
-        raw = json.dumps({"a": self.access, "r": self.refresh, "e": self.expires}, separators=(",", ":"))
+        fields = {"a": self.access, "r": self.refresh, "e": self.expires} | ({"u": 1} if self.unanswered else {})
+        raw = json.dumps(fields, separators=(",", ":"))
         return PREFIX + base64.b64encode(raw.encode()).decode()
 
 
@@ -122,7 +125,7 @@ def unpack(kept: str) -> Tokens | None:
         return None
     try:
         d = json.loads(base64.b64decode(kept[len(PREFIX) :]))
-        return Tokens(str(d["a"]), str(d["r"]), int(d["e"]))
+        return Tokens(str(d["a"]), str(d["r"]), int(d["e"]), bool(d.get("u")))
     except (ValueError, KeyError, TypeError):
         return None
 
@@ -335,12 +338,17 @@ def usable(read, write, lock, opener=None, now=None) -> str:
         left = tokens.expires - (now or time.time())
         if left > RENEW_BEFORE:
             return tokens.access
+        if tokens.unanswered and left > 0:
+            # The last renewal may have reached Hardcover and spent the refresh token; sending it
+            # again would end the connection. So not while the access token still works.
+            return tokens.access
         try:
             new = renew(tokens.refresh, opener)
         except OAuthError as ex:
             if ex.code == "unreachable":
                 if left > 0:
-                    return tokens.access  # still good; the next use tries again
+                    write(dataclasses.replace(tokens, unanswered=True).pack())
+                    return tokens.access  # still good; tried again once it has run out
                 raise hardcover.HardcoverError(
                     f"Hardcover could not be reached to renew the connection. {hardcover.NOTHING_LOST}", "unreachable"
                 ) from ex

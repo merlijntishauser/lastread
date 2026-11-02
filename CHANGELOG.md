@@ -83,6 +83,10 @@ minor version may change behaviour; the notes will say so.
   pass for a sync already running.
 - **The first requests after an update no longer fail once** when two of
   them bring the database up to date at the same moment.
+- **A Hardcover connection survives a renewal whose answer got lost.** The
+  next sync asked again with the same renewal key, which Hardcover takes
+  for a stolen one and ends the connection. It now asks again only once
+  the current access has run out.
 
 ## 0.22.1 - 2026-11-02
 
