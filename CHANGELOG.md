@@ -66,6 +66,10 @@ minor version may change behaviour; the notes will say so.
   remembered by half its contents. With kepub conversion, either case put
   the book there again as "Title (2)". A book still being written now waits
   for the next plug-in.
+- **The server keeps answering while it takes in an upload.** The import
+  ran where every other request waits, so the page, the Mac app and the
+  health check stalled for its length, up to half a minute when the
+  Hardcover connection was renewed with it.
 
 ## 0.22.1 - 2026-11-02
 

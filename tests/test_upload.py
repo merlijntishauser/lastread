@@ -139,3 +139,24 @@ def test_a_database_in_wal_mode_leaves_no_wal_or_shm_behind(tmp_path, monkeypatc
     assert put(c, wal([OLD], "u.sqlite", with_user=True)).status_code == 422
     left = [p.name for p in tmp_path.iterdir() if p.name.startswith("tmp")]
     assert left == []
+
+
+def test_an_upload_is_imported_off_the_event_loop(tmp_path, monkeypatch):
+    import asyncio
+
+    from lastread.server import upload
+
+    c = setup(tmp_path, monkeypatch)
+    real, loops = upload.store_and_import, []
+
+    def where(*a, **k):
+        try:
+            asyncio.get_running_loop()
+            loops.append("on the loop")
+        except RuntimeError:
+            loops.append("in a thread")
+        return real(*a, **k)
+
+    monkeypatch.setattr(upload, "store_and_import", where)
+    assert put(c, body(tmp_path, [OLD])).status_code == 200
+    assert loops == ["in a thread"]  # /healthz and the app's questions are answered meanwhile

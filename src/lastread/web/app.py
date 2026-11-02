@@ -1063,15 +1063,23 @@ async def put_upload(request: Request):
                         raise upload.UploadError(413, "upload too large")
                     fh.write(chunk)
             gz = request.headers.get("content-type", "") == "application/gzip"
-            result = upload.store_and_import(tmp, gz, reader, device, DATA)
+            # The import, the snapshot and a possible renewal of the Hardcover connection (a request
+            # of up to 30 s) block: off the event loop, so /healthz and the app's questions still answer.
+            result = await run_in_threadpool(_take_upload, tmp, gz, reader, device, request.headers.get("user-agent", ""))
         finally:
             os.unlink(tmp)
     except upload.UploadError as ex:
         return JSONResponse({"ok": False, "error": str(ex)}, status_code=ex.status)
-    note_client(reader, device, request.headers.get("user-agent", ""))
+    return JSONResponse({"ok": True, **result})
+
+
+def _take_upload(path: str, gz: bool, reader: str, device: str, user_agent: str) -> dict:
+    """An upload spooled to path: imported, noted, and the reader's sync started."""
+    result = upload.store_and_import(path, gz, reader, device, DATA)
+    note_client(reader, device, user_agent)
     if token := token_to_use(db(), reader, live_for(reader)):
         job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)
-    return JSONResponse({"ok": True, **result})
+    return result
 
 
 def note_client(reader: str, device: str, user_agent: str) -> None:
