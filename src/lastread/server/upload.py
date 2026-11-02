@@ -66,6 +66,9 @@ def store_and_import(body_path: str, gzipped: bool, reader: str, device: str, da
         except (OSError, EOFError) as e:  # bad gzip
             os.unlink(db_path)
             raise UploadError(400, f"cannot read upload: {e}") from e
+        except UploadError:  # larger than allowed once unpacked
+            os.unlink(db_path)
+            raise
     try:
         try:
             con = kobo_db.open_db(db_path)

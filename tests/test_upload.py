@@ -72,6 +72,13 @@ def test_upload_size_limit(tmp_path, monkeypatch):
     assert put(c, body(tmp_path, [OLD])).status_code == 413
 
 
+def test_an_upload_too_large_once_unpacked_leaves_nothing_behind(tmp_path, monkeypatch):
+    c = setup(tmp_path, monkeypatch, max_mb=1)
+    r = put(c, gzip.compress(b"\0" * (2 << 20)))  # small as sent, 2 MB unpacked
+    assert r.status_code == 413
+    assert not list(tmp_path.glob("tmp*")) and not list(tmp_path.glob("*.upload"))
+
+
 def test_collection_endpoint_lists_the_syncing_books(tmp_path, monkeypatch):
     c = setup(tmp_path, monkeypatch)
     from lastread.engine import state

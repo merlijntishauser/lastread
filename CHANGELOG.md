@@ -49,6 +49,8 @@ minor version may change behaviour; the notes will say so.
 - **Removing a reader on a server** now also forgets which Hardcover
   account their books were sent to. Someone who signed up again under the
   same name had every sync refused as being for another account.
+- **An upload refused as too large once unpacked** no longer leaves a
+  temporary file in the server's data folder.
 
 ## 0.22.1 - 2026-11-02
 
