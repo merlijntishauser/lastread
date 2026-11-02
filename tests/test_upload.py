@@ -112,3 +112,23 @@ def test_an_upload_with_more_than_the_server_reads_is_refused(tmp_path, monkeypa
     assert not (tmp_path / "snapshots").exists() or not list((tmp_path / "snapshots").rglob("*.gz"))
     assert not list(tmp_path.glob("tmp*.sqlite")) and not list(tmp_path.glob("*.upload"))
     assert put(c, body(tmp_path, [OLD])).status_code == 200  # the two tables alone are welcome
+
+
+def test_a_database_in_wal_mode_leaves_no_wal_or_shm_behind(tmp_path, monkeypatch):
+    """The Kobo keeps its database in WAL mode. Opened read-only, SQLite
+    leaves the -wal and -shm next to it on close; the server removes those
+    with the upload, whether it takes the upload in or refuses it."""
+    c = setup(tmp_path, monkeypatch)
+
+    def wal(books, name, with_user=False):
+        p = tmp_path / name
+        make_kobo(p, books, [], with_user=with_user)
+        con = sqlite3.connect(p)
+        assert con.execute("pragma journal_mode=wal").fetchone()[0] == "wal"
+        con.close()
+        return gzip.compress(p.read_bytes())
+
+    assert put(c, wal([OLD, MINE], "w.sqlite")).status_code == 200
+    assert put(c, wal([OLD], "u.sqlite", with_user=True)).status_code == 422
+    left = [p.name for p in tmp_path.iterdir() if p.name.startswith("tmp")]
+    assert left == []

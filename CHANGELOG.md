@@ -7,7 +7,12 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **Server mode** no longer leaves a `-wal` and a `-shm` file in its data
+  folder for each upload of a database in WAL mode, as the Kobo keeps its
+  own. Files left by earlier versions (`tmp*.sqlite-wal`, `tmp*.sqlite-shm`)
+  hold nothing and can be deleted.
 
 ## 0.22.0 - 2026-11-01
 

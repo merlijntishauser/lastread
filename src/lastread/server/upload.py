@@ -97,8 +97,11 @@ def store_and_import(body_path: str, gzipped: bool, reader: str, device: str, da
         result = state.import_books(st, reader, device, books, source=os.path.basename(snap))
         return {**result, "reader": reader, "device": device, "snapshot": os.path.basename(snap)}
     finally:
-        if os.path.exists(db_path):
-            os.unlink(db_path)
+        # A database in WAL mode, as the Kobo keeps its own, gets a -wal and
+        # a -shm when it is opened, and a read-only connection leaves them.
+        for p in (db_path, db_path + "-wal", db_path + "-shm"):
+            if os.path.exists(p):
+                os.unlink(p)
 
 
 def prune(snap_dir: str) -> None:
