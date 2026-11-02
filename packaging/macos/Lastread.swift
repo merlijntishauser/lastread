@@ -640,6 +640,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         UserDefaults.standard.removeObject(forKey: agentRegisteredByKey)
         forgetBooks()  // out of Spotlight: the app no longer looks after them here
         forgetShelf()  // and the widget shows none
+        FolderIcon.forget()  // and the EPUB folder looks as it did before
         model?.stop()  // the folder is about to change, or go: no refresh for each file of it
         DispatchQueue.global(qos: .userInitiated).async {  // the window keeps drawing while the tool removes
             let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])

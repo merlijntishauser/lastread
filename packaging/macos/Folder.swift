@@ -365,6 +365,13 @@ enum FolderIcon {
         UserDefaults.standard.set(done, forKey: put)
     }
 
+    /// Remove…: the icon off the folder it is on, and nothing remembered of it.
+    static func forget() {
+        follow("", there: false)
+        UserDefaults.standard.removeObject(forKey: handled)
+        UserDefaults.standard.removeObject(forKey: put)
+    }
+
     /// The caret of the app's icon (art.py: CARET, its width and red), smaller, on the folder's front.
     private static func drawn(_ folder: NSImage, _ px: Int) -> NSBitmapImageRep? {
         guard
