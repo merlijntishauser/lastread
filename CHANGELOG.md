@@ -29,6 +29,9 @@ minor version may change behaviour; the notes will say so.
 - **A sync to Hardcover that breaks on something unexpected now ends.**
   The page went on showing it as running, with Sync now unavailable, until
   the server was restarted; it now says the sync failed and why.
+- **A sync cut off by a restart of the server** no longer shows as
+  running in the sidebar until the next one ends; it says it was
+  interrupted.
 
 ## 0.22.1 - 2026-11-02
 

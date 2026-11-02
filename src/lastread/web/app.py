@@ -219,6 +219,15 @@ def refuse_to_run_without_a_proxy():
 
 
 @app.on_event("startup")
+def end_interrupted_runs():
+    """A restart in the middle of a sync left its run on "running"; the server
+    runs every sync itself, so none is still going. Not in local mode: there
+    a sync runs in the command, apart from the page."""
+    if not local:
+        job.interrupted(os.path.join(DATA, "state.db"))
+
+
+@app.on_event("startup")
 def start_hourly_sync():
     """Two-way sync without an upload: an edit on Hardcover shows up here
     within the hour. Only readers that are live and have a token. Not in

@@ -199,6 +199,26 @@ def could_not_start(db_path: str, reader: str, live: bool, why: str) -> None:
     log.error("hardcover (%s) for %s did not start: %s", "live" if live else "dry run", reader, why)
 
 
+INTERRUPTED = "Interrupted by a restart of the server"
+
+
+def interrupted(db_path: str) -> int:
+    """At the start of the process that runs syncs: a run still on "running"
+    was cut off by the restart, and says so instead of running for ever."""
+    con = state.connect(db_path)
+    try:
+        n = con.execute(
+            "update job set finished=?, status='failed', detail=? where status='running'",
+            (state.now(), json.dumps({"fatal": INTERRUPTED})),
+        ).rowcount
+        con.commit()
+    finally:
+        con.close()
+    if n:
+        log.warning("%d sync run(s) cut off by a restart recorded as failed", n)
+    return n
+
+
 EDITION_RECHECK_DAYS = 30
 
 

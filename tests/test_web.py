@@ -636,3 +636,19 @@ def test_every_text_the_page_asks_for_exists():
         for one, other in re.findall(r"""\bT\[["']([a-z0-9_]+)["'] if [^\]]*? else ["']([a-z0-9_]+)["']\]""", text):
             asked |= {one, other}
     assert len(asked) > 150 and sorted(asked - set(T)) == []
+
+
+def test_a_run_cut_off_by_a_restart_says_so_once_the_server_is_back(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    import lastread.web.app as web
+
+    st = state.connect(str(tmp_path / "state.db"))
+    st.execute("insert into job (reader, started, live, status) values ('robin', '2026-10-03T20:26:14Z', 1, 'running')")
+    st.commit()
+    web.end_interrupted_runs()
+    assert c.get("/sync/status", headers={"Remote-User": "robin"}).json() == {
+        "running": False,
+        "kind": "err",
+        "text": "The sync stopped: Interrupted by a restart of the server",
+    }
+    assert st.execute("select count(*) from job where status='running' or finished is null").fetchone()[0] == 0
