@@ -373,11 +373,7 @@ def _sync_here(
             wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said) or wrote
             _collection_step(step, name, said[before:])
             if wrote:
-                try:
-                    with open(hash_file, "w") as fh:  # our own write is not a reason to import again
-                        fh.write(fingerprint(db) + "\n")
-                except OSError:
-                    pass
+                _seen_after_writing(hash_file, db)
     if cfg.export_to:
         _keep_export(con, reader["name"], cfg.export_to, said, step)
     if cfg.webhook_url and imported:  # only a sync that read something new from the Kobo
@@ -399,6 +395,18 @@ def finished_books(books: list[dict], state_dir: str) -> list[dict]:
         for b in books
         if b["went"] == "sent" and b["what"].startswith("mark Read")
     ]
+
+
+def _seen_after_writing(hash_file: str, db: str, to: str = "") -> None:
+    """The Kobo as our own write left it: that write is not a reason to read
+    or upload it again. Unplugged right after the write, it is left
+    unsaid: the next plug-in reads it once more, and that is all."""
+    try:
+        seen = fingerprint(db) + (f" {to}" if to else "")
+        with open(hash_file, "w") as fh:
+            fh.write(seen + "\n")
+    except OSError as ex:
+        log.info("the Kobo as written is not remembered: %s", ex)
 
 
 def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -> bool:
@@ -547,7 +555,6 @@ def _sync_to_server(
             wrote = _keep_collection(db, copy, wanted[0], wanted[1], state_dir, cfg, said) or wrote
             _collection_step(step, wanted[0], said[before:])
             if wrote:
-                with open(hash_file, "w") as fh:  # our own write is not a reason to upload again
-                    fh.write(f"{fingerprint(db)} {to}\n")
+                _seen_after_writing(hash_file, db, to)
 
     return _finish(computer, cfg, mount, said, wrote)

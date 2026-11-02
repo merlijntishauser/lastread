@@ -293,6 +293,28 @@ def test_a_sign_in_page_in_place_of_the_collection_leaves_the_kobo_as_it_is(home
     assert "collection request failed: 127.0.0.1 gave an answer that is not from lastread" in open(home / "state" / "agent.log").read()
 
 
+def test_a_kobo_unplugged_right_after_its_collection_was_written_is_no_failure(home, server, monkeypatch):
+    db = plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cfg = config.Config(server=server.url)
+    runner.sync(mac, cfg)
+    server.page.post("/settings/collection", data={"collection": COLLECTION})
+    server.page.post("/mode", data={"ids": BOOKS[0], "mode": "on"})
+    real, calls = runner.fingerprint, []
+
+    def gone_after_the_write(path):
+        calls.append(path)
+        if len(calls) > 1:  # the first is before anything is written
+            raise OSError(5, "Input/output error")
+        return real(path)
+
+    monkeypatch.setattr(runner, "fingerprint", gone_after_the_write)
+    out = runner.sync(mac, cfg)
+    assert out.ok and out.message == f"Collection '{COLLECTION}': 1 book (+1, -0). Eject before unplugging."
+    assert members(db) == {BOOKS[0]} and len(calls) == 2
+
+
 def test_a_new_token_or_another_server_gets_the_kobo_although_it_has_not_changed(home, server):
     plug_in(home)
     mac = FakeComputer(home / "Volumes")

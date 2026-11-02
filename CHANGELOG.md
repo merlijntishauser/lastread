@@ -55,6 +55,8 @@ minor version may change behaviour; the notes will say so.
   instead of a Python traceback from every command; `lastread doctor` and
   the app's Overview name it, and a sync started by plugging in says it in
   its notification.
+- **Server mode: a Kobo unplugged right after its collection was written**
+  no longer turns a finished sync into an unexpected failure to report.
 
 ## 0.22.1 - 2026-11-02
 
