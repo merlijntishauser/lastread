@@ -293,6 +293,20 @@ def test_a_sign_in_page_in_place_of_the_collection_leaves_the_kobo_as_it_is(home
     assert "collection request failed: 127.0.0.1 gave an answer that is not from lastread" in open(home / "state" / "agent.log").read()
 
 
+def test_a_new_token_or_another_server_gets_the_kobo_although_it_has_not_changed(home, server):
+    plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cfg = config.Config(server=server.url)
+    runner.sync(mac, cfg)
+    assert runner.sync(mac, cfg).message == "" and uploads(server) == 1
+    register(server, mac, token="u" * 64)  # a new token: the server it reaches may be another one, or a fresh one
+    assert runner.sync(mac, cfg).message == "0 books updated." and uploads(server) == 2  # sent; the server had them all
+    other = config.Config(server=server.url.replace("127.0.0.1", "localhost"))  # another address
+    assert runner.sync(mac, other).message == "0 books updated." and uploads(server) == 3
+    assert "u" * 64 not in open(home / "state" / "last-upload.sha256").read()
+
+
 def test_eject_after_sync_when_asked(home, server):
     db = plug_in(home)
     mac = FakeComputer(home / "Volumes")

@@ -41,6 +41,11 @@ minor version may change behaviour; the notes will say so.
 - **Quitting the Mac app during Sync now** no longer records that sync as
   an unexpected failure to report. The sync runs to its end, and the
   history says how it went.
+- **A new server address or a new upload token now gets the Kobo's
+  books** at the next plug-in. The upload was skipped while the Kobo had
+  not changed, so a new server never had them, and its empty collection
+  could take the one on the Kobo away. In local mode, a deleted database
+  likewise has the Kobo read again.
 
 ## 0.22.1 - 2026-11-02
 

@@ -125,6 +125,15 @@ def test_plug_in_dry_run_live_collection_and_then_nothing(home):
     assert mac.secrets == {HARDCOVER: TOKEN} and mac.ejected == []
 
 
+def test_a_state_database_deleted_since_the_last_sync_has_the_kobo_read_again(home):
+    kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    assert runner.sync(mac, LOCAL).message.startswith("9 books updated.")
+    os.remove(home / "state" / "state.db")
+    assert runner.sync(mac, LOCAL).message.startswith("9 books updated.")  # the Kobo had not changed, but here nothing was left
+    assert st(home).execute("select count(*) from book").fetchone()[0] == 9
+
+
 def test_a_book_marked_read_gets_a_notification_of_its_own_with_its_cover(home, monkeypatch, capsys):
     from lastread.web import covers
 

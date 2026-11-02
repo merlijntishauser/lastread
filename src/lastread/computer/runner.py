@@ -259,6 +259,7 @@ def _sync_here(
     """Local mode: the books are imported here and the engine runs here."""
     where = "in the app" if computer.in_app else "on the page"  # where a match is chosen and Hardcover connected
     db_path = os.path.join(state_dir, "state.db")
+    fresh = not os.path.exists(db_path)  # deleted, or never made: the Kobo is read again whatever it was last time
     con = state.connect(db_path)
     reader = accounts.local_reader(con, getpass.getuser())
     said, wrote, imported = [], False, False
@@ -279,7 +280,7 @@ def _sync_here(
                 return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
             try:
                 with open(hash_file) as fh:
-                    unchanged = fh.read().strip() == seen
+                    unchanged = fh.read().strip() == seen and not fresh
             except FileNotFoundError:
                 unchanged = False
             if unchanged:
@@ -481,8 +482,10 @@ def _sync_to_server(
         return Outcome(False, message=f"No upload token on this computer; {how}.", about="Setup")
     server = remote.Server(cfg.server, token, opener)
     hash_file = os.path.join(state_dir, "last-upload.sha256")
+    # The Kobo as it was last sent, and where to: another server or another token has not had it.
+    to = hashlib.sha256(f"{server.url}\n{token}".encode()).hexdigest()
     try:
-        seen = fingerprint(db)
+        seen = f"{fingerprint(db)} {to}"
     except OSError as ex:
         log.error("cannot read the Kobo's database: %s", ex)
         return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
@@ -540,6 +543,6 @@ def _sync_to_server(
             _collection_step(step, wanted[0], said[before:])
             if wrote:
                 with open(hash_file, "w") as fh:  # our own write is not a reason to upload again
-                    fh.write(fingerprint(db) + "\n")
+                    fh.write(f"{fingerprint(db)} {to}\n")
 
     return _finish(computer, cfg, mount, said, wrote)
