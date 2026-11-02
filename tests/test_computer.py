@@ -435,6 +435,7 @@ class FakeMac:
 
     def __init__(self):
         self.calls, self.keychain, self.loaded = [], {}, set()
+        self.printed = {}  # label: what `launchctl print` says of it
 
     def __call__(self, args, capture_output=True, text=True, input=None):
         self.calls.append((args, input))
@@ -456,7 +457,8 @@ class FakeMac:
             elif args[1] == "bootout":
                 self.loaded.discard(args[2].rsplit("/", 1)[1])
             elif args[1] == "print":
-                rc = 0 if args[2].rsplit("/", 1)[1] in self.loaded else 113
+                label = args[2].rsplit("/", 1)[1]
+                rc, out = (0, self.printed.get(label, "")) if label in self.loaded else (113, "")
         elif tool == "osacompile":
             os.makedirs(os.path.join(args[2], "Contents", "MacOS"))
             with open(os.path.join(args[2], "Contents", "Info.plist"), "w") as fh:

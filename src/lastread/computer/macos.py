@@ -36,6 +36,7 @@ APP = "KoboHardcoverSync.app"
 # The signed Mac app: another bundle id, so the two never share a permission entry.
 SIGNED_APP = "Lastread.app"
 SIGNED_LABEL = BUNDLE_ID + ".app.agent"
+SIGNED_PROGRAM = f"Contents/MacOS/{SIGNED_APP[:-4]}"  # the agent's BundleProgram
 SECRET_OK = re.compile(r"^[A-Za-z0-9._~+/=-]{1,4096}$")  # what may go through `security -i` unquoted
 
 
@@ -284,8 +285,17 @@ class MacOS(Computer):
         ]
 
     def trigger_state(self) -> tuple[bool, str]:
-        if self.in_app or self._loaded(SIGNED_LABEL):
-            if self._loaded(SIGNED_LABEL):
+        signed = self._call("/bin/launchctl", "print", f"gui/{os.getuid()}/{SIGNED_LABEL}")
+        if self.in_app or signed.returncode == 0:
+            if signed.returncode == 0:
+                # launchd keeps the program's path from when the agent was registered:
+                # after 0.20.0 renamed it, plugging in started a program that was gone.
+                started = re.search(r"program identifier = (.+?) \(mode", signed.stdout or "")
+                if started and started.group(1) != SIGNED_PROGRAM:
+                    return False, (
+                        f"The launch agent of {SIGNED_APP} starts {started.group(1)}, which the app no longer has: "
+                        f"plugging in the Kobo does nothing. Open {SIGNED_APP} once: it registers the agent again."
+                    )
                 return True, f"Plugging in the Kobo starts a sync in {SIGNED_APP} (its launch agent is loaded)."
             return False, (
                 f"The launch agent of {SIGNED_APP} is not loaded. Allow the app under System Settings, General, Login Items, "

@@ -93,6 +93,12 @@ def test_the_app_without_its_launch_agent(home, the_app):
     assert not works and "Login Items" in found
     fake.loaded.add(APP_AGENT)
     assert mac.trigger_state() == (True, "Plugging in the Kobo starts a sync in Lastread.app (its launch agent is loaded).")
+    # Registered before 0.20.0 renamed the program: launchd still starts the old one, which is gone.
+    fake.printed[APP_AGENT] = "\tprogram identifier = Contents/MacOS/Kobo Hardcover Sync (mode: 2)\n\tlast exit code = 78: EX_CONFIG\n"
+    works, found = mac.trigger_state()
+    assert not works and "Contents/MacOS/Kobo Hardcover Sync" in found and "Open Lastread.app once" in found
+    fake.printed[APP_AGENT] = "\tprogram identifier = Contents/MacOS/Lastread (mode: 2)\n"
+    assert mac.trigger_state()[0]
     # When macOS keeps the Kobo closed, the app is named, not the small one.
     words = mac.cannot_read(by_hand=False)
     assert "Lastread read the Kobo" in words and "Removable Volumes" in words and "KoboHardcoverSync.app" not in words
@@ -263,7 +269,7 @@ def test_the_wrapper_and_the_tool_use_the_same_names():
     assert info["LSUIElement"] is True and info["NSRemovableVolumesUsageDescription"]
     assert agent["Label"] == macos.SIGNED_LABEL and agent["StartOnMount"] is True
     assert agent["EnvironmentVariables"] == {"KHS_TRIGGER": "mount"}
-    assert agent["BundleProgram"] == f"Contents/MacOS/{macos.SIGNED_APP[:-4]}"
+    assert agent["BundleProgram"] == macos.SIGNED_PROGRAM
     for must in (f'"{macos.SIGNED_LABEL}.plist"', '"KHS_APP"', '"KHS_NOTIFY"', '"stdout"', '"NOTIFY|"', '"KHS_TRIGGER"', '"mount"'):
         assert must in swift, must
     for file in ("update.json", "config.toml", "agent.log"):

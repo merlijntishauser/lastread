@@ -22,6 +22,9 @@ import UserNotifications
 let name = "Lastread"
 let site = URL(string: "https://lastread.app/")!  // the tool's site, in About
 let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
+/// The version of the app that last registered the launch agent (registerAgent).
+let agentRegisteredByKey = "AgentRegisteredBy"
+func agentRegisteredBy() -> String? { UserDefaults.standard.string(forKey: agentRegisteredByKey) }
 let releases = "https://github.com/merlijntishauser/lastread/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
@@ -451,8 +454,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         if isPreview && stateFile("config.toml") == nil {
             say("Nothing to preview", "The preview reads a copy of the tool's folder, at \(stateDir().path). Copy one there, then open it again.")
         } else {
-            if !isPreview && stateFile("config.toml") != nil && SMAppService.agent(plistName: agentPlist).status != .enabled {
-                _ = registerAgent()  // set up by the tool in a terminal, or not allowed yet: what macOS still asks, the overview's Trigger check says
+            if !isPreview && stateFile("config.toml") != nil {
+                // Set up by the tool in a terminal, not allowed yet, or registered by an older
+                // version: what macOS still asks, the overview's Trigger check says.
+                _ = registerAgent(again: agentRegisteredBy() != bundleVersion())
             }
             showWindow()
         }
@@ -615,6 +620,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             return
         }
         try? SMAppService.agent(plistName: agentPlist).unregister()
+        UserDefaults.standard.removeObject(forKey: agentRegisteredByKey)
         forgetBooks()  // out of Spotlight: the app no longer looks after them here
         forgetShelf()  // and the widget shows none
         let (ok, output) = tool(purge ? ["uninstall", "--purge"] : ["uninstall"])
@@ -758,8 +764,17 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     /// The launch agent that starts a sync when a volume is mounted: the
     /// app's own background item, registered before `setup` runs (Setup.swift).
     /// nil when it is in place.
-    func registerAgent() -> String? {
+    /// The trigger: the launch agent that starts a sync when the Kobo is
+    /// plugged in. `again` registers it anew while macOS calls it enabled:
+    /// launchd keeps the program's path inside the app from the time it was
+    /// registered, so after 0.20.0 renamed the program (Kobo Hardcover Sync
+    /// to Lastread) it went on starting one that was no longer there. Each
+    /// new version of the app therefore registers it once more.
+    func registerAgent(again: Bool = false) -> String? {
         let agent = SMAppService.agent(plistName: agentPlist)
+        if again && agent.status == .enabled {
+            try? agent.unregister()
+        }
         if agent.status != .enabled {
             do {
                 try agent.register()
@@ -769,6 +784,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 }
             }
         }
+        if agent.status == .enabled { UserDefaults.standard.set(bundleVersion(), forKey: agentRegisteredByKey) }
         if agent.status == .requiresApproval {
             SMAppService.openSystemSettingsLoginItems()
             return "macOS asks you to allow \(name) under Login Items first. Allow it there, then open the app again."

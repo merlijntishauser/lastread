@@ -7,7 +7,21 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **The Mac app no longer refreshes itself every second** once an EPUB
+  folder is chosen. Asking for the folder's list rewrote the file the app
+  watches, so each refresh started the next; the Books list jumped back to
+  the top, and around a sync the window could lose its sidebar and its
+  top line. The list now writes only what changed.
+- **Plugging in the Kobo starts a sync again in the Mac app** for those
+  who had it before 0.20.0. macOS kept starting the app's program by its
+  old name, which the rename took away, so plugging in did nothing. The
+  app now registers its launch agent again once after each update; open
+  it once to repair this.
+- The Trigger check (`lastread doctor`, and the Overview in the app) says
+  so when the launch agent starts a program the app no longer has; it
+  called that trigger in order.
 
 ## 0.22.1 - 2026-11-02
 
