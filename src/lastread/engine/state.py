@@ -19,6 +19,7 @@ once, and a Kobo that brings a book along later takes it over.
 from __future__ import annotations
 
 import sqlite3
+import threading
 from datetime import UTC, datetime
 
 from .kobo_db import Book
@@ -134,9 +135,28 @@ def record_sent(con: sqlite3.Connection, reader: str, row, last_sent: str | None
     )
 
 
+_migrating = threading.Lock()  # the server's threads, each with its first connection after an update
+
+
+def _add_column(con: sqlite3.Connection, table: str, col: str, decl: str) -> None:
+    """One column of a newer release. Another process (the page and a sync
+    in local mode) may add it in the same instant: then it is there."""
+    try:
+        con.execute(f"alter table {table} add column {col} {decl}")
+    except sqlite3.OperationalError as ex:
+        if "duplicate column name" not in str(ex):
+            raise
+
+
 def connect(path: str) -> sqlite3.Connection:
     con = sqlite3.connect(path)
     con.row_factory = sqlite3.Row
+    with _migrating:
+        _migrate(con)
+    return con
+
+
+def _migrate(con: sqlite3.Connection) -> None:
     con.executescript(SCHEMA)
     have = {r[1] for r in con.execute("pragma table_info(book)")}
     for col, decl in (
@@ -164,15 +184,15 @@ def connect(path: str) -> sqlite3.Connection:
         ("hc_looked", "integer"),
     ):
         if col not in have:  # state.db from before 2026-09-30 12:xx
-            con.execute(f"alter table book add column {col} {decl}")
+            _add_column(con, "book", col, decl)
     reader_cols = {r[1] for r in con.execute("pragma table_info(reader)")}
     if "stats_token_sha256" not in reader_cols:
-        con.execute("alter table reader add column stats_token_sha256 text")
+        _add_column(con, "reader", "stats_token_sha256", "text")
     if "client_version" not in {r[1] for r in con.execute("pragma table_info(device)")}:
         # The version of the tool on the computer that uploaded last: "" for one too old to say (2026-10-04).
-        con.execute("alter table device add column client_version text")
+        _add_column(con, "device", "client_version", "text")
     if "list_size" not in reader_cols:  # books the list shows at first: null the usual 100, 0 all of them (2026-10-04)
-        con.execute("alter table reader add column list_size integer")
+        _add_column(con, "reader", "list_size", "integer")
     con.executescript(BOOK_VIEW)
     if con.execute("select 1 from meta where key='per_book'").fetchone() is None:
         # Before 2026-10-08 a second Kobo's copy of a book began with its own Sync and State. The Kobo it
@@ -185,7 +205,6 @@ def connect(path: str) -> sqlite3.Connection:
         )
         con.execute("insert or ignore into meta values ('per_book', ?)", (now(),))  # two connections at once: both align, the same
         con.commit()
-    return con
 
 
 def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[Book], source: str = "") -> dict:

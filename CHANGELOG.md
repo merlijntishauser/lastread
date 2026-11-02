@@ -81,6 +81,8 @@ minor version may change behaviour; the notes will say so.
 - **Plugging in while the Mac app is open no longer skips the sync now and
   then.** The app's look at whether a sync runs could, for an instant,
   pass for a sync already running.
+- **The first requests after an update no longer fail once** when two of
+  them bring the database up to date at the same moment.
 
 ## 0.22.1 - 2026-11-02
 

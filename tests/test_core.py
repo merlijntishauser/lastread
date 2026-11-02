@@ -156,3 +156,24 @@ def test_today_and_shown_times_follow_the_time_zone_setting_else_the_computer(mo
     assert fmt.fmt_dt("2026-09-30T10:24:00Z") == "30 Sep 2026, 19:24"
     monkeypatch.delenv("TZ")
     assert state.local_tz() is None and fmt.fmt_dt("2026-09-30T10:24:00Z")
+
+
+def test_a_column_another_process_added_in_the_same_instant_is_no_failure(tmp_path, monkeypatch):
+    path = str(tmp_path / "state.db")
+    state.connect(path).close()
+    old = sqlite3.connect(path)  # a state.db from before the release that added hc_looked
+    old.execute("alter table book drop column hc_looked")
+    old.commit()
+    old.close()
+    real = state._add_column
+
+    def raced(con, table, col, decl):
+        other = sqlite3.connect(path)  # the other process, between the look and the alter
+        other.execute(f"alter table {table} add column {col} {decl}")
+        other.commit()
+        other.close()
+        real(con, table, col, decl)
+
+    monkeypatch.setattr(state, "_add_column", raced)
+    con = state.connect(path)
+    assert "hc_looked" in {r[1] for r in con.execute("pragma table_info(book)")}
