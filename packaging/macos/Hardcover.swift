@@ -49,7 +49,12 @@ extension WindowModel {
                     let line = String(decoding: rest[rest.startIndex..<end], as: UTF8.self)
                     rest = Data(rest[rest.index(after: end)...])
                     lines.append(line)
-                    guard case .success(let step) = decode(TokenLine.self, line) else { continue }
+                    let decoded = decode(TokenLine.self, line)
+                    if case .failure(AnswerError.otherSchema(let other)) = decoded {
+                        DispatchQueue.main.async { self.signIn?.problem = disagree(other) }
+                        continue
+                    }
+                    guard case .success(let step) = decoded else { continue }
                     DispatchQueue.main.async {
                         if let open = step.open {
                             self.signIn?.link = open

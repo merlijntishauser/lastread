@@ -209,7 +209,16 @@ final class WindowModel: ObservableObject {
                 return
             }
             let ended = toolLines(["sync", "--trigger", "app", "--steps"]) { line in
-                guard case .success(let step) = decode(StepLine.self, line) else { return }
+                let decoded = decode(StepLine.self, line)
+                if case .failure(AnswerError.otherSchema(let other)) = decoded {  // said, not dropped: no step would ever show
+                    DispatchQueue.main.async {
+                        guard mine == self.run, self.outcome == nil else { return }
+                        self.outcome = StepLine.Done(ok: false, title: name, message: disagree(other))
+                        self.syncing = false
+                    }
+                    return
+                }
+                guard case .success(let step) = decoded else { return }
                 DispatchQueue.main.async {
                     guard mine == self.run else { return }  // a later Sync now has the window
                     if let done = step.done {
@@ -321,6 +330,11 @@ struct NoAnswer: Error {
     let said: String
 }
 
+/// What a line of the tool in another schema means, wherever it is read.
+func disagree(_ other: Int) -> String {
+    "The app and its tool do not agree (schema \(other)). Download the app again."
+}
+
 /// An answer of the tool, or why there is none.
 func answer<T: Codable>(_ type: T.Type, _ args: [String]) -> Result<T, NoAnswer> {
     let (_, output) = tool(args)
@@ -329,7 +343,7 @@ func answer<T: Codable>(_ type: T.Type, _ args: [String]) -> Result<T, NoAnswer>
     case .success(let found):
         return .success(found)
     case .failure(AnswerError.otherSchema(let other)):
-        return .failure(NoAnswer(said: "The app and its tool do not agree (schema \(other)). Download the app again."))
+        return .failure(NoAnswer(said: disagree(other)))
     case .failure:
         let said = output.trimmingCharacters(in: .whitespacesAndNewlines)
         return .failure(NoAnswer(said: said.isEmpty ? "The app's tool did not answer. Download the app again." : said))
