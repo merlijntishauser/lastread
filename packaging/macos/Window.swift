@@ -196,6 +196,7 @@ final class WindowModel: ObservableObject {
         // (as a sync the Kobo starts does): closing the last window otherwise quits the app mid-sync.
         let app = NSApp.delegate as? App
         app?.begin()
+        let mine = run
         DispatchQueue.global(qos: .userInitiated).async {
             if case .success(let now) = answer(StatusAnswer.self, ["status", "--json"]), let started = now.syncing, !started.isEmpty {
                 DispatchQueue.main.async {
@@ -208,17 +209,27 @@ final class WindowModel: ObservableObject {
             let ended = toolLines(["sync", "--trigger", "app", "--steps"]) { line in
                 guard case .success(let step) = decode(StepLine.self, line) else { return }
                 DispatchQueue.main.async {
-                    if let done = step.done { self.outcome = done } else { self.steps.append(step) }
+                    guard mine == self.run else { return }  // a later Sync now has the window
+                    if let done = step.done {
+                        // The outcome is the end of the sync: the tool may still look for an update for a few
+                        // seconds before it exits, and Sync now is not held back for that.
+                        self.outcome = done
+                        self.syncing = false
+                    } else {
+                        self.steps.append(step)
+                    }
                 }
                 for book in step.done?.finished ?? [] {  // marked Read on Hardcover: a notification with its cover, as after a plug-in
                     post("Finished: \(book.title)", "Marked as read on your Hardcover shelf.", picture: book.cover)
                 }
             }
             DispatchQueue.main.async {
-                if self.outcome == nil {
-                    self.outcome = StepLine.Done(ok: false, title: name, message: ended ? "Done." : stoppedWithoutWord)
+                if mine == self.run {
+                    if self.outcome == nil {
+                        self.outcome = StepLine.Done(ok: false, title: name, message: ended ? "Done." : stoppedWithoutWord)
+                    }
+                    self.syncing = false
                 }
-                self.syncing = false
                 self.refresh(check: false)
                 app?.end()
             }
