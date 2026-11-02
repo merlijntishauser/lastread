@@ -842,7 +842,7 @@ extension App: NSMenuItemValidation {
         switch item.action {
         case #selector(syncFromMenu):
             guard let model else { return false }
-            return !model.syncing && model.elsewhere.isEmpty && !(model.status?.mode.isEmpty ?? true)
+            return !model.syncing && model.elsewhere.isEmpty && !model.settingUp && !(model.status?.mode.isEmpty ?? true)
         case #selector(checkFromMenu):
             return model?.checks != nil
         case #selector(paneFromMenu(_:)):

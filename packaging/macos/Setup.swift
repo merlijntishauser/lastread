@@ -123,6 +123,9 @@ struct SetupGalley: View {
                 Text("The address of its page, starting with https://").font(.callout).foregroundStyle(Pencil.graphite)
             }
             Spacer()
+            if !(model.status?.mode.isEmpty ?? true) && !working {  // set up already, and asked for again from a check: it may stay as it is
+                Button("Cancel") { model.settingUp = false }.keyboardShortcut(.cancelAction)
+            }
             Button("Set up", action: start).keyboardShortcut(.defaultAction).disabled(!ready || working)
         }
         .padding(.horizontal, 4)

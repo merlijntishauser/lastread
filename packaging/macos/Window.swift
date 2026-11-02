@@ -186,7 +186,7 @@ final class WindowModel: ObservableObject {
     /// Sync now: the steps as they come, then the outcome; History follows by itself.
     /// While a sync the Kobo started runs, the window shows that one instead.
     func syncNow() {
-        guard !syncing && elsewhere.isEmpty else { return }
+        guard !syncing && elsewhere.isEmpty && !settingUp else { return }  // not behind the setup galley
         syncing = true
         steps = []
         outcome = nil
@@ -439,7 +439,7 @@ struct TopLine: View {
                 .buttonStyle(.borderedProminent)
                 .tint(Pencil.fill)  // red fills only what a sync sends
                 .help("Sync now (⌘R, also in the Sync menu)")
-                .disabled(busy || (model.status?.mode.isEmpty ?? true))
+                .disabled(busy || model.settingUp || (model.status?.mode.isEmpty ?? true))
         }
     }
 
