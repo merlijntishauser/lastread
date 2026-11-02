@@ -3,6 +3,7 @@ the JSON answers of status, doctor, history and settings, the steps of a
 sync, and the history behind them. The samples in packaging/macos/samples
 are what the app is built against; each answer here has their shape."""
 
+import contextlib
 import fcntl
 import json
 import os
@@ -500,6 +501,17 @@ def test_a_typo_in_config_toml_is_said_where_it_is_and_not_a_traceback(home, cap
     assert (out.ok, out.title) == (False, "Kobo sync failed") and out.message.startswith(f"{path} cannot be read, line 2")
     cli.main(["history", "--json"], computer=mac)  # what does not need the settings still answers
     cli.main(["uninstall"], computer=mac)  # and the tool can still be taken off the computer
+
+
+def test_asking_before_the_first_sync_makes_no_database(home, capsys):
+    mac = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    for args in (["settings", "--json"], ["status", "--json"], ["status"], ["history", "--json"], ["doctor", "--json"]):
+        with contextlib.suppress(SystemExit):
+            cli.main(args, computer=mac)
+        assert "state.db" not in os.listdir(home / "state"), args
+    answers = [json.loads(line) for line in capsys.readouterr().out.splitlines() if line.startswith("{")]
+    assert answers[0]["live"] is False and answers[1]["books"] is None  # settings, then status
 
 
 # ---------- what Settings changes ----------

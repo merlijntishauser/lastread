@@ -791,12 +791,14 @@ def _status(a, computer) -> None:
     if started := runner.running():
         rows.append(Row(NOTE, "Sync", f"A sync is running now, started by {_STARTED.get(started, started)}."))
     if cfg.mode == "local":
-        con = state.connect(os.path.join(config.state_dir(), "state.db"))
-        row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name = 'me'").fetchone()
-        books = con.execute(
-            "select count(*), sum(mode = 'on' or (mode = 'auto' and history = 0)) from reader_book where reader = 'me'"
-        ).fetchone()
-        con.close()
+        row, books = None, (0, 0)  # before the first sync: no database, and none is made by asking
+        if os.path.exists(path := os.path.join(config.state_dir(), "state.db")):
+            con = state.connect(path)
+            row = con.execute("select hardcover_live, hardcover_user, kobo_collection from reader where name = 'me'").fetchone()
+            books = con.execute(
+                "select count(*), sum(mode = 'on' or (mode = 'auto' and history = 0)) from reader_book where reader = 'me'"
+            ).fetchone()
+            con.close()
         if computer.secret(HARDCOVER):
             rows.append(Row(OK, "Token", f"Hardcover token present, kept in {computer.secret_place(HARDCOVER)}"))
         else:
@@ -926,10 +928,13 @@ def _settings(a, computer) -> None:
                 setattr(cfg, name, value.lower() == "true")
         config.save(cfg)
     reader = None
-    if cfg.mode == "local":
+    path = os.path.join(config.state_dir(), "state.db")
+    if cfg.mode == "local" and live is None and not os.path.exists(path):
+        reader = (False, "")  # before the first sync: asking makes no database
+    elif cfg.mode == "local":
         from .server import accounts
 
-        con = state.connect(os.path.join(config.state_dir(), "state.db"))
+        con = state.connect(path)
         row = accounts.local_reader(con)
         if live is not None:
             con.execute("update reader set hardcover_live=? where name=?", (int(live), row["name"]))

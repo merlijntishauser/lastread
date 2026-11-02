@@ -57,6 +57,9 @@ minor version may change behaviour; the notes will say so.
   its notification.
 - **Server mode: a Kobo unplugged right after its collection was written**
   no longer turns a finished sync into an unexpected failure to report.
+- **Before the first sync, the app's Overview no longer says 0 books.**
+  Opening Settings made an empty database, which then counted as a
+  library with nothing in it.
 
 ## 0.22.1 - 2026-11-02
 
