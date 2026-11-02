@@ -19,6 +19,7 @@ Settings are a few lines of `key = "value"` in config.toml there:
 from __future__ import annotations
 
 import os
+import re
 import sys
 import tomllib
 from dataclasses import dataclass
@@ -57,6 +58,10 @@ class Config:
         return ("server" if self.server else "local") if self.set_up else ""
 
 
+class Broken(Exception):
+    """config.toml is there but cannot be read; str() says where and what to do."""
+
+
 def load() -> Config:
     c = Config()
     try:
@@ -64,6 +69,11 @@ def load() -> Config:
             data = tomllib.load(fh)
     except FileNotFoundError:
         return c
+    except (tomllib.TOMLDecodeError, UnicodeDecodeError) as ex:
+        said = str(ex)
+        if m := re.search(r"\s*\(at line (\d+), column \d+\)$", said):
+            said = f"line {m.group(1)}: {said[: m.start()]}"
+        raise Broken(f"{c.path} cannot be read, {said}. Correct it, or delete it and set up again.") from ex
     c.set_up = True
     c.server = str(data.get("server") or "").rstrip("/")
     c.eject_after_sync = bool(data.get("eject_after_sync", False))

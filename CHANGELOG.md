@@ -51,6 +51,10 @@ minor version may change behaviour; the notes will say so.
   same name had every sync refused as being for another account.
 - **An upload refused as too large once unpacked** no longer leaves a
   temporary file in the server's data folder.
+- **A typo in `config.toml`** is now said with the file and the line,
+  instead of a Python traceback from every command; `lastread doctor` and
+  the app's Overview name it, and a sync started by plugging in says it in
+  its notification.
 
 ## 0.22.1 - 2026-11-02
 

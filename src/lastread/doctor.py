@@ -221,7 +221,10 @@ def computer_checks(computer, cfg=None, client=None, opener=None, by_hand: bool 
     from .computer.platform import HARDCOVER, KOBO_DB, UPLOAD
     from .server.accounts import LOCAL_READER
 
-    cfg = cfg or config.load()
+    try:
+        cfg = cfg or config.load()
+    except config.Broken as ex:
+        return [Check("Setup", FAIL, str(ex), _said(computer, "", "Then choose Set up."))]
     folder = config.state_dir()
     if not cfg.mode:
         return [Check("Setup", FAIL, "This computer is not set up yet.", _said(computer, "Run `lastread setup`.", "Choose Set up."))]

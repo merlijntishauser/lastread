@@ -479,6 +479,29 @@ def test_a_window_closed_during_a_sync_with_steps_lets_the_sync_finish(mac, home
     assert last["ok"] and last["message"] == "9 books updated."
 
 
+def test_a_typo_in_config_toml_is_said_where_it_is_and_not_a_traceback(home, capsys):
+    mac = FakeComputer(home / "Volumes")
+    config.save(LOCAL)
+    path = home / "state" / "config.toml"
+    path.write_text('verbose_log = false\nserver = "https://x\n')
+    said = f"lastread: {path} cannot be read, line 2: "
+    for args in (["status", "--json"], ["settings", "--json"], ["to-kobo", "--json"]):
+        with pytest.raises(SystemExit) as stopped:
+            cli.main(args, computer=mac)
+        assert str(stopped.value.code).startswith(said) and str(stopped.value.code).endswith(
+            ". Correct it, or delete it and set up again."
+        ), args
+    # The doctor names it as its one check; a sync started by the plug-in says it in its notification.
+    with pytest.raises(SystemExit):
+        cli.main(["doctor", "--json"], computer=mac)
+    checks = json.loads(capsys.readouterr().out)["checks"]
+    assert [(c["what"], c["state"]) for c in checks] == [("Setup", "fail")] and str(path) in checks[0]["found"]
+    out = runner.sync(mac, trigger="mount")
+    assert (out.ok, out.title) == (False, "Kobo sync failed") and out.message.startswith(f"{path} cannot be read, line 2")
+    cli.main(["history", "--json"], computer=mac)  # what does not need the settings still answers
+    cli.main(["uninstall"], computer=mac)  # and the tool can still be taken off the computer
+
+
 # ---------- what Settings changes ----------
 def test_setup_with_check_asks_the_server_first_and_changes_nothing_when_it_does_not_answer(home, server, capsys):  # noqa: F811
     computer = FakeComputer(home / "Volumes")

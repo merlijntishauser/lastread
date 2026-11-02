@@ -118,9 +118,14 @@ def sync(
     step finishes, for a terminal that is watching. opener and
     hardcover_client let tests stand in for the network."""
     step = on_step or (lambda row: None)
-    cfg = cfg or config.load()
     state_dir = config.state_dir()
     os.makedirs(state_dir, mode=0o700, exist_ok=True)
+    try:
+        cfg = cfg or config.load()
+    except config.Broken as ex:  # said in the notification, as any setup problem is
+        logs.to_file(os.path.join(state_dir, LOG_FILE), verbose=verbose, echo=verbose)
+        log.error("settings not read: %s", ex)
+        return Outcome(False, FAILED, str(ex), about="Setup")
     logs.to_file(os.path.join(state_dir, LOG_FILE), verbose=verbose or cfg.verbose_log, echo=verbose)
     if not cfg.server and not cfg.set_up:
         how = "open Lastread and choose Set up" if computer.in_app else "run `lastread setup`"

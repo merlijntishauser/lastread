@@ -292,6 +292,15 @@ def main(argv: list[str] | None = None, computer=None) -> None:
         print(json.dumps(state.import_books(st, a.reader, a.device, books, source=os.path.basename(a.file))))
         return
 
+    from .computer import config
+
+    try:
+        _run(a, computer)
+    except config.Broken as ex:  # a typo in config.toml: said, not a traceback
+        sys.exit(f"lastread: {ex}")
+
+
+def _run(a, computer) -> None:
     if a.cmd == "export":
         return _export(a)
     if a.cmd == "page":
@@ -1385,7 +1394,10 @@ def _uninstall(a, computer) -> None:
     from .computer import config
     from .computer.platform import HARDCOVER, UPLOAD, WEBHOOK
 
-    server = config.load().server
+    try:
+        server = config.load().server
+    except config.Broken:  # uninstalling still works; the reminder about the server's page is left out
+        server = ""
     rows = [Row(OK, "", line) for line in computer.remove_trigger()]
     if a.purge:
         computer.delete_secret(UPLOAD)
