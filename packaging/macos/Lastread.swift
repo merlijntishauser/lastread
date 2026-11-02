@@ -533,9 +533,14 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model.load()
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        model?.signInProcess?.terminate()  // a quit with the sign-in sheet open: its tool goes too
+    }
+
     func windowWillClose(_ notification: Notification) {
         let closing = notification.object as? NSWindow
         if closing === window {
+            model?.cancelSignIn()  // the sign-in's tool waits up to 15 minutes for Hardcover: not without its sheet
             model?.stop()
             model = nil
             window = nil
