@@ -179,6 +179,30 @@ def test_whether_plugging_in_starts_a_sync(home, monkeypatch):
     assert "Check how the Kobo is mounted" in pc.cannot_read(by_hand=True)
 
 
+def test_the_trigger_from_before_the_rename_is_replaced_and_removed(home, monkeypatch):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(home / "cfg"))
+    pc, desk = desk_computer(home, tools=("systemctl",))
+    units = home / "cfg" / "systemd" / "user"
+    tool = home / "lastread"
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o755)
+
+    def old_one():
+        units.mkdir(parents=True, exist_ok=True)
+        (units / "kobo-hardcover-sync.service").write_text('[Service]\nExecStart="/usr/bin/kobo-hardcover-sync" sync --trigger mount\n')
+
+    old_one()
+    pc.install_trigger(str(tool))  # 0.19's unit is there next to the new one: two syncs at each plug-in
+    assert not (units / "kobo-hardcover-sync.service").exists()
+    assert ["systemctl", "--user", "disable", "kobo-hardcover-sync.service"] in desk.ran("systemctl")
+    assert pc.trigger_state()[0]
+    old_one()  # one put back by an older version: the doctor sees it
+    works, said = pc.trigger_state()
+    assert not works and said.startswith("An older trigger (kobo-hardcover-sync.service) is still there")
+    pc.remove_trigger()
+    assert sorted(os.listdir(units)) == []  # uninstall takes both
+
+
 def test_mount_unit_names_are_the_ones_systemd_makes(home):
     if not os.path.exists("/usr/bin/systemd-escape"):
         pytest.skip("no systemd-escape to compare with")

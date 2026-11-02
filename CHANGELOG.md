@@ -74,6 +74,10 @@ minor version may change behaviour; the notes will say so.
   the Mac app offline marked every cover not yet fetched as missing for a
   week. Now only Kobo's answer that a book has no cover does that; when
   Kobo cannot be reached, covers are asked for again a minute later.
+- **Linux: the trigger from before the rename is taken away.** Setup left
+  the old `kobo-hardcover-sync.service` in place, so each plug-in started
+  two syncs, and uninstalling left one running. Setup and uninstall now
+  remove it, and `lastread doctor` says so when it is there.
 
 ## 0.22.1 - 2026-11-02
 

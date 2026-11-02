@@ -16,6 +16,7 @@ on standard input, never as an argument.
 
 from __future__ import annotations
 
+import contextlib
 import getpass
 import json
 import os
@@ -26,6 +27,7 @@ from . import config
 from .platform import Computer
 
 UNIT = "lastread.service"
+OLD_UNITS = ("kobo-hardcover-sync.service",)  # the trigger's name before 0.20: replaced by setup, removed by uninstall
 LABEL = "KOBOeReader"  # the volume name of a Kobo's own partition
 KEYRING = ("service", "kobo-hardcover-sync")  # the keyring entry keeps its name from before 0.20
 
@@ -166,6 +168,7 @@ class Linux(Computer):
             return [
                 f"No systemd here: the unit is written ({os.path.join(self.unit_dir, UNIT)}), but nothing will start it. Run `lastread sync` by hand."
             ]
+        self._take_off_old_units()
         self._call("systemctl", "--user", "daemon-reload")
         self._call("systemctl", "--user", "disable", UNIT)  # so the links follow a changed unit
         r = self._call("systemctl", "--user", "enable", UNIT)
@@ -179,8 +182,20 @@ class Linux(Computer):
             f"It reacts to a Kobo mounted as {LABEL} under {' or '.join(self.volume_roots())}, where the desktop puts it.",
         ]
 
+    def _old_units(self) -> list[str]:
+        return [u for u in OLD_UNITS if os.path.exists(os.path.join(self.unit_dir, u))]
+
+    def _take_off_old_units(self) -> None:
+        for old in self._old_units():
+            if self.which("systemctl"):
+                self._call("systemctl", "--user", "disable", old)
+            with contextlib.suppress(FileNotFoundError):
+                os.unlink(os.path.join(self.unit_dir, old))
+
     def trigger_state(self) -> tuple[bool, str]:
         again = "Run `lastread setup` again from a desktop session."
+        if old := self._old_units():  # from before 0.20: every plug-in starts a second sync, by the old command
+            return False, f"An older trigger ({old[0]}) is still there and starts a sync of its own at each plug-in. {again}"
         unit = os.path.join(self.unit_dir, UNIT)
         command = ""
         try:
@@ -197,6 +212,7 @@ class Linux(Computer):
         return True, f"Plugging in the Kobo starts a sync (user service enabled; it runs {command})."
 
     def remove_trigger(self) -> list[str]:
+        self._take_off_old_units()
         if self.which("systemctl"):
             self._call("systemctl", "--user", "disable", UNIT)
         try:
