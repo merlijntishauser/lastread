@@ -395,14 +395,20 @@ def test_removing_a_reader_deletes_their_data_only(tmp_path, monkeypatch):
         "/upload", content=gzip.compress(k.read_bytes()), headers={"Authorization": "Bearer anna-token", "Content-Type": "application/gzip"}
     )
     assert os.path.isdir(tmp_path / "snapshots" / "anna")
+    state.bind_account(st, "anna", {"id": 7, "username": "old"})  # her shelf on Hardcover
+    st.execute("insert into tip_aside values ('anna', 'mine', '2099-01-01')")
+    st.commit()
     r = c.post("/admin/remove", data={"name": "anna"}, headers=ROBIN, follow_redirects=False)
     assert r.status_code == 303
     con = sqlite3.connect(tmp_path / "state.db")
-    for table in ("reader", "book", "device", "device_token", "import"):
-        if table == "reader":
-            assert con.execute("select count(*) from reader where name='anna'").fetchone()[0] == 0
-        else:
-            assert con.execute(f"select count(*) from {table} where reader='anna'").fetchone()[0] == 0, table
+    assert con.execute("select count(*) from reader where name='anna'").fetchone()[0] == 0
+    # Every table that holds something per reader: a new one is held to this too.
+    tables = [t for (t,) in con.execute("select name from sqlite_master where type='table'")]
+    per_reader = [t for t in tables if "reader" in [c[1] for c in con.execute(f"pragma table_info({t})")]]
+    assert {"book", "device", "device_token", "import", "hardcover_account", "tip_aside"} <= set(per_reader)
+    for table in per_reader:
+        assert con.execute(f"select count(*) from {table} where reader='anna'").fetchone()[0] == 0, table
+    assert state.hardcover_account(st, "anna") is None  # signing up again under her name starts on no one's shelf
     assert not os.path.exists(tmp_path / "snapshots" / "anna")
     assert con.execute("select count(*) from book where reader='robin'").fetchone()[0] == 2
     assert c.put("/upload", content=b"x", headers={"Authorization": "Bearer anna-token"}).status_code == 401

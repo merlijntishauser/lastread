@@ -198,7 +198,7 @@ def remove_reader(con, name: str, data_dir: str) -> None:
         raise AccountError("err_no_reader")
     if row["is_admin"] and admins(con) <= 1:
         raise AccountError("err_last_admin")
-    for table in ("book", "device", "reading_day", "job", "import", "device_token"):
+    for table in ("book", "device", "reading_day", "job", "import", "device_token", "hardcover_account", "tip_aside"):
         con.execute(f"delete from {table} where reader=?", (name,))
     con.execute("delete from reader where name=?", (name,))
     con.execute("delete from meta where key=?", (f"env_token:{name}",))

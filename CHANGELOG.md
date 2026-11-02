@@ -46,6 +46,9 @@ minor version may change behaviour; the notes will say so.
   not changed, so a new server never had them, and its empty collection
   could take the one on the Kobo away. In local mode, a deleted database
   likewise has the Kobo read again.
+- **Removing a reader on a server** now also forgets which Hardcover
+  account their books were sent to. Someone who signed up again under the
+  same name had every sync refused as being for another account.
 
 ## 0.22.1 - 2026-11-02
 
