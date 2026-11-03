@@ -2,7 +2,7 @@
 // samples in packaging/macos/samples, which the tool is held to as well
 // (tests/test_app_answers.py). Built and run by the macos-app job:
 //
-//   swiftc -parse-as-library Model.swift CheckSamples.swift -o check && ./check samples
+//   swiftc -parse-as-library Model.swift Changelog.swift CheckSamples.swift -o check && ./check samples
 
 import Foundation
 
@@ -51,6 +51,51 @@ struct CheckSamples {
             failed = true
         } else {
             print("ok    another schema: refused")
+        }
+        // Release Notes (Changelog.swift) read the repository's own CHANGELOG.md, which build.sh puts in the app.
+        let changelog = try String(contentsOf: folder.appendingPathComponent("../../../CHANGELOG.md").standardized, encoding: .utf8)
+        let notes = changelogReleases(changelog)
+        let sample = """
+        ## Unreleased
+
+        Nothing yet.
+
+        ## 1.2.0 - 2026-12-01
+
+        A paragraph
+        on two lines.
+
+        ### Fixed
+
+        - **One** thing,
+          wrapped.
+        - Two:
+          - nested,
+            wrapped too.
+
+        ## 1.1.0 - 2026-11-30
+
+        ### Added
+
+        - Three.
+        """
+        let read = changelogReleases(sample, count: 1)
+        let expected = [Release(version: "1.2.0", date: "2026-12-01", parts: [
+            .init(heading: "", items: [.init(level: -1, text: "A paragraph on two lines.")]),
+            .init(heading: "Fixed", items: [.init(level: 0, text: "**One** thing, wrapped."), .init(level: 0, text: "Two:"), .init(level: 1, text: "nested, wrapped too.")]),
+        ])]
+        if read == expected {
+            print("ok    a changelog: its parts, items, nesting and wrapped lines")
+        } else {
+            print("wrong a changelog: read as \(read)")
+            failed = true
+        }
+        if notes.count > 3, notes.allSatisfy({ !$0.parts.isEmpty && $0.parts.allSatisfy { !$0.items.isEmpty } && $0.version.first?.isNumber == true }),
+           notes.contains(where: { $0.parts.contains { $0.items.contains { $0.level == 1 } } }) {
+            print("ok    CHANGELOG.md: \(notes.count) releases, the newest \(notes[0].version)")
+        } else {
+            print("wrong CHANGELOG.md: \(notes.count) releases, not as expected")
+            failed = true
         }
         exit(failed ? 1 : 0)
     }

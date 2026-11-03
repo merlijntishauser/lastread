@@ -254,6 +254,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     var settings: NSWindow?
     var settingsModel: SettingsModel?
     var help: NSWindow?
+    var notes: NSWindow?  // Release Notes, from the Help menu (Notes.swift)
     var guide = GuidePlace()
     let guideSearch = GuideSearch()
 
@@ -353,6 +354,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         steps.append { self.helpFromMenu() }  // the guide's window
         steps.append { self.help.map { picture($0, folder.appendingPathComponent("help.png")) } }
         steps.append { self.help?.close() }
+        steps.append { self.notesFromMenu() }  // Release Notes
+        steps.append { self.notes.map { picture($0, folder.appendingPathComponent("notes.png")) } }
+        steps.append { self.notes?.close() }
         steps.append { self.model?.pane = .overview }
         for cycle in 1...3 {  // the sidebar closing and opening, frame by frame: a button that shows for a blink is caught
             for way in ["close", "open"] {
@@ -562,8 +566,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         } else if closing === help {
             help = nil
             guide = GuidePlace()  // the next time it opens as new
+        } else if closing === notes {
+            notes = nil
         }
-        if window == nil && settings == nil && help == nil { NSApp.setActivationPolicy(.accessory) }
+        if window == nil && settings == nil && help == nil && notes == nil { NSApp.setActivationPolicy(.accessory) }
         end()
     }
 
@@ -729,7 +735,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         ])
         let helpItem = item("\(name) Help", #selector(helpFromMenu), "?")
         helpItem.target = self
-        NSApp.helpMenu = menu("Help", [helpItem])  // macOS puts its search above it: of the menus, and of the guide (GuideSearch)
+        let notesItem = item("Release Notes", #selector(notesFromMenu), "")
+        notesItem.target = self
+        NSApp.helpMenu = menu("Help", [helpItem, notesItem])  // macOS puts its search above it: of the menus, and of the guide (GuideSearch)
         return bar
     }
 
@@ -774,6 +782,25 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             if help.toolbar == nil { help.toolbar = toolbar }
             self.helpToolbar.addSeparator(to: help)
         }
+    }
+
+    /// Release Notes: what the latest releases changed, in a window of its own.
+    @objc func notesFromMenu() {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
+        if let notes { return notes.makeKeyAndOrderFront(nil) }
+        let notes = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 640, height: 600),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        notes.title = "\(name) Release Notes"
+        notes.contentView = NSHostingView(rootView: NotesView(releases: bundledReleases(), running: bundleVersion()))
+        notes.isReleasedWhenClosed = false
+        notes.delegate = self
+        notes.center()
+        notes.setFrameAutosaveName("Release Notes")
+        self.notes = notes
+        begin()  // as Help: the app stays while it is open
+        notes.makeKeyAndOrderFront(nil)
     }
 
     /// The guide at a topic, searching for what was typed in the Help menu.

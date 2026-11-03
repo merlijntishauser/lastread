@@ -110,6 +110,7 @@ find "$resources/python/bin" ! -type d ! -name python3 ! -name "python${PYTHON%.
 
 # Licences: this tool's, Python's, and those of what Python is built with.
 cp "$root/LICENSE" "$root/THIRD-PARTY-NOTICES.md" "$resources/"
+cp "$root/CHANGELOG.md" "$resources/" # Release Notes, in the Help menu (Notes.swift)
 cp "$lib/LICENSE.txt" "$resources/PYTHON-LICENSE.txt"
 if [ -n "${KHS_PYTHON_ONLY:-}" ]; then
 	echo "$NAME.app, the Python half only: $app"
@@ -140,7 +141,7 @@ cp -R "$out/full/python/licenses" "$resources/python-licenses"
 swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$contents/MacOS/$NAME" \
 	"$here/Lastread.swift" "$here/Window.swift" "$here/Setup.swift" "$here/Paper.swift" "$here/Chain.swift" "$here/Books.swift" "$here/Covers.swift" \
 	"$here/Shelf.swift" "$here/Spotlight.swift" "$here/Hardcover.swift" "$here/Settings.swift" "$here/Model.swift" "$here/Update.swift" "$here/Help.swift" \
-	"$here/Folder.swift"
+	"$here/Folder.swift" "$here/Changelog.swift" "$here/Notes.swift"
 sed "s/__VERSION__/$short/g" "$here/Info.plist" >"$contents/Info.plist"
 if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -replace CFBundleIdentifier -string org.gargleblaster.kobo-hardcover-sync.app.preview "$contents/Info.plist"

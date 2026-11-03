@@ -263,7 +263,10 @@ started in three ways:
   its own (`Help.swift`): how it works, each pane, the marks drawn as the
   app draws them, the keys, what to do when something is wrong, and
   updates, searchable. It is written for the reader; this document is how
-  the app is built. VoiceOver is told when a sync starts and how it ended, the window's
+  the app is built. *Release Notes*, below it, shows what the latest
+  releases changed (`Notes.swift`), newest first, from the `CHANGELOG.md`
+  that `build.sh` copies into the app (`Changelog.swift` reads it; CI
+  reads the repository's own with it, in `CheckSamples.swift`). VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
 - **EPUB Folder** (`Folder.swift`) is the folder whose books go on the
   Kobo at every plug-in (`to-kobo`, rules P1-P7), in both modes: the

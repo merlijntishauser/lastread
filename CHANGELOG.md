@@ -7,7 +7,10 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- **Release Notes in the Mac app's Help menu**: what the latest releases
+  changed, newest first, read from the notes the app comes with.
 
 ## 0.23.1 - 2026-11-03
 

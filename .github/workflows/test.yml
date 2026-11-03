@@ -95,5 +95,5 @@ jobs:
       - name: The app reads the tool's answers as the tool writes them
         run: |
           swiftc -swift-version 5 -target arm64-apple-macos13.0 -parse-as-library -o "$RUNNER_TEMP/check-samples" \
-            packaging/macos/Model.swift packaging/macos/CheckSamples.swift
+            packaging/macos/Model.swift packaging/macos/Changelog.swift packaging/macos/CheckSamples.swift
           "$RUNNER_TEMP/check-samples" packaging/macos/samples
