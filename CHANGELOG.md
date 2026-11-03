@@ -11,6 +11,10 @@ minor version may change behaviour; the notes will say so.
 
 - **Release Notes in the Mac app's Help menu**: what the latest releases
   changed, newest first, read from the notes the app comes with.
+- **About Lastread shows how it works, as a machine**: a tabletop proof
+  press with your Kobo locked on the bed, the cylinder that is the sync,
+  and the proof of your Hardcover shelf with its red carets. In light and
+  dark.
 - **A collection for the books from your EPUB folder.** They can stay in
   no collection, as before and still the default; join the collection of
   the books that sync; or have one of their own, Lastread unless you name

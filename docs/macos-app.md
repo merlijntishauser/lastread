@@ -256,9 +256,10 @@ started in three ways:
   Dock icon and a menu bar; closing the window quits it. The menu bar has
   the full Edit menu (the text fields' keys, ⌘V among them, go through it)
   and a *Sync* menu: *Sync Now* (⌘R), *Check Again* (⇧⌘R) and *Show the
-  Log*; *About* is the standard panel with the site
-  (lastread.app) and the independent-project
-  sentence as its credits; *View* has the four panes (⌘1 to ⌘4), the sidebar (⌃⌘S) and full
+  Log*; *About* is a window of its own (`About.swift`): the app
+  drawn as a tabletop proof press (`About-light.png`, `About-dark.png`,
+  made by `about/build.mjs`, see `about/README.md`), its version, the site
+  (lastread.app) and the independent-project sentence; *View* has the four panes (⌘1 to ⌘4), the sidebar (⌃⌘S) and full
   screen (⌃⌘F), and *Help* (⌘?) opens the app's guide in a window of
   its own (`Help.swift`): how it works, each pane, the marks drawn as the
   app draws them, the keys, what to do when something is wrong, and

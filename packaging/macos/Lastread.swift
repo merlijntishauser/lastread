@@ -255,6 +255,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     var settingsModel: SettingsModel?
     var help: NSWindow?
     var notes: NSWindow?  // Release Notes, from the Help menu (Notes.swift)
+    var about: NSWindow?  // About, the press (About.swift)
     var guide = GuidePlace()
     let guideSearch = GuideSearch()
 
@@ -357,6 +358,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         steps.append { self.notesFromMenu() }  // Release Notes
         steps.append { self.notes.map { picture($0, folder.appendingPathComponent("notes.png")) } }
         steps.append { self.notes?.close() }
+        steps.append { self.showAbout() }  // About: the press
+        steps.append { self.about.map { picture($0, folder.appendingPathComponent("about.png")) } }
+        steps.append { self.about?.close() }
         steps.append { self.model?.pane = .overview }
         for cycle in 1...3 {  // the sidebar closing and opening, frame by frame: a button that shows for a blink is caught
             for way in ["close", "open"] {
@@ -561,17 +565,6 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         model.watch()
     }
 
-    /// The standard About panel, with the site and the independent-project sentence as its credits.
-    @objc func showAbout() {
-        let credits = NSMutableAttributedString()
-        let para = NSMutableParagraphStyle()
-        para.alignment = .center
-        let plain: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor, .paragraphStyle: para]
-        credits.append(NSAttributedString(string: "lastread.app\n", attributes: plain.merging([.link: site], uniquingKeysWith: { $1 })))
-        credits.append(NSAttributedString(string: "\nAn independent project: not affiliated with, endorsed by or sponsored by Rakuten Kobo or Hardcover.", attributes: plain))
-        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
-    }
-
     @objc func showSettings() {
         if let settings {
             NSApp.activate(ignoringOtherApps: true)
@@ -617,8 +610,10 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             guide = GuidePlace()  // the next time it opens as new
         } else if closing === notes {
             notes = nil
+        } else if closing === about {
+            about = nil
         }
-        if window == nil && settings == nil && help == nil && notes == nil { NSApp.setActivationPolicy(.accessory) }
+        if window == nil && settings == nil && help == nil && notes == nil && about == nil { NSApp.setActivationPolicy(.accessory) }
         end()
     }
 

@@ -9,3 +9,6 @@ dist/
 build/
 .impeccable/review/
 .impeccable/critique/
+
+# The About picture's pages (packaging/macos/about/README.md)
+packaging/macos/about/*.html
