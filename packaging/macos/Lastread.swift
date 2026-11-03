@@ -515,6 +515,14 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 continue
             }
             NSWorkspace.shared.recycle([url]) { _, error in
+                if error == nil {
+                    // macOS keeps a widget's process running from where it was: the desktop
+                    // widget went on drawing the old copy's code and name from the Trash.
+                    let stop = Process()
+                    stop.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+                    stop.arguments = ["-f", url.appendingPathComponent("Contents/PlugIns/Widget.appex").path]
+                    try? stop.run()
+                }
                 if let error {
                     self.say("The older copy was not moved", "\(error.localizedDescription) Drag it from \(url.deletingLastPathComponent().path) to the Trash yourself.")
                 } else {

@@ -7,7 +7,11 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **An older copy moved to the Trash no longer keeps the widget.** macOS
+  went on running the old copy's widget from the Trash, under the old
+  name and broken; the app now stops it when it moves that copy.
 
 ## 0.24.1 - 2026-11-03
 
