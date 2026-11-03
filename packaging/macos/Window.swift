@@ -443,8 +443,10 @@ struct TopLine: View {
                 if let told = model.told, !busy {  // a sync ended while the window was open: what it did, with its mark; a failure in ink
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Mark(state: told.ok ? "ok" : "fail", size: 15).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+                        // No fixedSize: sized to its own height in this row above every pane, the line pushed
+                        // the whole window up under the title bar after a sync (0.24.0). Two lines at most.
                         Text(toldLine(told)).fontWeight(told.ok ? .regular : .semibold).foregroundStyle(told.ok ? Pencil.graphite : Pencil.ink)
-                            .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled).lineLimit(2)
                     }
                     .accessibilityElement(children: .combine)
                 } else {

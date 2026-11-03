@@ -173,7 +173,7 @@ struct HeadNotes: View {
                 if let needs = books.needsYou {
                     HStack(alignment: .center, spacing: 10) {
                         Mark(state: "warn", size: 20).frame(width: 20)
-                        Text(needs.text).font(.callout.weight(.medium)).fixedSize(horizontal: false, vertical: true)
+                        Text(needs.text).font(.callout.weight(.medium)).lineLimit(2)  // no fixedSize above the table: see TopLine
                         Spacer(minLength: 8)
                         if needs.match > 0 && model.filter != "needs_match" {
                             Button("Show Them") { model.filter = "needs_match" }
@@ -186,7 +186,7 @@ struct HeadNotes: View {
                         Mark(state: "warn", size: 14).frame(width: 20)  // centred under the question above, smaller: a nudge
                         Cover(path: book.cover, width: 20)
                         (Text(book.title).font(titleFont(13)).foregroundColor(Pencil.ink) + Text(" · " + tip.text).font(.callout).foregroundColor(Pencil.graphite))
-                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(2)  // no fixedSize above the table: see TopLine
                         Spacer(minLength: 8)
                         HStack {
                             Button("Open") { model.chosenBook = book.id }

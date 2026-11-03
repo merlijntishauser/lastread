@@ -7,7 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **The Mac app's window no longer slides up under its title bar after a
+  sync.** The line that says what a sync did, added to the top of the
+  window when it ended, sized itself to its own height and pushed
+  everything up, the top line and the sidebar's first rows out of sight,
+  most of all on EPUB Folder and Books. The same was true of the lines
+  above the Books list.
 
 ## 0.24.0 - 2026-11-03
 
