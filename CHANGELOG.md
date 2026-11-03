@@ -14,6 +14,11 @@ minor version may change behaviour; the notes will say so.
 
 ### Fixed
 
+- **The Mac app's window no longer goes blank on EPUB Folder.** With books
+  in the folder, the pane could empty the whole window, sidebar and all,
+  leaving only grey rows. A line in the folder's bar that sized itself to
+  its height, above the list, threw the window's layout off; it no longer
+  does.
 - **The Mac app's Books list no longer sends a change you did not make.**
   While the list redrew after a sync, a row's Sync or State menu could set
   its own value again, and the app sent that to the tool as a change. The

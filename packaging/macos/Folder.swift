@@ -189,7 +189,9 @@ struct FolderBar: View {
                 Text(URL(fileURLWithPath: found.folder).lastPathComponent).font(.headline)
                 Text(found.folder).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(1).truncationMode(.middle).textSelection(.enabled)
                 if found.there {
-                    Text(state).font(.callout).foregroundStyle(Pencil.graphite).fixedSize(horizontal: false, vertical: true)
+                    // No fixedSize here: a line that sizes itself to its height in this bar,
+                    // above the table, made the whole window go blank (macOS 27, 0.23.1).
+                    Text(state).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(2)
                 }
             }
             Spacer(minLength: 12)
