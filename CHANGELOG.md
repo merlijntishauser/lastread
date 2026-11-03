@@ -7,7 +7,18 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- `lastread doctor`, and Check in the app, has a Folder collection line:
+  where the books in the Kobo's Lastread folder go (no collection, the one
+  of the books that sync, or their own), how many there are, and whether
+  their own collection is on the Kobo. It warns when that collection has the
+  name of the synced books' collection, or of one that is not this tool's.
+
+### Fixed
+
+- In the Mac app, the sync's Folder collection step shows on the Kobo's link
+  of the chain, not on This Mac's.
 
 ## 0.24.2 - 2026-11-03
 

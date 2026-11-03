@@ -39,7 +39,7 @@ struct ChainLink: Identifiable {
 /// Where a step of `sync --steps` happens on the chain.
 func linkOf(step: String) -> String {
     switch step {
-    case "Kobo", "Collection": return "Kobo"
+    case "Kobo", "Collection", "Folder collection": return "Kobo"
     case "Upload": return "Server"
     case "Hardcover", "Matches": return "Hardcover"
     default: return "This Mac"

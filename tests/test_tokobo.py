@@ -652,3 +652,54 @@ def test_choosing_where_the_folders_books_go(plugged, home, capsys):
     assert "in no collection" in " ".join(capsys.readouterr().out.split())
     written = open(config.load().path).read()
     assert "to_kobo_collection =" not in written and 'to_kobo_collection_name = "New on the Kobo"' in written
+
+
+def test_doctor_says_where_the_folders_books_go(plugged, home):
+    from lastread import doctor
+
+    mac, _, cfg, db = plugged
+
+    def said(cfg):
+        out = [c for c in doctor.computer_checks(mac, cfg) if c.what == "Folder collection"]
+        return (out[0].state, out[0].found) if out else None
+
+    con = st(home)
+    con.execute("update reader set kobo_collection = 'On Hardcover' where name = 'me'")
+    con.commit()
+    # No book in the folder and none wanted in a collection: nothing to say.
+    runner.sync(mac, cfg)
+    assert said(cfg) is None
+    sideload(db, f"{tokobo.FOLDER}/One.kepub.epub", "One")
+    assert said(cfg) == ("note", "The 1 book in the Kobo's folder Lastread is in no collection of this tool's.")
+    assert said(replace(cfg, to_kobo_collection="synced")) == (
+        "ok",
+        "The 1 book in the Kobo's folder Lastread joins 'On Hardcover', the collection of the books that sync.",
+    )
+    con.execute("update reader set kobo_collection = '' where name = 'me'")
+    con.commit()
+    assert said(replace(cfg, to_kobo_collection="synced"))[1].endswith("but no collection is wanted, so it is in none.")
+    own = replace(cfg, to_kobo_collection="own")
+    assert said(own) == ("note", "'Lastread' is not on the Kobo yet: the next sync makes it, for the 1 book in the Kobo's folder Lastread.")
+    runner.sync(mac, own)
+    assert said(own) == ("ok", "'Lastread' is on the Kobo, with 1 of the 1 book in the Kobo's folder Lastread.")
+    sideload(db, f"{tokobo.FOLDER}/Two.epub", "Two")  # found by the Kobo, not yet by a sync
+    assert said(own) == ("ok", "'Lastread' is on the Kobo, with 1 of the 2 books in the Kobo's folder Lastread.")
+    # The name of the synced books' collection: refused, and said.
+    con.execute("update reader set kobo_collection = 'Lastread' where name = 'me'")
+    con.commit()
+    clash = said(own)
+    assert clash[0] == "warn" and "has the name of the collection of the books that sync" in clash[1]
+    assert "Collection not updated" in runner.sync(mac, own).message  # the one made first stays, the other is refused
+    # Someone else's collection with the name: left alone, and said.
+    named = replace(own, to_kobo_collection_name="Theirs")
+    con.execute("update reader set kobo_collection = '' where name = 'me'")
+    con.commit()
+    k = sqlite3.connect(db)
+    k.execute(
+        "insert into Shelf (CreationDate, Id, InternalName, LastModified, Name, Type, _IsDeleted, _IsVisible, _IsSynced)"
+        " values ('2026-01-01', '22222222-2222-2222-2222-222222222222', 'Theirs', '2026-01-01', 'Theirs', 'UserTag', 0, 1, 1)"
+    )
+    k.commit()
+    k.close()
+    theirs = said(named)
+    assert theirs[0] == "warn" and "was not made by this tool, so it is left alone" in theirs[1]

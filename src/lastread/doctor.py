@@ -34,7 +34,7 @@ from .web.fmt import fmt_dt
 COMPUTER, KOBO, HARDCOVER = "This computer", "Your Kobo", "Hardcover"
 GROUPS = {
     COMPUTER: ("Setup", "Trigger", "Folder", "Upload token", "Server", "Last sync", "Log"),
-    KOBO: ("Kobo", "Database", "Kobo software", "Collection", "Backups", "Computers", "Computer"),
+    KOBO: ("Kobo", "Database", "Kobo software", "Collection", "Folder collection", "Backups", "Computers", "Computer"),
     HARDCOVER: ("Token", "Hardcover", "Books", "Sending", "Matches", "Errors", "Last run"),
 }
 ON_THE_COMPUTER = "The Kobo itself is checked on the computer it is plugged into: run `lastread doctor` there."
@@ -372,6 +372,10 @@ def kobo_checks(computer, cfg, wanted: str | None, collection_dir: str, kobo_db_
         except (kobo_db.NotAKoboDatabase, sqlite3.Error):
             return [*out, Check("Database", FAIL, runner.damaged(computer)), _backups(collection_dir)]
         out.append(_collection(copy, db, wanted, collection_dir))
+        if mine := _folder_collection(
+            computer, copy, db, cfg, wanted, os.path.join(os.path.dirname(collection_dir), runner.FOLDER_COLLECTION_DIR)
+        ):
+            out.append(mine)
     out.append(_backups(collection_dir))
     return out
 
@@ -433,6 +437,68 @@ def _collection(copy: str, db: str, wanted: str | None, collection_dir: str) -> 
     if found["present"]:
         return Check(what, OK, f"'{wanted}' is on the Kobo, with {_books(found['books'])}.")
     return Check(what, NOTE, f"'{wanted}' is not on the Kobo yet: a sync makes it once a book is switched on.")
+
+
+def _folder_collection(computer, copy: str, db: str, cfg, wanted: str | None, folder_dir: str) -> Check | None:
+    """The books of the Kobo's Lastread folder and their collection (rule P8),
+    as the setting has it. Nothing to say when they are in none and there are
+    none of them."""
+    from .engine.tokobo import FOLDER
+
+    what = "Folder collection"
+    try:
+        n = len(collection.folder_ids(copy))
+    except sqlite3.Error as ex:
+        return Check(what, WARN, f"The books in the Kobo's folder {FOLDER} could not be looked at: {ex}")
+    books = f"{_books(n)} in the Kobo's folder {FOLDER}"
+    are, join = _verb(n, "is", "are"), _verb(n, "joins", "join")
+    choose = _said(computer, "`lastread to-kobo --collection none|synced|own` chooses.", "Choose one under EPUB Folder.")
+    how = cfg.to_kobo_collection
+    if how == "none":
+        return Check(what, NOTE, f"The {books} {are} in no collection of this tool's.", choose) if n else None
+    if how == "synced":
+        if wanted is None:
+            return Check(
+                what, NOTE, f"The {books} {join} the collection of the books that sync; which one is not known: the server did not say."
+            )
+        if not wanted:
+            return Check(
+                what,
+                NOTE,
+                f"The {books} {are} to join the collection of the books that sync, but no collection is wanted, so {_verb(n, 'it is', 'they are')} in none.",
+            )
+        return Check(what, OK, f"The {books} {join} '{wanted}', the collection of the books that sync.")
+    name = cfg.to_kobo_collection_name
+    if wanted and name.strip().casefold() == wanted.strip().casefold():
+        return Check(
+            what,
+            WARN,
+            f"'{name}', the folder's own collection, has the name of the collection of the books that sync: only one of the two is kept.",
+            _said(computer, "`lastread to-kobo --name NAME` gives it another.", "Give it another name under EPUB Folder."),
+        )
+    try:
+        found = collection.status(copy, name, folder_dir)
+    except (collection.CollectionError, sqlite3.Error) as ex:
+        return Check(what, WARN, f"The collection '{name}' could not be looked at: {ex}")
+    if found["present"] and not found["ours"]:
+        return Check(
+            what,
+            WARN,
+            f"A collection named '{name}' is on this Kobo and was not made by this tool, so it is left alone.",
+            _said(computer, "`lastread to-kobo --name NAME` chooses another name.", "Choose another name under EPUB Folder."),
+        )
+    if not os.access(db, os.W_OK):
+        return Check(
+            what,
+            WARN,
+            f"The Kobo's database cannot be written to, so the collection '{name}' cannot be kept.",
+            "Check how the Kobo is mounted.",
+        )
+    if found["present"]:
+        return Check(what, OK, f"'{name}' is on the Kobo, with {found['books']} of the {books}.")
+    if n:
+        return Check(what, NOTE, f"'{name}' is not on the Kobo yet: the next sync makes it, for the {books}.")
+    return Check(what, NOTE, f"'{name}' is not on the Kobo yet: a sync makes it once a book is in the Kobo's folder {FOLDER}.")
 
 
 def _backups(collection_dir: str) -> Check:
