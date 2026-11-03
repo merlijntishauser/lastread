@@ -13,9 +13,17 @@ extension WindowModel {
     /// The folder and its books (`to-kobo --json`); with args a change, whose answer then gets.
     func loadFolder(_ args: [String] = [], then: @escaping (ToKoboAnswer) -> Void = { _ in }) {
         guard status?.mode == "local" || status?.mode == "server" else { return }
+        // One look at a time. Reading a folder in Documents can wait on macOS's
+        // question whether the app may; every refresh would start one more.
+        let look = args.isEmpty
+        if look {
+            guard !folderAsking else { return }
+            folderAsking = true
+        }
         DispatchQueue.global(qos: .userInitiated).async {
             let found = answer(ToKoboAnswer.self, ["to-kobo"] + args + ["--json"])
             DispatchQueue.main.async {
+                if look { self.folderAsking = false }
                 switch found {
                 case .success(let a):
                     self.folder = a
@@ -44,6 +52,7 @@ struct FolderPane: View {
     @State private var chosen: String?  // a book's name in the folder
     @State private var tooMany: (folder: String, n: Int)?  // the folder asked for holds this many: asked first
     @State private var stopping = false
+    @State private var waited = false  // the folder's first look is taking long
 
     var body: some View {
         Group {
@@ -70,12 +79,22 @@ struct FolderPane: View {
             } else if let broken = model.folderBroken {
                 Galley { ProofSheet { Row(state: "fail", what: Pane.folder.rawValue, found: broken).onSheet() } }
             } else {
-                VStack {
+                VStack(spacing: 12) {
                     Spacer()
                     ProgressView().controlSize(.small)
+                    if waited {
+                        Text("Still waiting for the folder. If macOS asks whether \(name) may open it, answer that question.")
+                            .foregroundStyle(Pencil.graphite)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
+                .task {  // a look takes a fraction of a second; longer, and something is in the way
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    waited = true
+                }
             }
         }
         .onAppear { model.loadFolder() }

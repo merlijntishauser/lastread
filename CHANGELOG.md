@@ -7,7 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **The Mac app's EPUB Folder pane says so when it waits.** Reading a folder
+  in Documents can wait until macOS's question whether the app may open it
+  is answered. Until then the pane showed only a spinner, and every refresh
+  of the window started one more look at the folder, each left waiting. Now
+  one look waits at a time, and after a few seconds the pane says what it
+  is waiting for.
 
 ## 0.23.0 - 2026-11-03
 

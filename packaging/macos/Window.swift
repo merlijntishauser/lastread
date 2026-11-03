@@ -54,6 +54,7 @@ final class WindowModel: ObservableObject {
     @Published var booksBroken: String?
     @Published var folder: ToKoboAnswer?  // the folder whose books go on the Kobo, from `to-kobo --json` (Folder.swift)
     @Published var folderBroken: String?
+    var folderAsking = false  // a look at the folder is under way: the next refresh does not start another
     @Published var search = ""
     @Published var filter = UserDefaults.standard.string(forKey: "BooksShow") ?? "all" {  // Show: remembered, apart from Covers'
         didSet { UserDefaults.standard.set(filter, forKey: "BooksShow") }
