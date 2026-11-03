@@ -53,7 +53,8 @@ struct CheckSamples {
             print("ok    another schema: refused")
         }
         // Release Notes (Changelog.swift) read the repository's own CHANGELOG.md, which build.sh puts in the app.
-        let changelog = try String(contentsOf: folder.appendingPathComponent("../../../CHANGELOG.md").standardized, encoding: .utf8)
+        let root = folder.absoluteURL.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()  // samples, macos, packaging
+        let changelog = try String(contentsOf: root.appendingPathComponent("CHANGELOG.md"), encoding: .utf8)
         let notes = changelogReleases(changelog)
         let sample = """
         ## Unreleased
