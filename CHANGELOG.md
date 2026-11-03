@@ -12,6 +12,13 @@ minor version may change behaviour; the notes will say so.
 - **Release Notes in the Mac app's Help menu**: what the latest releases
   changed, newest first, read from the notes the app comes with.
 
+### Fixed
+
+- **The Mac app's Books list no longer sends a change you did not make.**
+  While the list redrew after a sync, a row's Sync or State menu could set
+  its own value again, and the app sent that to the tool as a change. The
+  same value is now no change, and a real one is made after the redraw.
+
 ## 0.23.1 - 2026-11-03
 
 ### Fixed

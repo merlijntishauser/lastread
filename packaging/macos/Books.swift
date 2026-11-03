@@ -88,7 +88,13 @@ extension WindowModel {
     func binding(_ id: String, _ field: WritableKeyPath<BooksAnswer.Book, String>, _ args: @escaping (String) -> [String]) -> Binding<String> {
         Binding(
             get: { self.books?.books.first { $0.id == id }?[keyPath: field] ?? "" },
-            set: { new in self.change(id, args(new)) { $0[keyPath: field] = new } })
+            set: { new in
+                // A pop-up can set its value again while the list redraws (rows reused after a
+                // sync): the same value is no change, and nothing goes to the tool for it. A real
+                // choice is made after the redraw, never inside it.
+                guard let book = self.books?.books.first(where: { $0.id == id }), book[keyPath: field] != new else { return }
+                DispatchQueue.main.async { self.change(id, args(new)) { $0[keyPath: field] = new } }
+            })
     }
 
     /// The State, keeping its date where a date belongs to it.
@@ -618,7 +624,9 @@ struct DetailsPane: View {
         write.dateFormat = "yyyy-MM-dd"
         write.locale = Locale(identifier: "en_US_POSIX")
         let text = write.string(from: date)
-        model.change(book.id, ["--state", book.state, "--date", text]) { $0.stateDate = text }
+        guard text != book.stateDate else { return }  // the same day again, as a redraw may set it: no change
+        let (id, state) = (book.id, book.state)
+        DispatchQueue.main.async { model.change(id, ["--state", state, "--date", text]) { $0.stateDate = text } }
     }
 
     @ViewBuilder private func pairs(_ title: String, _ pairs: [[String]]) -> some View {
