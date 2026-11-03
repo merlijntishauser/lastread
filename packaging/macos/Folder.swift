@@ -62,6 +62,7 @@ struct FolderPane: View {
                 } else {
                     VStack(spacing: 0) {
                         FolderBar(found: found, choose: choose, stop: { stopping = true })
+                        FolderCollection(model: model, found: found)
                         Divider()
                         if !found.there {
                             Spacer()
@@ -210,6 +211,69 @@ struct FolderBar: View {
         let how = found.kepubify.isEmpty ? "as EPUB (with kepubify installed, as kepub)" : "as kepub"
         let waiting = found.waiting == 0 ? "Every one is on a Kobo." : found.waiting == 1 ? "1 waits for the next plug-in." : "\(found.waiting) wait for the next plug-in."
         return "\(books), \(how). \(waiting)"
+    }
+}
+
+/// Where the books in the Kobo's Lastread folder go (rule P8): in no collection,
+/// with the books that sync, or in a collection of their own, by its name.
+struct FolderCollection: View {
+    @ObservedObject var model: WindowModel
+    let found: ToKoboAnswer
+    @State private var name = ""
+    @FocusState private var naming: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("On the Kobo, these books are").foregroundStyle(Pencil.ink)
+                Picker("Collection", selection: Binding(get: { found.collection }, set: choose)) {
+                    Text("in no collection").tag("none")
+                    Text("with the books that sync").tag("synced")
+                    Text("in a collection of their own").tag("own")
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+                if found.collection == "own" {
+                    TextField("Name", text: $name)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 180)
+                        .focused($naming)
+                        .onSubmit(rename)
+                        .onChange(of: naming) { focused in if !focused { rename() } }
+                        .accessibilityLabel("The collection's name")
+                }
+            }
+            Text(said).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(2)  // no fixedSize: see FolderBar
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, 62)  // under the bar's words, past its icon
+        .padding(.trailing, 14)
+        .padding(.bottom, 10)
+        .onAppear { name = found.collectionName }
+        .onChange(of: found.collectionName) { saved in if !naming { name = saved } }
+    }
+
+    private var said: String {
+        switch found.collection {
+        case "synced": return "Each book joins the collection of the books that sync, from the plug-in after the one that puts it on the Kobo. Without a name for that collection under Settings, there is none."
+        case "own": return "A collection of these books alone, kept at every plug-in. Choosing another option takes it off the Kobo."
+        default: return "As other books you put on the Kobo yourself: in no collection this app keeps."
+        }
+    }
+
+    private func choose(_ new: String) {
+        guard new != found.collection else { return }  // set again while redrawing: no change
+        DispatchQueue.main.async { model.loadFolder(["--collection", new]) }
+    }
+
+    private func rename() {
+        let new = name.trimmingCharacters(in: .whitespaces)
+        guard !new.isEmpty, new != found.collectionName else {
+            name = found.collectionName
+            return
+        }
+        DispatchQueue.main.async { model.loadFolder(["--name", new]) }
     }
 }
 

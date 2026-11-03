@@ -242,24 +242,27 @@ def _finish(computer: Computer, cfg: config.Config, mount: str | None, said: lis
     return Outcome(True, "Kobo synced", " ".join([*said, closing] if closing else said), closing=closing)
 
 
-def _collection_step(step, name: str, told: list[str]) -> None:
+def _collection_step(step, name: str, told: list[str], what: str = "Collection") -> None:
     """The collection's line for a terminal, from what the notification says about it."""
     if not told:
-        step(
-            Row(OK, "Collection", f"'{name}' is up to date")
-            if name
-            else Row(NOTE, "Collection", "None wanted: nothing is written to the Kobo")
-        )
+        step(Row(OK, what, f"'{name}' is up to date") if name else Row(NOTE, what, "None wanted: nothing is written to the Kobo"))
         return
     text = " ".join(t.removeprefix("Collection ") for t in told)
-    step(Row(WARN if "not updated" in text else OK, "Collection", text[:1].upper() + text[1:]))
+    step(Row(WARN if "not updated" in text else OK, what, text[:1].upper() + text[1:]))
 
 
-def _keep_collection(db: str, copy: str, name: str, ids: list[str], state_dir: str, cfg: config.Config, said: list[str]) -> bool:
+COLLECTION_DIR = "collection"  # the synced books' collection: its remembered id and backups
+FOLDER_COLLECTION_DIR = "collection-folder"  # the EPUB folder's own collection (rule P8): the same, apart
+
+
+def _keep_collection(
+    db: str, copy: str, name: str, ids: list[str], state_dir: str, cfg: config.Config, said: list[str], where: str = COLLECTION_DIR
+) -> bool:
     """The collection on the Kobo, through the one module that writes to it:
     the one named `name` holds exactly `ids`; one made earlier under another
-    name goes ("" = no collection wanted at all). True when it wrote."""
-    where = os.path.join(state_dir, "collection")
+    name goes ("" = no collection wanted at all). `where` is the folder that
+    remembers which collections are this one's. True when it wrote."""
+    where = os.path.join(state_dir, where)
     try:
         if name:
             r = collection.apply(db, name, ids, where, preflight_db=copy, allow_untested=cfg.allow_untested_kobo)
@@ -277,6 +280,32 @@ def _keep_collection(db: str, copy: str, name: str, ids: list[str], state_dir: s
         if r.action in ("created", "updated"):
             said.append(f"Collection {r.line(name).removeprefix('collection ')}.")
     return r.wrote
+
+
+def _with_folder_books(ids: list[str], copy: str, cfg: config.Config) -> list[str]:
+    """The synced books' collection: the books of the Kobo's Lastread folder only
+    when the reader asked for them there (rule P8). A book of that folder that
+    syncs is not in it otherwise, as no sideloaded book is (K10)."""
+    kept = [i for i in ids if not collection.FOLDER_ID_OK.match(i or "")]
+    if cfg.to_kobo_collection != "synced":
+        return kept
+    return kept + [i for i in collection.folder_ids(copy) if i not in kept]
+
+
+def _keep_folder_collection(db: str, copy: str, state_dir: str, cfg: config.Config, said: list[str], step) -> bool:
+    """The books of the Kobo's Lastread folder in a collection of their own
+    (rule P8), or that collection taken off the Kobo once it is not wanted.
+    True when it wrote."""
+    own = cfg.to_kobo_collection == "own"
+    if not own and not os.path.isdir(os.path.join(state_dir, FOLDER_COLLECTION_DIR)):
+        return False  # none was ever made here: nothing to keep, nothing to take off
+    name = cfg.to_kobo_collection_name if own else ""
+    ids = collection.folder_ids(copy) if own else []
+    before = len(said)
+    wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said, where=FOLDER_COLLECTION_DIR)
+    if own or said[before:]:
+        _collection_step(step, name, said[before:], "Folder collection")
+    return wrote
 
 
 def _sync_here(
@@ -391,8 +420,9 @@ def _sync_here(
                 if state.syncs(b)
             ]
             before = len(said)
-            wrote = _keep_collection(db, copy, name, ids, state_dir, cfg, said) or wrote
+            wrote = _keep_collection(db, copy, name, _with_folder_books(ids, copy, cfg), state_dir, cfg, said) or wrote
             _collection_step(step, name, said[before:])
+            wrote = _keep_folder_collection(db, copy, state_dir, cfg, said, step) or wrote
             if wrote:
                 _seen_after_writing(hash_file, db)
     if cfg.export_to:
@@ -573,9 +603,11 @@ def _sync_to_server(
             step(Row(WARN, "Collection", f"Left as it is: {server.host} could not be asked which books belong in it"))
         if wanted is not None:
             before = len(said)
-            wrote = _keep_collection(db, copy, wanted[0], wanted[1], state_dir, cfg, said) or wrote
+            ids = _with_folder_books(list(wanted[1]), copy, cfg)
+            wrote = _keep_collection(db, copy, wanted[0], ids, state_dir, cfg, said) or wrote
             _collection_step(step, wanted[0], said[before:])
-            if wrote:
-                _seen_after_writing(hash_file, db, to)
+        wrote = _keep_folder_collection(db, copy, state_dir, cfg, said, step) or wrote
+        if wrote:
+            _seen_after_writing(hash_file, db, to)
 
     return _finish(computer, cfg, mount, said, wrote)

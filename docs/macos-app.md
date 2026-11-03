@@ -286,6 +286,11 @@ started in three ways:
   there), and taken off again, only the one the app put there, when the
   folder is changed or stopped. A folder chosen in a terminal or on the
   page gets it the next time the window looks. The preview does neither.
+  Under the folder's bar, where its books go on the Kobo (rule P8): in no
+  collection, with the books that sync, or in a collection of their own
+  with a name field (`to-kobo --collection`, `--name`). No line in that bar
+  sizes itself with `fixedSize`: above the table, that blanked the whole
+  window (0.23.1).
 - **Settings (⌘-,),** two tabs, each change through the tool. *General*,
   the few most readers touch: in local mode the Hardcover connection and
   *Send to Hardcover* (in server mode a line that these are on the

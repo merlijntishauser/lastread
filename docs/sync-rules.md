@@ -290,7 +290,7 @@ Optional: with a collection name under Settings, the Kobo gets a collection
 of the books that sync. This is the only thing ever written to the Kobo.
 
 - **K1** The collection holds exactly the books that sync, and that are on
-  this Kobo.
+  this Kobo; with the books of your EPUB folder when you choose that (P8).
   Tests: `tests/test_collection.py::test_one_in_one_out_and_ids_that_are_not_books_here_are_skipped`,
   `tests/test_upload.py::test_collection_endpoint_lists_the_syncing_books`
 - **K2** Nothing is written when the collection is already right, and
@@ -344,7 +344,8 @@ of the books that sync. This is the only thing ever written to the Kobo.
   `tests/test_collection.py::test_a_kobo_unplugged_during_the_write_says_so`
 - **K10** Books that are not on this Kobo are skipped, and so are books you
   put on the Kobo yourself (sideloaded): they can sync to Hardcover, but
-  they are not put in the collection.
+  they are not put in the collection. The one exception is the books this
+  tool put in its own folder on the Kobo, when you ask for them (P8).
   Tests: `tests/test_collection.py::test_one_in_one_out_and_ids_that_are_not_books_here_are_skipped`
 
 ## Books put on the Kobo
@@ -396,6 +397,21 @@ any other you put on it yourself (M10).
   `tests/test_tokobo.py::test_without_kepubify_the_books_go_as_epub_and_it_is_said_how_to_get_kepub`,
   `tests/test_tokobo.py::test_kepubify_is_found_where_homebrew_puts_it_also_without_it_on_the_path`,
   `tests/test_tokobo.py::test_the_mac_apps_own_kepubify_goes_first`
+- **P8** The books in the Kobo's Lastread folder (every book there, also
+  one whose file left your folder since) are in no collection of this
+  tool's unless you choose otherwise: they can join the collection of the
+  books that sync, or have a collection of their own, Lastread unless you
+  name it. Chosen with `lastread to-kobo --collection none|synced|own
+  [--name NAME]`, or in the Mac app's EPUB Folder. A book joins at the
+  plug-in after the one that put it there, once the Kobo has found the
+  file. Their own collection is kept by the same rules as the other
+  (K1-K9), apart from it: changing one never touches the other, a new
+  name takes the old one off, and choosing none takes it off the Kobo. A
+  collection of that name that this tool did not make is left alone, and
+  that is said. Other sideloaded books stay out (K10).
+  Tests: `tests/test_tokobo.py::test_the_folders_books_in_no_collection_with_the_synced_books_or_in_their_own`,
+  `tests/test_tokobo.py::test_server_mode_keeps_the_folders_own_collection_on_this_computer`,
+  `tests/test_tokobo.py::test_choosing_where_the_folders_books_go`
 
 ## What leaves your computer
 
@@ -419,7 +435,8 @@ Not bugs, but worth knowing. Each follows from a rule above.
   sample or another edition of a book you finished sets the book to
   *Currently reading* on Hardcover. Switch that copy off on the page if
   that is not what you want.
-- **Sideloaded books** are not put in the collection (K10).
+- **Sideloaded books** are not put in the collection (K10), except the
+  books from your EPUB folder when you choose that (P8).
 - **The collection is not yours to edit** (K4). Books added by hand are
   taken out again.
 - **Edits on Hardcover are seen at the next sync**, not at once: at the

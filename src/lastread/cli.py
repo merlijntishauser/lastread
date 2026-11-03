@@ -91,7 +91,7 @@ lastread webhook [URL [--token]] [--test] [--remove]
     in the Keychain. A test is sent first; nothing is stored unless it
     gets a 2xx answer. Without arguments: where it goes now.
 
-lastread to-kobo [FOLDER [--yes]] [--off] [--json]
+lastread to-kobo [FOLDER [--yes]] [--off] [--collection none|synced|own] [--name NAME] [--json]
     At every plug-in, put the EPUBs in FOLDER on the Kobo, in a folder
     Lastread there: each book once per Kobo, never one with DRM, never
     over another file. A book you delete on the Kobo stays deleted.
@@ -270,6 +270,12 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     tko.add_argument("folder", nargs="?", default="", help="the folder with the EPUBs")
     tko.add_argument("--yes", action="store_true", help=f"also when more than {tokobo.MANY} books go to the Kobo at once")
     tko.add_argument("--off", action="store_true", help="stop putting books on the Kobo (the ones there stay)")
+    tko.add_argument(
+        "--collection",
+        choices=("none", "synced", "own"),
+        help="the books in the Kobo's Lastread folder: in no collection, in the one of the books that sync, or in their own",
+    )
+    tko.add_argument("--name", default=None, help="the name of their own collection (default Lastread)")
     tko.add_argument("--json", action="store_true", help="as JSON, for the Mac app; too many books are answered, not refused")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
@@ -1260,11 +1266,22 @@ def _export(a) -> None:
 
 def _to_kobo(a, computer) -> None:
     from .computer import config
+    from .engine import collection
 
     cfg = config.load()
     if not cfg.mode:
         sys.exit("lastread: not set up yet: run setup first.")
     saved, too_many, n = False, 0, 0
+    if a.collection or a.name is not None:
+        name = (a.name if a.name is not None else cfg.to_kobo_collection_name).strip()
+        try:
+            name = collection.clean_name(name)
+        except collection.CollectionError as ex:
+            sys.exit(f"lastread: {ex} Nothing was changed.")
+        cfg.to_kobo_collection = a.collection or cfg.to_kobo_collection
+        cfg.to_kobo_collection_name = name
+        config.save(cfg)
+        saved = True
     if a.off:
         cfg.to_kobo, saved = "", True
         config.save(cfg)
@@ -1280,8 +1297,21 @@ def _to_kobo(a, computer) -> None:
             cfg.to_kobo, saved = folder, True
             config.save(cfg)
     if a.json:  # for the Mac app: the folder as it is now, and what this call did
-        return _json(tokobo.summary(cfg.to_kobo, config.state_dir()) | {"saved": saved, "too_many": too_many, "many": tokobo.MANY})
+        return _json(
+            tokobo.summary(cfg.to_kobo, config.state_dir())
+            | {
+                "saved": saved,
+                "too_many": too_many,
+                "many": tokobo.MANY,
+                "collection": cfg.to_kobo_collection,
+                "collection_name": cfg.to_kobo_collection_name,
+            }
+        )
     how = "" if tokobo.find_kepubify() else _KEPUBIFY_HOW
+    if a.collection or a.name is not None:
+        _one(OK, _folder_collection_said(cfg))
+        if not (a.off or a.folder):
+            return
     if a.off:
         _one(OK, "No books are put on the Kobo any more. The ones on it stay.")
     elif a.folder:
@@ -1304,6 +1334,15 @@ def _to_kobo(a, computer) -> None:
         )
         for r in found["refused"]:
             _one(WARN, f"{r['name']} is not put on the Kobo: {r['why']}.")
+
+
+def _folder_collection_said(cfg) -> str:
+    """Where the books of the Kobo's Lastread folder go, in a sentence (rule P8)."""
+    return {
+        "none": f"The books in the Kobo's folder {tokobo.FOLDER} are in no collection of this tool's.",
+        "synced": f"The books in the Kobo's folder {tokobo.FOLDER} join the collection of the books that sync, at the next plug-in.",
+        "own": f"The books in the Kobo's folder {tokobo.FOLDER} get a collection of their own, '{cfg.to_kobo_collection_name}', at the next plug-in.",
+    }[cfg.to_kobo_collection]
 
 
 _KEPUBIFY_HOW = (

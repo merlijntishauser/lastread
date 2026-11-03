@@ -45,5 +45,7 @@
   "kepubify": "/opt/homebrew/bin/kepubify",
   "saved": false,
   "too_many": 0,
-  "many": 20
+  "many": 20,
+  "collection": "own",
+  "collection_name": "Lastread"
 }

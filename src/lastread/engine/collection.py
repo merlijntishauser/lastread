@@ -16,7 +16,12 @@ Rules:
     _IsDeleted 0, _IsVisible 1; items: _IsDeleted 0). _IsSynced 0 tells the
     Kobo the row is new to it.
   - Books that are not on this Kobo are skipped. So are ids that are not
-    Kobo book ids (sideloaded books have file paths as ids).
+    Kobo book ids. Sideloaded books have file paths as ids; of those, only
+    the books this tool put in its own folder on the Kobo can be in a
+    collection (FOLDER_ID_OK), when the reader asked for that.
+  - Each collection this tool keeps has a folder of its own in
+    <state_dir> (the synced books', the EPUB folder's), and only ever
+    touches the collections remembered there.
   - The collection is this tool's: its name is the one asked for, and it
     holds exactly the books asked for. A collection it made earlier under
     another name is taken off the Kobo in the same write (apply), or on its
@@ -70,6 +75,9 @@ NEEDED = {
 }
 WRITTEN = ("Shelf", "ShelfContent")
 ID_OK = re.compile(r"^[A-Za-z0-9-]{8,64}$")  # Kobo book ids are uuids
+# A book this tool put on the Kobo (engine/tokobo.py, its FOLDER "Lastread"): the Kobo
+# gives a sideloaded book its file's path as its id. Nothing else of the Kobo's storage.
+FOLDER_ID_OK = re.compile(r"^file:///mnt/onboard/Lastread/[^/\x00]+\.(?:kepub\.epub|epub)$", re.IGNORECASE)
 SHELF_ID_OK = re.compile(r"^[0-9a-f-]{36}$")
 BACKUPS_KEPT = 3
 NAME_MAX = 60
@@ -184,7 +192,8 @@ def check(con: sqlite3.Connection, allow_untested: bool = False) -> int:
 
 
 # ---------- helpers ----------
-def _clean_name(name: str) -> str:
+def clean_name(name: str) -> str:
+    """The name as a collection on the Kobo can have it; CollectionError when it cannot."""
     name = (name or "").strip()
     if not name or len(name) > NAME_MAX or any(ord(ch) < 32 for ch in name):
         raise CollectionError(f"A collection name is 1 to {NAME_MAX} characters on one line.")
@@ -228,7 +237,7 @@ def _wanted(con: sqlite3.Connection, ids) -> None:
     connection's temporary database, not in the Kobo's file)."""
     con.execute("create temp table if not exists want(id text primary key)")
     con.execute("delete from want")
-    con.executemany("insert or ignore into want values (?)", [(i,) for i in ids if ID_OK.match(i or "")])
+    con.executemany("insert or ignore into want values (?)", [(i,) for i in ids if ID_OK.match(i or "") or FOLDER_ID_OK.match(i or "")])
 
 
 def _diff(con: sqlite3.Connection, name: str) -> tuple[int, int]:
@@ -393,7 +402,7 @@ def _verify(db_path: str, name: str, backup: str, ids=None) -> int:
 def status(db_path: str, name: str, state_dir: str) -> dict:
     """What is there, without changing anything. Give it a copy of the
     Kobo's database rather than the Kobo's own file."""
-    name = _clean_name(name)
+    name = clean_name(name)
     con = _open(db_path)
     with contextlib.closing(con):
         version = con.execute("select version from DbVersion").fetchone()[0] if _has_table(con, "DbVersion") else None
@@ -425,7 +434,7 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
     preflight_db: a copy of the same database. With it, the gate and the
     comparison run on the copy, and the Kobo's own file is not opened at
     all when there is nothing to write."""
-    name = _clean_name(name)
+    name = clean_name(name)
     ids = list(ids)
     os.makedirs(state_dir, exist_ok=True)
     own = _own_id(state_dir, name)
@@ -527,7 +536,7 @@ def _nothing_to_write(con: sqlite3.Connection, name: str, existing: str, to_add:
 
 def remove(db_path: str, name: str, state_dir: str, *, allow_untested: bool = False) -> Result:
     """Take the collection off the Kobo again (its books stay, of course)."""
-    name = _clean_name(name)
+    name = clean_name(name)
     own = _own_id(state_dir, name)
     con = _open(db_path)
     with contextlib.closing(con):
@@ -573,6 +582,18 @@ def _ours_besides(con: sqlite3.Connection, keep: str, shelf_ids) -> list[tuple[s
         return []
     rows = con.execute(f"select Id, Name from Shelf where _IsDeleted = 0 and Id in ({', '.join('?' * len(ids))})", ids).fetchall()
     return [(i, n) for i, n in rows if n != keep]
+
+
+def folder_ids(db_path: str) -> list[str]:
+    """The ids of the books in this tool's folder on the Kobo (FOLDER_ID_OK),
+    as the Kobo's database has them once it has found the files: what a
+    collection of the EPUB folder's books holds. Read-only."""
+    con = sqlite3.connect(f"file:{quote(db_path)}?mode=ro", uri=True, timeout=5)
+    with contextlib.closing(con):
+        rows = con.execute(
+            "select ContentID from content where ContentType = 6 and ContentID like 'file:///mnt/onboard/Lastread/%' order by ContentID"
+        ).fetchall()
+    return [r[0] for r in rows if FOLDER_ID_OK.match(r[0] or "")]
 
 
 def remove_others(db_path: str, keep_name: str, state_dir: str, *, preflight_db: str | None = None, allow_untested: bool = False) -> Result:

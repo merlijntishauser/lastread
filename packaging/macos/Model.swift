@@ -244,6 +244,8 @@ struct ToKoboAnswer: Codable {
     let saved: Bool  // this call changed the folder
     let tooMany: Int  // the folder asked for was not taken: this many books at once; ask, then --yes
     let many: Int
+    let collection: String  // the books in the Kobo's Lastread folder: "none", "synced" or "own" (rule P8)
+    let collectionName: String  // the name of their own collection
 }
 
 struct UpdateAnswer: Codable {

@@ -11,6 +11,11 @@ minor version may change behaviour; the notes will say so.
 
 - **Release Notes in the Mac app's Help menu**: what the latest releases
   changed, newest first, read from the notes the app comes with.
+- **A collection for the books from your EPUB folder.** They can stay in
+  no collection, as before and still the default; join the collection of
+  the books that sync; or have one of their own, Lastread unless you name
+  it. Every book in the Kobo's Lastread folder counts. Chosen in the Mac
+  app's EPUB Folder, or with `lastread to-kobo --collection` and `--name`.
 
 ### Fixed
 

@@ -15,10 +15,11 @@ import pytest
 
 from lastread import cli
 from lastread.computer import config, runner
-from lastread.engine import epub, kobo_db, tokobo
+from lastread.engine import epub, kobo_db, state, tokobo
+from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, register, server  # noqa: F401  (server: a fixture)
 from tests.test_epub import CONTAINER, ISBN, an_epub
-from tests.test_local import LOCAL, ORIGIN, kobo, local  # noqa: F401  (local: a fixture)
+from tests.test_local import LOCAL, ORIGIN, kobo, local, st  # noqa: F401  (local: a fixture)
 
 ENCRYPTION = """<?xml version="1.0"?>
 <encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -555,3 +556,99 @@ def test_the_server_page_has_no_folder(home, server):  # noqa: F811
     """The folder is the computer's: on a server's page there is nothing to choose."""
     assert 'id="tokobo"' not in server.page.get("/settings").text
     assert server.page.post("/settings/to-kobo", data={"folder": "/tmp"}).status_code == 404
+
+
+# ---------- the folder's books and the collections (rule P8) ----------
+def sideload(db, path, title):
+    """The Kobo, after an eject, lists a file it found on its storage as a book."""
+    con = sqlite3.connect(db)
+    con.execute(
+        "insert into content values (?, '6', 'application/epub+zip', ?, 'Someone', '', 20, 1, '2026-11-01T10:00:00Z', 900, '', '', 'en')",
+        (f"file:///mnt/onboard/{path}", title),
+    )
+    con.commit()
+    con.close()
+    return f"file:///mnt/onboard/{path}"
+
+
+def shelves(db):
+    """Each live collection on the Kobo with its live books."""
+    con = sqlite3.connect(db)
+    try:
+        out = {}
+        for (name,) in con.execute("select Name from Shelf where _IsDeleted = 0"):
+            out[name] = {r[0] for r in con.execute("select ContentId from ShelfContent where ShelfName = ? and _IsDeleted = 0", (name,))}
+        return out
+    finally:
+        con.close()
+
+
+def test_the_folders_books_in_no_collection_with_the_synced_books_or_in_their_own(plugged, home, capsys):
+    mac, _, cfg, db = plugged
+    con = st(home)
+    state.set_mode(con, "me", BOOKS[:1], "on")
+    con.execute("update reader set kobo_collection = 'On Hardcover' where name = 'me'")
+    con.commit()
+    ours = sideload(db, f"{tokobo.FOLDER}/One.kepub.epub", "One")
+    elsewhere = sideload(db, "Books/Other.epub", "Other")  # sideloaded by hand: never in a collection (K10)
+    theirs = set(shelves(db))  # the reader's own collections on this Kobo: never touched
+
+    def shelves_kept(db):
+        return {name: books for name, books in shelves(db).items() if name not in theirs}
+
+    runner.sync(mac, cfg)
+    state.set_mode(con, "me", [ours, elsewhere], "on")  # both sideloaded books sync too
+    con.commit()
+    # a) Nothing: as before, no sideloaded book in the collection, also one that syncs.
+    runner.sync(mac, cfg)
+    synced = shelves_kept(db)["On Hardcover"]
+    assert set(shelves_kept(db)) == {"On Hardcover"} and BOOKS[0] in synced and synced.isdisjoint({ours, elsewhere})
+    # b) With the synced books: the folder's book joins, the other sideloaded one does not.
+    runner.sync(mac, replace(cfg, to_kobo_collection="synced"))
+    assert shelves_kept(db) == {"On Hardcover": synced | {ours}}
+    # c) Their own, under the default name; the synced one is as it was.
+    out = runner.sync(mac, replace(cfg, to_kobo_collection="own"))
+    assert shelves_kept(db) == {"On Hardcover": synced, "Lastread": {ours}}
+    assert "Collection 'Lastread': 1 book (+1, -0)." in out.message
+    # Renamed: the old one goes in the same write.
+    runner.sync(mac, replace(cfg, to_kobo_collection="own", to_kobo_collection_name="New on the Kobo"))
+    assert shelves_kept(db) == {"On Hardcover": synced, "New on the Kobo": {ours}}
+    # Back to nothing: it is taken off, and the synced one stays.
+    out = runner.sync(mac, cfg)
+    assert shelves_kept(db) == {"On Hardcover": synced} and "Collection 'New on the Kobo' removed." in out.message
+    # A collection someone else named Lastread is left alone, and that is said.
+    con2 = sqlite3.connect(db)
+    con2.execute(
+        "insert into Shelf (CreationDate, Id, InternalName, LastModified, Name, Type, _IsDeleted, _IsVisible, _IsSynced)"
+        " values ('2026-01-01', '11111111-1111-1111-1111-111111111111', 'Lastread', '2026-01-01', 'Lastread', 'UserTag', 0, 1, 1)"
+    )
+    con2.commit()
+    con2.close()
+    out = runner.sync(mac, replace(cfg, to_kobo_collection="own"))
+    assert shelves_kept(db)["Lastread"] == set() and "Collection not updated" in out.message
+
+
+def test_server_mode_keeps_the_folders_own_collection_on_this_computer(home, server):  # noqa: F811
+    db = kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    ours = sideload(db, f"{tokobo.FOLDER}/One.epub", "One")
+    out = runner.sync(mac, config.Config(server=server.url, to_kobo_collection="own"))
+    assert shelves(db).get("Lastread") == {ours} and "Collection 'Lastread': 1 book (+1, -0)." in out.message
+
+
+def test_choosing_where_the_folders_books_go(plugged, home, capsys):
+    mac, _, _, _ = plugged
+    config.save(LOCAL)
+    cli.main(["to-kobo", "--collection", "own"], computer=mac)
+    assert "a collection of their own, 'Lastread'" in " ".join(capsys.readouterr().out.split())
+    cli.main(["to-kobo", "--name", "New on the Kobo", "--json"], computer=mac)
+    said = json.loads(capsys.readouterr().out)
+    assert (said["collection"], said["collection_name"], said["saved"]) == ("own", "New on the Kobo", True)
+    assert (config.load().to_kobo_collection, config.load().to_kobo_collection_name) == ("own", "New on the Kobo")
+    with pytest.raises(SystemExit, match="1 to 60 characters"):
+        cli.main(["to-kobo", "--name", "x" * 61], computer=mac)
+    cli.main(["to-kobo", "--collection", "none"], computer=mac)
+    assert "in no collection" in " ".join(capsys.readouterr().out.split())
+    written = open(config.load().path).read()
+    assert "to_kobo_collection =" not in written and 'to_kobo_collection_name = "New on the Kobo"' in written

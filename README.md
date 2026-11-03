@@ -196,7 +196,7 @@ Other commands:
 | `lastread token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
 | `lastread export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `lastread export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `lastread export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `lastread webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
-| `lastread to-kobo FOLDER` | Put the EPUBs in FOLDER on the Kobo at every plug-in; `--off` stops it. |
+| `lastread to-kobo FOLDER` | Put the EPUBs in FOLDER on the Kobo at every plug-in; `--off` stops it. `--collection synced` puts them in the collection of the books that sync, `--collection own` in one of their own (`--name`, Lastread by default); `none` is the default. |
 | `lastread uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
 <img src="docs/img/phone-night.png" alt="The same page on a phone, at night" width="300">
