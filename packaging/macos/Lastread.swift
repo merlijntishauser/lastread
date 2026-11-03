@@ -514,14 +514,22 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 UserDefaults.standard.set((UserDefaults.standard.stringArray(forKey: "OldCopiesKept") ?? []) + [url.path], forKey: "OldCopiesKept")
                 continue
             }
-            NSWorkspace.shared.recycle([url]) { _, error in
+            NSWorkspace.shared.recycle([url]) { moved, error in
                 if error == nil {
-                    // macOS keeps a widget's process running from where it was: the desktop
-                    // widget went on drawing the old copy's code and name from the Trash.
-                    let stop = Process()
-                    stop.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
-                    stop.arguments = ["-f", url.appendingPathComponent("Contents/PlugIns/Widget.appex").path]
-                    try? stop.run()
+                    // macOS keeps a widget's process running from where it was, and a copy in the
+                    // Trash registered under the same bundle id: the desktop widget went on drawing
+                    // the old copy's code, and the widget gallery its old name.
+                    func run(_ tool: String, _ args: [String]) {
+                        let p = Process()
+                        p.executableURL = URL(fileURLWithPath: tool)
+                        p.arguments = args
+                        try? p.run()
+                        p.waitUntilExit()
+                    }
+                    run("/usr/bin/pkill", ["-f", url.appendingPathComponent("Contents/PlugIns/Widget.appex").path])
+                    if let trashed = moved[url] {
+                        run("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister", ["-u", trashed.path])
+                    }
                 }
                 if let error {
                     self.say("The older copy was not moved", "\(error.localizedDescription) Drag it from \(url.deletingLastPathComponent().path) to the Trash yourself.")

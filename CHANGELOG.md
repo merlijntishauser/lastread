@@ -10,8 +10,9 @@ minor version may change behaviour; the notes will say so.
 ### Fixed
 
 - **An older copy moved to the Trash no longer keeps the widget.** macOS
-  went on running the old copy's widget from the Trash, under the old
-  name and broken; the app now stops it when it moves that copy.
+  went on running the old copy's widget from the Trash, broken, and the
+  widget gallery went on showing the old name; the app now stops that
+  widget and has macOS forget the copy in the Trash.
 
 ## 0.24.1 - 2026-11-03
 
