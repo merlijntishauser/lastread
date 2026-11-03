@@ -268,6 +268,14 @@ started in three ways:
   that `build.sh` copies into the app (`Changelog.swift` reads it; CI
   reads the repository's own with it, in `CheckSamples.swift`). VoiceOver is told when a sync starts and how it ended, the window's
   own or one the Kobo started.
+- **An older copy beside this one.** Opened by hand from Applications, the
+  app looks up the other copies macOS knows under its bundle id, and offers
+  to move each older one in `/Applications` or `~/Applications` to the
+  Trash, once each (a copy kept is remembered in `OldCopiesKept`). Mostly
+  `Kobo Hardcover Sync.app` from before 0.20.0: the disk image's
+  `Lastread.app` does not replace it, and with the same bundle id macOS
+  took its old icon for notifications and showed its widget under the old
+  name. Never from a disk image, a download or the preview.
 - **EPUB Folder** (`Folder.swift`) is the folder whose books go on the
   Kobo at every plug-in (`to-kobo`, rules P1-P7), in both modes: the
   folder is this Mac's, and this Mac copies. Without one, what it does and

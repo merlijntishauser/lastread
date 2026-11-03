@@ -19,6 +19,10 @@ minor version may change behaviour; the notes will say so.
 
 ### Fixed
 
+- **The Mac app offers to put an older copy of itself in the Trash**, such
+  as "Kobo Hardcover Sync" from before 0.20.0 left in Applications beside
+  Lastread. With both installed, notifications could show the old icon and
+  the widget the old name. It asks once per copy, when you open the app.
 - **The Mac app's window no longer goes blank on EPUB Folder.** With books
   in the folder, the pane could empty the whole window, sidebar and all,
   leaving only grey rows. A line in the folder's bar that sized itself to

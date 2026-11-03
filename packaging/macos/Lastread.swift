@@ -467,8 +467,57 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
                 _ = registerAgent(again: agentRegisteredBy() != thisApp())
             }
             showWindow()
+            if !isPreview { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.offerToTrashOldCopies() } }
         }
         end()
+    }
+
+    // ---------- an older copy beside this one ----------
+    /// Older copies of this app in Applications, beside this one: above all
+    /// "Kobo Hardcover Sync.app" from before 0.20.0, which the disk image's
+    /// Lastread.app does not replace. With the same bundle id, macOS may take
+    /// their old icon for notifications and show their widget under the old
+    /// name. Asked about once each; never from a disk image or a download.
+    func oldCopies() -> [URL] {
+        guard let id = Bundle.main.bundleIdentifier, let mine = numbers(bundleVersion()) else { return [] }
+        let places = ["/Applications", FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path]
+        let here = Bundle.main.bundleURL.resolvingSymlinksInPath().standardizedFileURL
+        guard places.contains(here.deletingLastPathComponent().path) else { return [] }
+        let kept = Set(UserDefaults.standard.stringArray(forKey: "OldCopiesKept") ?? [])
+        return NSWorkspace.shared.urlsForApplications(withBundleIdentifier: id).map { $0.resolvingSymlinksInPath().standardizedFileURL }
+            .filter { url in
+                guard url != here, places.contains(url.deletingLastPathComponent().path), !kept.contains(url.path),
+                      let theirs = (Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String).flatMap(numbers)
+                else { return false }
+                return theirs.lexicographicallyPrecedes(mine)
+            }
+    }
+
+    func offerToTrashOldCopies() {
+        for url in oldCopies() {
+            let version = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+            let a = NSAlert()
+            a.messageText = "An older copy of \(name) is still installed"
+            a.informativeText = """
+                \(url.deletingPathExtension().lastPathComponent) \(version), in \(url.deletingLastPathComponent().path), is this app from before. \
+                Beside this one, macOS can show its old icon in notifications and its widget under the old name. \
+                Your books and settings are not in it.
+                """
+            a.addButton(withTitle: "Move to Trash")
+            a.addButton(withTitle: "Keep It")
+            NSApp.activate(ignoringOtherApps: true)
+            guard a.runModal() == .alertFirstButtonReturn else {
+                UserDefaults.standard.set((UserDefaults.standard.stringArray(forKey: "OldCopiesKept") ?? []) + [url.path], forKey: "OldCopiesKept")
+                continue
+            }
+            NSWorkspace.shared.recycle([url]) { _, error in
+                if let error {
+                    self.say("The older copy was not moved", "\(error.localizedDescription) Drag it from \(url.deletingLastPathComponent().path) to the Trash yourself.")
+                } else {
+                    self.say("Moved to the Trash", "If a \(name) widget still shows the old name, remove it and add it again from the widget gallery.")
+                }
+            }
+        }
     }
 
     // ---------- the window ----------
