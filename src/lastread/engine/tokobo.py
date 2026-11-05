@@ -391,11 +391,12 @@ def _where(given: dict) -> str:
 
 
 def _about(remembered: dict, path: str) -> dict:
-    """epub.about, kept with the file's hash (after _hash) until it changes."""
+    """epub.about, kept with the file's hash (after _hash) until it changes.
+    The ISBN in the name is looked at anew: one kept before that was read has none."""
     kept = remembered["files"][path]
     if len(kept) < 4:
         kept[3:] = [epub.about(path)]
-    return kept[3]
+    return {**kept[3], "isbn": kept[3].get("isbn") or epub.in_name(path)}
 
 
 def _sha256(path: str) -> str:

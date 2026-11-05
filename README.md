@@ -280,7 +280,8 @@ kepubify yourself, or the books go as plain EPUBs. It converts a copy on
 your computer; your own file stays as it is.
 
 Once you have read in such a book, it syncs like any other: Lastread finds
-it on Hardcover by the ISBN in the book's own file. `lastread to-kobo` says
+it on Hardcover by the ISBN in the book's own file, or else in its file name
+(`9789044553277.epub`). `lastread to-kobo` says
 which folder and how many books wait; `--off` stops it. In the Mac app,
 *EPUB Folder* in the sidebar chooses the folder and lists its books, each
 with where it is with the Kobo and its Hardcover status; in local mode the

@@ -1,5 +1,5 @@
-"""The ISBN an EPUB file names for itself. For books put on the Kobo by
-hand: the Kobo's database often has no ISBN for them, and an ISBN is the
+"""The ISBN an EPUB file names for itself, inside it or else in its file
+name, as some shops name theirs. For books put on the Kobo by hand: the Kobo's database often has no ISBN for them, and an ISBN is the
 surest way to the book on Hardcover (rule M10). Its title and author
 too, for the books of the folder that goes on the Kobo (tokobo).
 
@@ -10,18 +10,21 @@ it, and anything that is not an EPUB of the usual shape gives "".
 
 from __future__ import annotations
 
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
 
 CONTAINER = "META-INF/container.xml"
 MOST = 1 << 20
+IN_NAME = re.compile(r"(?<!\d)97[89](?:[ -]?\d){10}(?!\d)")
 
 
 def isbn(path: str) -> str:
     """The book's ISBN-13, or "" when the file is not an EPUB, names none,
     or names only numbers that are not ISBNs (a Calibre id, an ASIN, a
-    UUID). One marked as an ISBN goes before one that only looks like it."""
+    UUID). One marked as an ISBN goes before one that only looks like it,
+    and either goes before the one in the file's name (in_name)."""
     return about(path)["isbn"]
 
 
@@ -48,8 +51,16 @@ def about(path: str) -> dict:
         isbn = isbn13(text.rsplit(":", 1)[-1] if said else text, marked=said)
         if isbn:
             (marked if said else unmarked).append(isbn)
-    found["isbn"] = (marked + unmarked + [""])[0]
+    found["isbn"] = (marked + unmarked + [in_name(path)])[0]
     return found
+
+
+def in_name(path: str) -> str:
+    """The ISBN-13 in the file's own name, its check digit right, or "" when
+    there is none. Two different ones say nothing: which is the book's is
+    not known. Ten digits are not taken, as in the book itself unmarked."""
+    found = {isbn13(number) for number in IN_NAME.findall(os.path.basename(path))} - {""}
+    return found.pop() if len(found) == 1 else ""
 
 
 def isbn13(text: str, marked: bool = False) -> str:

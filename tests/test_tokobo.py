@@ -360,6 +360,21 @@ def test_the_books_are_matched_after_the_next_plug_in(plugged, home, capsys):
     assert one["ids"] == [f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] and set(one["ids"]) <= ids
 
 
+def test_the_folders_list_has_the_isbn_of_the_name_also_for_a_book_read_before(plugged, home):
+    _, books, _, _ = plugged
+    an_epub(books / f"{ISBN}.epub", "<dc:identifier>urn:uuid:417afaa5</dc:identifier>")  # the book itself names none
+    assert tokobo.books(str(books), tokobo_state(home))[0]["isbn"] == ISBN
+    # As kept by a version that did not read the name yet.
+    kept = os.path.join(tokobo_state(home), tokobo.REMEMBERED)
+    with open(kept) as fh:
+        remembered = json.load(fh)
+    (entry,) = remembered["files"].values()
+    entry[3]["isbn"] = ""
+    with open(kept, "w") as fh:
+        json.dump(remembered, fh)
+    assert tokobo.books(str(books), tokobo_state(home))[0]["isbn"] == ISBN
+
+
 def test_the_list_says_of_each_book_where_it_is_with_the_kobo(plugged, home):
     mac, books, cfg, _ = plugged
     a_book(books / "One.epub", "One")

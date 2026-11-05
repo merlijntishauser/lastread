@@ -138,12 +138,16 @@ Three sources of truth, each for its own part:
   book twice); otherwise you choose.
   Tests: `tests/test_matching.py::test_which_hit_is_taken`
 - **M10** A book you put on the Kobo yourself (sideloaded) is looked up by
-  the ISBN its own EPUB file names, when the Kobo keeps none for it. Only
-  an ISBN with a valid check digit is taken, never more than the book's
+  the ISBN its own EPUB file names, when the Kobo keeps none for it; when
+  the book names none either, by a 13-digit ISBN in its file name. Only
+  an ISBN with a valid check digit is taken, a file name with two different
+  ones says nothing, never more than the book's
   package document is read, and the file is only read. A book that was
   waiting for you gets one more look when its ISBN turns up; a match you
   chose stays (M3).
   Tests: `tests/test_epub.py::test_an_epub_names_its_isbn_and_other_numbers_are_not_taken_for_one`,
+  `tests/test_epub.py::test_the_isbn_in_the_file_name_when_the_book_names_none`,
+  `tests/test_tokobo.py::test_the_folders_list_has_the_isbn_of_the_name_also_for_a_book_read_before`,
   `tests/test_epub.py::test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names`,
   `tests/test_epub.py::test_a_waiting_book_is_looked_up_again_when_its_isbn_arrives`,
   `tests/test_local.py::test_a_book_put_on_the_kobo_by_hand_is_found_by_the_isbn_in_its_file`

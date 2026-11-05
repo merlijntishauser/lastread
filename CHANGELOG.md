@@ -15,6 +15,11 @@ minor version may change behaviour; the notes will say so.
   their own collection is on the Kobo. It warns when that collection has the
   name of the synced books' collection, or of one that is not this tool's.
 
+- A book you put on the Kobo yourself, or in the EPUB folder, that names no
+  ISBN inside its file is looked up by a 13-digit ISBN in its file name, such
+  as `9789044553277.epub`. The check digit has to be right, and an ISBN inside
+  the book goes first.
+
 ### Fixed
 
 - In the Mac app, the sync's Folder collection step shows on the Kobo's link

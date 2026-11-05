@@ -71,6 +71,37 @@ def test_an_epub_names_its_isbn_and_other_numbers_are_not_taken_for_one(tmp_path
     assert epub.isbn(str(tmp_path / "big.epub")) == ""  # more than an OPF can be: not read
 
 
+def test_the_isbn_in_the_file_name_when_the_book_names_none(tmp_path):
+    def found(name, *identifiers):
+        return epub.isbn(an_epub(tmp_path / name, *identifiers))
+
+    uuid = "<dc:identifier>urn:uuid:417afaa5-39f7-4f2e-9071-990286781107</dc:identifier>"
+    # The shapes a shop or a person gives it, on the Kobo as kepub too.
+    for name in (
+        f"{ISBN}.epub",
+        f"{ISBN}.kepub.epub",
+        "978-0-306-40615-7.epub",
+        f"A Book - {ISBN}.epub",
+        f"{ISBN} (1).epub",
+        f"{ISBN}.EPUB",
+    ):
+        assert found(name, uuid) == ISBN, name
+    # The book's own goes first.
+    other = "9781861972712"
+    assert found(f"{other}.epub", f"<dc:identifier>urn:isbn:{ISBN}</dc:identifier>") == ISBN
+    # Not ISBNs: a wrong check digit, ten digits, a longer number, a date.
+    for name in ("9780306406158.epub", "0306406152.epub", f"1{ISBN}.epub", f"{ISBN}1.epub", "2026-11-05.epub"):
+        assert found(name, uuid) == "", name
+    # Two different ones: which is the book's is not known. The same one twice is one.
+    assert found(f"{ISBN} {other}.epub", uuid) == ""
+    assert found(f"{ISBN} {ISBN}.epub", uuid) == ISBN
+    # Only the file's own name counts, not a folder it is in.
+    assert found(f"{ISBN}/book.epub", uuid) == ""
+    # A file that is no EPUB says nothing, whatever its name.
+    (tmp_path / f"{other}.epub").write_bytes(b"not a zip")
+    assert epub.isbn(str(tmp_path / f"{other}.epub")) == ""
+
+
 def test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names(tmp_path):
     mount = tmp_path / "KOBOeReader"
     db = mount / ".kobo" / "KoboReader.sqlite"
@@ -96,6 +127,16 @@ def test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names(tmp_pat
     assert [isbns[c] for c in not_read] == ["", "", ""]
     assert db.read_bytes() == on_kobo  # the Kobo is only read
     assert kobo_db.fill_isbns(copy, str(mount)) == 0  # one that has an ISBN is not opened again
+
+    # A book that names none, with one in its file name: as the EPUB folder puts it there.
+    named = f"file:///mnt/onboard/Lastread/{ISBN}.kepub.epub"
+    an_epub(mount / "Lastread" / f"{ISBN}.kepub.epub", "<dc:identifier>urn:uuid:417afaa5</dc:identifier>")
+    con = sqlite3.connect(copy)
+    con.execute("insert into content values (?, '6', 'application/epub+zip', 'x', 'y', '', 5, 1, '', 60, '', '', 'en')", (named,))
+    con.commit()
+    con.close()
+    assert kobo_db.fill_isbns(copy, str(mount)) == 1
+    assert {b.content_id: b.isbn for b in kobo_db.read_books(kobo_db.open_db(copy))}[named] == ISBN
 
     # In server mode the upload carries it.
     small = str(tmp_path / "upload.sqlite")

@@ -60,7 +60,7 @@ the collection) is the same code in both.
   this device.
 - **A sideloaded book's own file**, only when the Kobo keeps no ISBN for
   it: the package document inside the EPUB (`dc:identifier`), for the
-  ISBN. The book's id is its path on the Kobo (`file:///mnt/onboard/...`);
+  ISBN, and else a 13-digit ISBN in the file's name. The book's id is its path on the Kobo (`file:///mnt/onboard/...`);
   a path that leads off the Kobo is not followed (M10).
 - **Never:** the `user` table, which holds the Kobo account's login
   tokens. In server mode the upload is built from a list of what is needed
