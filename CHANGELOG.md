@@ -5,7 +5,7 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.25.0 - 2026-11-05
 
 ### Added
 
@@ -14,7 +14,6 @@ minor version may change behaviour; the notes will say so.
   of the books that sync, or their own), how many there are, and whether
   their own collection is on the Kobo. It warns when that collection has the
   name of the synced books' collection, or of one that is not this tool's.
-
 - A book you put on the Kobo yourself, or in the EPUB folder, that names no
   ISBN inside its file is looked up by a 13-digit ISBN in its file name, such
   as `9789044553277.epub`. The check digit has to be right, and an ISBN inside
