@@ -1,7 +1,8 @@
 """The ISBN an EPUB file names for itself, inside it or else in its file
 name, as some shops name theirs. For books put on the Kobo by hand: the Kobo's database often has no ISBN for them, and an ISBN is the
 surest way to the book on Hardcover (rule M10). Its title and author
-too, for the books of the folder that goes on the Kobo (tokobo).
+too, for the books of the folder that goes on the Kobo (tokobo), and its
+cover, which Kobo's cover server does not have for such a book.
 
 The file is the reader's, from anywhere, so it is read with care: only
 the package document (the OPF, a few kB), never more than MOST bytes of
@@ -11,12 +12,17 @@ it, and anything that is not an EPUB of the usual shape gives "".
 from __future__ import annotations
 
 import os
+import posixpath
 import re
 import xml.etree.ElementTree as ET
 import zipfile
+import zlib
+from urllib.parse import unquote
 
 CONTAINER = "META-INF/container.xml"
 MOST = 1 << 20
+COVER_MOST = 4 << 20  # as much as a cover from Kobo's cover server may be (web/covers.py)
+PICTURES = (b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n")  # JPEG and PNG: what every place a cover is shown can show
 IN_NAME = re.compile(r"(?<!\d)97[89](?:[ -]?\d){10}(?!\d)")
 
 
@@ -63,6 +69,34 @@ def in_name(path: str) -> str:
     return found.pop() if len(found) == 1 else ""
 
 
+def cover(path: str) -> bytes | None:
+    """The picture the book names as its cover, or None when it names none,
+    or one that is not a JPEG or PNG, or larger than COVER_MOST. Read from the
+    archive, never unpacked, so a path in the file leads nowhere outside it."""
+    try:
+        with zipfile.ZipFile(path) as z:
+            opf = _rootfile(z)
+            href = _cover_href(ET.fromstring(_read(z, opf))) if opf else ""
+            if not href:
+                return None
+            data = _read(z, posixpath.normpath(posixpath.join(posixpath.dirname(opf), unquote(href))), COVER_MOST)
+    except (OSError, ValueError, KeyError, EOFError, RuntimeError, NotImplementedError, zipfile.BadZipFile, zlib.error, ET.ParseError):
+        return None
+    return data if data.startswith(PICTURES) else None
+
+
+def _cover_href(root: ET.Element) -> str:
+    """Where the package document says the cover is: the item marked as the
+    cover image (EPUB 3), else the item its cover meta names (EPUB 2). Never
+    guessed from a file's name: a wrong picture is worse than none."""
+    items = [el for el in root.iter() if _local(el.tag) == "item"]
+    for el in items:
+        if "cover-image" in (el.get("properties") or "").split():
+            return el.get("href", "")
+    named = next((el.get("content") for el in root.iter() if _local(el.tag) == "meta" and (el.get("name") or "").lower() == "cover"), None)
+    return next((el.get("href", "") for el in items if named and el.get("id") == named), "")
+
+
 def isbn13(text: str, marked: bool = False) -> str:
     """text as an ISBN-13 when it is a valid ISBN: 13 digits starting 978
     or 979, or (only when it is marked as an ISBN) 10 with their check
@@ -103,9 +137,9 @@ def _rootfile(z: zipfile.ZipFile) -> str:
     return opfs[0] if len(opfs) == 1 else ""
 
 
-def _read(z: zipfile.ZipFile, name: str) -> bytes:
+def _read(z: zipfile.ZipFile, name: str, most: int = MOST) -> bytes:
     with z.open(name) as fh:
-        data = fh.read(MOST + 1)
-    if len(data) > MOST:
-        raise ValueError(f"{name} is larger than {MOST} bytes")
+        data = fh.read(most + 1)
+    if len(data) > most:
+        raise ValueError(f"{name} is larger than {most} bytes")
     return data

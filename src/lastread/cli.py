@@ -1133,7 +1133,7 @@ def _server_books_list(a, server) -> None:
             server.app("POST", "books/sync", {"sync": a.sync, "filter": a.filter, "search": a.search, "expect": a.expect})
         found = server.app("GET", "books")
         for b in found["books"]:
-            b["cover"] = _server_cover(server, b["cover"], a.covers)
+            b["cover"] = _own_cover(b["id"]) or _server_cover(server, b["cover"], a.covers)
     except remote.ServerError as ex:
         sys.exit(f"lastread: {ex}")
     _books_said(a, found)
@@ -1157,10 +1157,19 @@ def _server_book(a, server) -> dict:
     except remote.ServerError as ex:
         sys.exit(f"lastread: {ex}")
     path = found["book"]["cover"]
-    found["book"]["cover"] = _server_cover(server, path, False)
+    own = _own_cover(found["book"]["id"])
+    found["book"]["cover"] = own or _server_cover(server, path, False)
     if a.large_cover:
-        found["large"] = _server_cover(server, path + "&size=large", True) if path else ""
+        found["large"] = own or (_server_cover(server, path + "&size=large", True) if path else "")
     return found
+
+
+def _own_cover(content_id: str) -> str:
+    """The cover a sync kept here from the book's own EPUB: the server has no such book file."""
+    from .computer import config
+    from .web import covers
+
+    return covers.own_path(config.state_dir(), content_id) or ""
 
 
 def _server_cover(server, path: str, fetch: bool) -> str:
@@ -1197,6 +1206,8 @@ def _cover(folder: str, r) -> str:
     """The book's cached thumbnail (web/covers.py), or "" while there is none."""
     from .web import covers
 
+    if own := covers.own_path(folder, r["content_id"]):
+        return own
     if not r["image_id"] or not covers.ID_OK.match(r["image_id"]):
         return ""
     path = os.path.join(folder, "covers", f"{r['image_id']}.jpg")
@@ -1207,6 +1218,8 @@ def _large_cover(folder: str, r) -> str:
     """The book's cover large (web/covers.py), fetched once and kept; "" when Kobo has none."""
     from .web import covers
 
+    if own := covers.own_path(folder, r["content_id"]):
+        return own
     if not r["image_id"] or not covers.ID_OK.match(r["image_id"]):
         return ""
     return covers.cover_path(folder, r["image_id"], "large") or ""

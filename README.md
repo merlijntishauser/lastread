@@ -363,9 +363,11 @@ everything that leaves the computer it runs on.
   are switched on, and for a search you type yourself;
 - for those books: the status, how far you are, and the dates.
 
-**To Kobo's cover server**: the cover number of each book the page shows.
-The tool fetches the cover once and keeps it; your browser talks to the
-tool only.
+**To Kobo's cover server**: the cover number of each book from the Kobo
+store the page shows. The tool fetches the cover once and keeps it; your
+browser talks to the tool only. A book you put on the Kobo yourself is not
+asked for: its cover comes from its own EPUB, kept on the computer the Kobo
+is plugged into, and stays there, also in server mode.
 
 **In server mode, from the computer to your own server**: for every book
 on the Kobo, the title, author, ISBN, progress, dates, cover number and

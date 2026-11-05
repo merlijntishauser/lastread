@@ -16,9 +16,10 @@ import pytest
 from lastread import cli
 from lastread.computer import config, runner
 from lastread.engine import epub, kobo_db, state, tokobo
+from lastread.web import covers
 from tests.kobo_fixture import BOOKS
 from tests.test_computer import FakeComputer, register, server  # noqa: F401  (server: a fixture)
-from tests.test_epub import CONTAINER, ISBN, an_epub
+from tests.test_epub import CONTAINER, ISBN, JPEG, PNG, a_covered_epub, an_epub
 from tests.test_local import LOCAL, ORIGIN, kobo, local, st  # noqa: F401  (local: a fixture)
 
 ENCRYPTION = """<?xml version="1.0"?>
@@ -718,3 +719,102 @@ def test_doctor_says_where_the_folders_books_go(plugged, home):
     k.close()
     theirs = said(named)
     assert theirs[0] == "warn" and "was not made by this tool, so it is left alone" in theirs[1]
+
+
+# ---------- a book's own cover: Kobo's cover server has none for it ----------
+def with_a_cover(home, db, name="One", picture=JPEG):
+    """A book on the Kobo as the folder puts it there, with the ImageId the Kobo makes from its path."""
+    a_covered_epub(
+        home / "Volumes" / "KOBOeReader" / tokobo.FOLDER / f"{name}.kepub.epub",
+        '<item id="c" href="c.pic" properties="cover-image"/>',
+        files={"OEBPS/c.pic": picture},
+    )
+    cid = sideload(db, f"{tokobo.FOLDER}/{name}.kepub.epub", name)
+    con = sqlite3.connect(db)
+    con.execute("update content set ImageId = ? where ContentID = ?", (f"file____mnt_onboard_{tokobo.FOLDER}_{name}_kepub_epub", cid))
+    con.commit()
+    con.close()
+    return cid
+
+
+@pytest.fixture
+def no_cdn(monkeypatch):
+    """Every question to Kobo's cover server, which answers with nothing."""
+    asked = []
+    monkeypatch.setattr(covers, "download", lambda i, size="thumb": asked.append(i))
+    return asked
+
+
+def listed(mac, capsys, cid, *more):
+    cli.main(["books", "--json", *more], computer=mac)
+    return next(b for b in json.loads(capsys.readouterr().out)["books"] if b["id"] == cid)
+
+
+def test_a_book_of_your_own_shows_the_cover_of_its_file_and_its_name_stays_here(plugged, home, capsys, no_cdn):
+    mac, _, cfg, db = plugged
+    config.save(cfg)
+    cid = with_a_cover(home, db)
+    other = with_a_cover(home, db, "Two", PNG)
+    con = sqlite3.connect(db)
+    con.execute("update content set ImageId = 'store-cover' where ContentID = ?", (BOOKS[0],))
+    con.commit()
+    con.close()
+    runner.sync(mac, cfg)
+    cover = listed(mac, capsys, cid, "--covers")["cover"]
+    with open(cover, "rb") as fh:
+        assert fh.read() == JPEG and cover.endswith(".jpg")
+    assert listed(mac, capsys, other)["cover"].endswith(".png")
+    # Large is the same picture: the file has one.
+    cli.main(["book", cid, "--large-cover", "--json"], computer=mac)
+    assert json.loads(capsys.readouterr().out)["large"] == cover
+    # The Kobo's ImageId for it is the file's path: it never goes to Kobo's cover server.
+    assert no_cdn == ["store-cover"]  # the store's book is asked for, as ever
+
+
+def test_a_cover_comes_also_when_the_kobo_has_nothing_new_and_is_read_once(plugged, home, capsys, no_cdn, monkeypatch):
+    mac, _, cfg, db = plugged
+    config.save(cfg)
+    cid = with_a_cover(home, db)
+    bare = sideload(db, f"{tokobo.FOLDER}/Bare.kepub.epub", "Bare")
+    an_epub(home / "Volumes" / "KOBOeReader" / tokobo.FOLDER / "Bare.kepub.epub")  # names no cover
+    runner.sync(mac, cfg)
+    assert listed(mac, capsys, bare)["cover"] == ""
+    # As after an update: read before this version, and the Kobo unchanged since.
+    os.unlink(covers.own_path(tokobo_state(home), cid))
+    steps = []
+    runner.sync(mac, cfg, on_step=steps.append)
+    assert any("nothing new" in row.text for row in steps)
+    assert covers.own_path(tokobo_state(home), cid)
+    # Kept once: of the two, only the one without a cover is looked at again.
+    read = []
+    real = epub.cover
+    monkeypatch.setattr(epub, "cover", lambda path: read.append(os.path.basename(path)) or real(path))
+    runner.sync(mac, cfg)
+    assert "Bare.kepub.epub" in read and "One.kepub.epub" not in read
+
+
+def test_a_cover_that_cannot_be_kept_does_not_stop_a_sync(plugged, home, monkeypatch):
+    mac, _, cfg, db = plugged
+    with_a_cover(home, db)
+
+    def full(*a):
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr(covers, "keep_own", full)
+    assert runner.sync(mac, cfg).ok
+
+
+def test_server_mode_keeps_the_cover_on_this_computer(home, server, capsys, no_cdn):  # noqa: F811
+    db = kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cid = with_a_cover(home, db)
+    cfg = config.Config(server=server.url)
+    config.save(cfg)
+    assert runner.sync(mac, cfg).ok
+    kept = covers.own_path(config.state_dir(), cid)
+    assert kept and open(kept, "rb").read() == JPEG
+    assert listed(mac, capsys, cid, "--covers")["cover"] == kept
+    cli.main(["book", cid, "--large-cover", "--json"], computer=mac)
+    assert json.loads(capsys.readouterr().out)["large"] == kept
+    assert not [i for i in no_cdn if i.startswith("file_")]  # not from the server either

@@ -105,6 +105,32 @@ ONBOARD = "file:///mnt/onboard/"
 GONE = (errno.ENOENT, errno.ENODEV, errno.ENXIO, errno.EIO, errno.ENOTDIR, errno.ESTALE)
 
 
+def _own_file(root: str, cid: str) -> str:
+    """The EPUB of a book put on the Kobo by hand, on the Kobo at root; "" for
+    a PDF, or a path that leads off the Kobo."""
+    path = os.path.realpath(os.path.join(root, cid[len(ONBOARD) :]))
+    return path if path.lower().endswith(".epub") and path.startswith(root + os.sep) else ""
+
+
+def own_files(db_path: str, mount: str) -> list[tuple[str, str]]:
+    """Each book put on the Kobo by hand: its id and its EPUB there. db_path
+    is the private copy; the Kobo is only read."""
+    root = os.path.realpath(mount)
+    try:
+        con = sqlite3.connect(db_path)
+    except sqlite3.DatabaseError:
+        return []
+    try:
+        rows = con.execute(
+            "select ContentID from content where ContentType = 6 and substr(ContentID, 1, ?) = ?", (len(ONBOARD), ONBOARD)
+        ).fetchall()
+    except sqlite3.DatabaseError:
+        return []  # read_books says what is wrong with the database
+    finally:
+        con.close()
+    return [(cid, path) for (cid,) in rows if (path := _own_file(root, cid))]
+
+
 def fill_isbns(db_path: str, mount: str) -> int:
     """Give each book put on the Kobo by hand the ISBN its own EPUB names,
     where the database has none. db_path is the private copy, never the
@@ -124,10 +150,8 @@ def fill_isbns(db_path: str, mount: str) -> int:
         ]
         filled = 0
         for cid in ids:
-            path = os.path.realpath(os.path.join(root, cid[len(ONBOARD) :]))
-            if not path.lower().endswith(".epub") or not path.startswith(root + os.sep):
-                continue  # a PDF, or a path that leads off the Kobo
-            found = epub.isbn(path)
+            path = _own_file(root, cid)
+            found = epub.isbn(path) if path else ""
             if found:
                 con.execute("update content set ISBN = ? where ContentID = ?", (found, cid))
                 filled += 1

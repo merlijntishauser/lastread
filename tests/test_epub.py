@@ -175,3 +175,48 @@ def test_an_epub_names_its_title_and_first_author(tmp_path):
     assert epub.about(book) == {"title": "A Sideloaded Book", "author": "Ursula K. Le Guin", "isbn": ISBN}
     (tmp_path / "not.epub").write_bytes(b"not a zip")
     assert epub.about(str(tmp_path / "not.epub")) == {"title": "", "author": "", "isbn": ""}
+
+
+# ---------- the cover a book names (for the list; Kobo's cover server does not have it) ----------
+JPEG = b"\xff\xd8\xff\xe0 a picture"
+PNG = b"\x89PNG\r\n\x1a\n a picture"
+
+
+def a_covered_epub(path, manifest, metadata="", files=None):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    opf = f"""<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata>{metadata}</metadata><manifest>{manifest}</manifest></package>"""
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("META-INF/container.xml", CONTAINER)
+        z.writestr("OEBPS/content.opf", opf)
+        for name, data in (files or {}).items():
+            z.writestr(name, data)
+    return str(path)
+
+
+def test_the_cover_a_book_names(tmp_path):
+    def found(manifest, metadata="", files=None):
+        return epub.cover(a_covered_epub(tmp_path / "b.epub", manifest, metadata, files))
+
+    # EPUB 3, as De boekhandelaar van Gaza has it; EPUB 2, as Vierkante ogen has it, its id with a dot.
+    assert found('<item id="c" href="i/c.jpg" properties="cover-image"/>', files={"OEBPS/i/c.jpg": JPEG}) == JPEG
+    assert (
+        found('<item id="cover.jpg" href="image/cover.jpg"/>', '<meta name="cover" content="cover.jpg"/>', {"OEBPS/image/cover.jpg": JPEG})
+        == JPEG
+    )
+    assert found('<item id="c" href="c.png" properties="nav cover-image"/>', files={"OEBPS/c.png": PNG}) == PNG
+    # A path up from the package document, and one with a space written as %20.
+    assert found('<item id="c" href="../c.jpg" properties="cover-image"/>', files={"c.jpg": JPEG}) == JPEG
+    assert found('<item id="c" href="my%20c.jpg" properties="cover-image"/>', files={"OEBPS/my c.jpg": JPEG}) == JPEG
+    # The marked one goes first.
+    both = '<item id="a" href="a.jpg"/><item id="b" href="b.png" properties="cover-image"/>'
+    assert found(both, '<meta name="cover" content="a"/>', {"OEBPS/a.jpg": JPEG, "OEBPS/b.png": PNG}) == PNG
+    # Never guessed: a file called cover that the book does not name.
+    assert found('<item id="c" href="cover.jpg"/>', files={"OEBPS/cover.jpg": JPEG}) is None
+    # Named, but not there, not a picture this can show, or too large.
+    assert found('<item id="c" href="gone.jpg" properties="cover-image"/>') is None
+    assert found('<item id="c" href="c.svg" properties="cover-image"/>', files={"OEBPS/c.svg": b"<svg/>"}) is None
+    big = JPEG + b"x" * epub.COVER_MOST
+    assert found('<item id="c" href="c.jpg" properties="cover-image"/>', files={"OEBPS/c.jpg": big}) is None
+    # A file that is no EPUB; one that is not there.
+    (tmp_path / "no.epub").write_bytes(b"not a zip")
+    assert epub.cover(str(tmp_path / "no.epub")) is None and epub.cover(str(tmp_path / "gone.epub")) is None

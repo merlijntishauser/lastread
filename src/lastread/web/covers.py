@@ -7,10 +7,16 @@ asked for once a week, not on every page view. Only an answer from the
 CDN says a cover is missing: when it cannot be reached (offline, a
 timeout, its own trouble) nothing is marked, and it is asked again after
 a minute.
+
+A book put on the Kobo by hand has no cover there: the Kobo makes its ImageId
+from the file's path, and that is never sent to the CDN. A sync keeps the
+picture the EPUB names instead (own_path), on the computer the Kobo is plugged
+into; it does not go to a server.
 """
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import tempfile
@@ -22,7 +28,9 @@ CDN = os.environ.get("KHS_COVER_URL") or "https://cdn.kobo.com/book-images/{id}/
 # width/height/quality as Kobo's CDN takes them. "large" is for the lightbox:
 # sharp on a laptop or retina screen at about 420 KB (2400 wide is over 1 MB).
 SIZES = {"thumb": "240/360/85", "large": "1200/1800/90"}
-ID_OK = re.compile(r"^[A-Za-z0-9_-]{1,80}$")  # the id goes into a URL and a filename
+# The id goes into a URL and a filename. file____mnt_onboard_...: a file's path, the reader's own, and no cover of Kobo's.
+ID_OK = re.compile(r"^(?!file_)[A-Za-z0-9_-]{1,80}$")
+OWN = "own-covers"
 RETRY_MISSING_AFTER = 7 * 86400
 MAX_BYTES = 4 * 1024 * 1024
 RETRY_UNREACHABLE_AFTER = 60  # seconds, for every cover at once: offline, each would wait for its own timeout
@@ -51,6 +59,35 @@ def download(image_id: str, size: str = "thumb") -> bytes | None:
     return data if 0 < len(data) <= MAX_BYTES else None
 
 
+def _own(data_dir: str, content_id: str) -> str:
+    return os.path.join(data_dir, OWN, hashlib.sha256(content_id.encode()).hexdigest()[:40])
+
+
+def own_path(data_dir: str, content_id: str) -> str | None:
+    """The picture a sync kept from the book's own EPUB, or None."""
+    stem = _own(data_dir, content_id)
+    return next((stem + ext for ext in (".jpg", ".png") if os.path.exists(stem + ext)), None)
+
+
+def keep_own(data_dir: str, content_id: str, data: bytes) -> None:
+    """Keep the picture of the book's own EPUB: a JPEG, or a PNG (epub.cover)."""
+    os.makedirs(os.path.join(data_dir, OWN), exist_ok=True)
+    _write(_own(data_dir, content_id) + (".png" if data.startswith(b"\x89PNG") else ".jpg"), data)
+
+
+def _write(path: str, data: bytes) -> None:
+    """Whole or not at all: one temporary file per call, as the page's threads fetch at once."""
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=f".{os.path.basename(path)}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+        os.replace(tmp, path)
+    except OSError:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
 def cover_path(data_dir: str, image_id: str, size: str = "thumb") -> str | None:
     """Path of the cached cover, fetching it on first use. None = no cover."""
     if not image_id or not ID_OK.match(image_id) or size not in SIZES:
@@ -74,15 +111,7 @@ def cover_path(data_dir: str, image_id: str, size: str = "thumb") -> str | None:
     if data is None:
         open(missing, "w").close()
         return None
-    fd, tmp = tempfile.mkstemp(dir=d, prefix=f".{stem}.", suffix=".tmp")  # one per call: the page's threads fetch at once
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(data)
-        os.replace(tmp, path)
-    except OSError:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
+    _write(path, data)
     if os.path.exists(missing):
         os.unlink(missing)
     return path

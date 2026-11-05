@@ -21,7 +21,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 from .. import ISSUES, __version__, logs
-from ..engine import collection, export, hardcover, job, kobo_db, state, tokobo
+from ..engine import collection, epub, export, hardcover, job, kobo_db, state, tokobo
 from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
 from . import config, history, page, remote, webhook
@@ -338,6 +338,7 @@ def _sync_here(
                     unchanged = fh.read().strip() == seen and not fresh
             except FileNotFoundError:
                 unchanged = False
+            _keep_covers(copy, mount, state_dir)
             if unchanged:
                 log.info("unchanged since last import, import skipped")
                 step(Row(OK, "Kobo", f"{_model(mount)}: nothing new since the last sync"))
@@ -436,13 +437,31 @@ def _sync_here(
     return out
 
 
+def _keep_covers(copy: str, mount: str, state_dir: str) -> None:
+    """The cover of each book put on the Kobo by hand, from its own EPUB, kept
+    here: also at a sync with nothing new, as a book may only have come before
+    this version. It is a picture for the list: trouble here never stops a sync."""
+    from ..web import covers
+
+    kept = 0
+    try:
+        for cid, path in kobo_db.own_files(copy, mount):
+            if not covers.own_path(state_dir, cid) and (data := epub.cover(path)):
+                covers.keep_own(state_dir, cid, data)
+                kept += 1
+    except OSError as ex:
+        log.warning("covers from the books' own files: %s", ex)
+    if kept:
+        log.info("cover read from the book's own file: %d", kept)
+
+
 def finished_books(books: list[dict], state_dir: str) -> list[dict]:
     """The books a sync marked Read on Hardcover, each with its cover's file ("" without one):
     a notification each, with the picture. Only what was sent: a dry run marks nothing."""
     from ..web import covers
 
     return [
-        {"title": b["title"], "cover": covers.cover_path(state_dir, b["image_id"]) or ""}
+        {"title": b["title"], "cover": covers.own_path(state_dir, b["id"]) or covers.cover_path(state_dir, b["image_id"]) or ""}
         for b in books
         if b["went"] == "sent" and b["what"].startswith("mark Read")
     ]
@@ -567,6 +586,7 @@ def _sync_to_server(
             log.error("cannot copy the Kobo's database: %s", ex)
             return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
         step(Row(OK, "Kobo", _model(mount)))
+        _keep_covers(copy, mount, state_dir)
         if unchanged:
             log.info("unchanged since last upload, upload skipped")
             step(Row(OK, "Upload", f"Nothing new for {server.host} since the last upload"))

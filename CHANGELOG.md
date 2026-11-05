@@ -7,7 +7,20 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- A book you put on the Kobo yourself, or in the EPUB folder, shows the cover
+  its own EPUB names, in Books, enlarged, and in the notification when you
+  finish it. A sync reads it from the Kobo and keeps it on this computer; in
+  server mode it does not go to the server, so the app shows it and the
+  server's page does not.
+
+### Fixed
+
+- Privacy: for those books, the "cover number" the Kobo keeps is made from the
+  file's path, and Lastread sent it to Kobo's cover server, so that server saw
+  their file names. It no longer asks for them. In server mode this needs the
+  server on this version too.
 
 ## 0.25.0 - 2026-11-05
 

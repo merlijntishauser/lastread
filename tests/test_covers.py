@@ -112,6 +112,23 @@ def test_cover_route_serves_own_books_only(tmp_path, monkeypatch):
     assert c.get("/cover/mine?size=huge", headers=h).status_code == 404
 
 
+def test_the_page_shows_a_cover_kept_from_the_books_own_file(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    asked = []
+    monkeypatch.setattr(covers, "download", lambda i, size="thumb": asked.append(i))
+    st = state.connect(str(tmp_path / "state.db"))
+    st.execute("update book set image_id='file____mnt_onboard_Lastread_mine_epub' where content_id='mine'")
+    st.commit()
+    h = {"Remote-User": "robin"}
+    assert c.get("/cover/mine", headers=h).status_code == 404 and asked == []  # the file's path is not asked for
+    covers.keep_own(str(tmp_path), "mine", b"\x89PNG\r\n\x1a\n a picture")
+    r = c.get("/cover/mine", headers=h)
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    assert c.get("/cover/mine?size=large", headers=h).content == r.content
+    covers.keep_own(str(tmp_path), "theirs", b"\xff\xd8\xff a picture")
+    assert c.get("/cover/theirs", headers=h).status_code == 404  # no book of this reader's
+
+
 def test_cdn_url_per_size():
     assert covers.CDN.format(id="x", size=covers.SIZES["thumb"]).endswith("/x/240/360/85/False/image.jpg")
     assert covers.CDN.format(id="x", size=covers.SIZES["large"]).endswith("/x/1200/1800/90/False/image.jpg")

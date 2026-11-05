@@ -1243,10 +1243,12 @@ def cover(request: Request, content_id: str, size: str = "thumb"):
 
 def cover_file(reader: str, content_id: str, size: str) -> Response:
     row = db().execute("select image_id from reader_book where reader=? and content_id=?", (reader, content_id)).fetchone()
-    path = covers.cover_path(DATA, row["image_id"], size) if row else None
+    path = (covers.own_path(DATA, content_id) or covers.cover_path(DATA, row["image_id"], size)) if row else None
     if path is None:
         return Response(status_code=404, headers={"Cache-Control": "private, max-age=3600"})
-    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=604800"})
+    return FileResponse(
+        path, media_type="image/png" if path.endswith(".png") else "image/jpeg", headers={"Cache-Control": "private, max-age=604800"}
+    )
 
 
 @app.get("/collection")
