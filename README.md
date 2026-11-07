@@ -61,14 +61,14 @@ service of its own.
 ## Is this the right tool for you?
 
 There are other good ways to get reading progress onto Hardcover. As far
-as their own documentation said on 2 October 2026:
+as their own documentation said on 7 November 2026:
 
 | | What it needs | Choose it when |
 |---|---|---|
 | **lastread** | A computer to plug the Kobo into. Nothing on the Kobo. | You read Kobo-store books on an unmodified Kobo, or your Kobo's software is too new for the tools below. |
 | [NickelHardcover](https://codeberg.org/StrayRose/NickelHardcover) | An add-on installed on the Kobo itself. Its README says firmware 5.x is not supported yet. | Your Kobo's firmware is supported and you are happy to modify the device. It syncs over Wi-Fi without a computer, and also does highlights, notes and reviews. |
 | [KOReader with the Hardcover plugin](https://github.com/Billiam/hardcoverapp.koplugin) | KOReader on the device. KOReader cannot open the store's DRM books. | You read your own, DRM-free books in KOReader. |
-| [Calibre-Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated) | A Calibre library on a server that the Kobo syncs with. | Your books live in Calibre and reach the Kobo from there. |
+| [Calibre-Web Automated](https://github.com/crocodilestick/Calibre-Web-Automated) | A Calibre library on a server that the Kobo syncs with, and a Hardcover link on each book. Its guide says it sends read status. | Your books live in Calibre and reach the Kobo from there. |
 
 ## What you need
 

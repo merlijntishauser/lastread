@@ -8,6 +8,10 @@ workflow (`.github/workflows/pages.yml`), which uploads the folder as it is;
 nothing is built. The workflow's first run switches GitHub Pages on for the
 repository, with Actions as its source (`configure-pages` with `enablement`).
 
+`robots.txt` and `sitemap.xml` are for search engines, and the page names its
+canonical address. With one page the sitemap has one line and no date to keep
+up; a new page gets a line there.
+
 ## What is on it
 
 The site has a world of its own, apart from the tool's page (`DESIGN.md`,
