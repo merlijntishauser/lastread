@@ -12,3 +12,7 @@ build/
 
 # The About picture's pages (packaging/macos/about/README.md)
 packaging/macos/about/*.html
+
+# Claude Code writes approved commands here verbatim, secrets included;
+# never commit it (the global ignore on the agents LXC does not travel with clones).
+**/.claude/settings.local.json
