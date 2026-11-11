@@ -60,6 +60,10 @@ minor version may change behaviour; the notes will say so.
   And `Remote-User` now goes first: a reader is no longer taken for another
   by an address sent along. The address is still looked at when the name is
   no reader's, so the proxy's setting is what closes this.
+- **Server mode: the Mac app's paths read a request only from a computer
+  the server knows, and only 64 kB of it.** `/api/app/` is let through the
+  sign-in, and a request's whole body was taken into memory before its
+  token was looked at, so anyone who could reach the server could fill it.
 - **Server mode: the upload token no longer follows a redirect.** When a
   proxy in front of the server sent a request on to its sign-in page, this
   computer's token went along to that address, also from https to plain

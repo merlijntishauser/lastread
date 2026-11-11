@@ -3,6 +3,8 @@ import hashlib
 import importlib
 import sqlite3
 
+import pytest
+
 from tests import client_at
 from tests.test_core import MINE, OLD, make_kobo
 
@@ -88,6 +90,38 @@ def test_a_gzip_upload_broken_inside_is_refused_and_leaves_nothing_behind(tmp_pa
         r = put(c, bytes(broken))
         assert r.status_code == 400 and "cannot read upload" in r.json()["error"], at
         assert not list(tmp_path.glob("tmp*.sqlite")) and not list(tmp_path.glob("*.upload")), at
+
+
+def test_the_apps_questions_are_read_only_from_a_known_computer_and_only_so_far(tmp_path, monkeypatch):
+    import asyncio
+
+    import lastread.web.app as web
+    from lastread.server import upload
+
+    c = setup(tmp_path, monkeypatch)
+    known = {"Authorization": f"Bearer {TOKEN}"}
+    assert c.post("/api/app/live", json={"live": False}, headers=known).json()["live"] is False
+    for path in ("/api/app/live", "/api/app/book", "/api/app/books/sync"):
+        r = c.post(path, content=b'{"live": true, "pad": "' + b"x" * web.APP_BODY + b'"}', headers=known)
+        assert (r.status_code, r.json()) == (413, {"error": "request too large"}), path
+
+    class Asked:
+        """A request whose body says when it is read."""
+
+        def __init__(self, headers):
+            self.headers, self.read = headers, False
+
+        async def stream(self):
+            self.read = True
+            yield b"{}"
+
+    for headers in ({}, {"authorization": "Bearer not-a-token-the-server-knows"}):
+        nobody = Asked(headers)
+        with pytest.raises(upload.UploadError) as refused:
+            asyncio.run(web.app_json(nobody))
+        assert refused.value.status == 401 and not nobody.read
+    # No length said and more than the most: stopped there, not taken in whole.
+    assert c.post("/api/app/live", content=iter([b"x" * web.APP_BODY, b"x" * 10]), headers=known).status_code == 413
 
 
 def test_collection_endpoint_lists_the_syncing_books(tmp_path, monkeypatch):

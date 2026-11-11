@@ -1150,7 +1150,7 @@ def for_the_app(request: Request, fn):
     try:
         reader = device_reader(request)
     except upload.UploadError as ex:
-        return JSONResponse({"error": str(ex)}, status_code=ex.status, headers={"WWW-Authenticate": "Bearer"})
+        return app_refused(ex)
     con = db()
     try:
         return JSONResponse(fn(con, reader))
@@ -1173,7 +1173,10 @@ def app_books(request: Request):
 @app.post("/api/app/book")
 async def app_book(request: Request):
     """One book's changes, as `book ID` makes them; answers the book."""
-    asked = await app_json(request)
+    try:
+        asked = await app_json(request)
+    except upload.UploadError as ex:
+        return app_refused(ex)
 
     def answer(con, reader):
         def client(**kw):
@@ -1200,7 +1203,10 @@ async def app_book(request: Request):
 
 @app.post("/api/app/books/sync")
 async def app_set_all(request: Request):
-    asked = await app_json(request)
+    try:
+        asked = await app_json(request)
+    except upload.UploadError as ex:
+        return app_refused(ex)
 
     def answer(con, reader):
         expect = asked.get("expect")
@@ -1220,7 +1226,10 @@ async def app_set_all(request: Request):
 @app.post("/api/app/live")
 async def app_live(request: Request):
     """Going live, or back to a dry run, as under Settings on the page."""
-    asked = await app_json(request)
+    try:
+        asked = await app_json(request)
+    except upload.UploadError as ex:
+        return app_refused(ex)
 
     def answer(con, reader):
         accounts.set_live(con, reader, asked.get("live") is True)
@@ -1239,9 +1248,33 @@ def app_cover_file(request: Request, id: str = "", size: str = "thumb"):
     return cover_file(reader, id, size)
 
 
+APP_BODY = 64 << 10  # what the app asks in is a few hundred bytes
+
+
+def app_refused(ex: upload.UploadError) -> JSONResponse:
+    return JSONResponse({"error": str(ex)}, status_code=ex.status, headers={"WWW-Authenticate": "Bearer"} if ex.status == 401 else None)
+
+
 async def app_json(request: Request) -> dict:
+    """What the app asked. These paths are let through the sign-in, so the
+    body is only read once the computer is known, and only so far: someone
+    without a token cannot have the server take in whatever they send.
+    upload.UploadError (401, 413) otherwise."""
+    device_reader(request)
     try:
-        asked = json.loads(await request.body() or b"{}")
+        length = int(request.headers.get("content-length") or 0)
+    except ValueError:
+        length = 0
+    body = b""
+    if length <= APP_BODY:
+        async for chunk in request.stream():
+            body += chunk
+            if len(body) > APP_BODY:
+                break
+    if length > APP_BODY or len(body) > APP_BODY:
+        raise upload.UploadError(413, "request too large")
+    try:
+        asked = json.loads(body or b"{}")
     except ValueError:
         asked = {}
     return asked if isinstance(asked, dict) else {}
