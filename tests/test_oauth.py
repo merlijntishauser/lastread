@@ -239,6 +239,19 @@ def test_a_renewal_whose_answer_was_lost_is_not_sent_again_while_the_token_works
     assert oauth.usable(out.read, out.write, out) == hc.access and not oauth.unpack(out.text).unanswered
 
 
+def test_asked_to_slow_down_while_renewing_is_not_a_connection_that_ended(hc, monkeypatch):
+    kept = Kept(connection(hc, left=3600))
+    monkeypatch.setattr(oauth, "_post", lambda url, fields, opener=None: (429, {}))
+    assert oauth.usable(kept.read, kept.write, kept) == "hc_at_1" and kept.writes == []  # still good for an hour: used
+    run_out = Kept(dataclasses.replace(oauth.unpack(kept.text), expires=int(time.time()) - 60).pack())
+    with pytest.raises(hardcover.HardcoverError, match="asked to slow down while the connection was renewed") as ex:
+        oauth.usable(run_out.read, run_out.write, run_out)
+    assert ex.value.kind == "rate" and run_out.writes == []
+    # Not spent: once Hardcover answers again, the same refresh token renews the connection.
+    monkeypatch.setattr(oauth, "_post", hc)
+    assert oauth.usable(run_out.read, run_out.write, run_out) == "hc_at_2" and not hc.ended
+
+
 def test_a_connection_hardcover_ended_says_connect_again(hc):
     kept = Kept(connection(hc, left=3600))
     hc.ended = True  # revoked on Hardcover's own page

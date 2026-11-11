@@ -289,10 +289,13 @@ def collect(device: Device, opener=None) -> Tokens | int:
 
 def renew(refresh: str, opener=None) -> Tokens:
     """A new pair of tokens for a refresh token. That token is spent by
-    this, whatever comes back."""
+    this, whatever comes back; except when Hardcover asks to slow down
+    (code "busy"), which is said before anything is done."""
     status, said = _post(TOKEN_URL, {"grant_type": "refresh_token", "refresh_token": refresh, "client_id": client_id()}, opener)
     if status == 200:
         return _tokens(said)
+    if status == 429:  # asked to slow down: not carried out, so the refresh token is as good as it was
+        raise OAuthError("Hardcover asked to slow down", "busy")
     if status == 0 or status >= 500:
         raise OAuthError("Hardcover could not be reached", "unreachable")
     raise OAuthError(f"Hardcover did not renew the connection ({said.get('error') or f'error {status}'})", str(said.get("error") or "gone"))
@@ -345,6 +348,13 @@ def usable(read, write, lock, opener=None, now=None) -> str:
         try:
             new = renew(tokens.refresh, opener)
         except OAuthError as ex:
+            if ex.code == "busy":
+                # Nothing was spent and nothing has ended: the next sync asks again.
+                if left > 0:
+                    return tokens.access
+                raise hardcover.HardcoverError(
+                    f"Hardcover asked to slow down while the connection was renewed. {hardcover.NOTHING_LOST}", "rate"
+                ) from ex
             if ex.code == "unreachable":
                 if left > 0:
                     write(dataclasses.replace(tokens, unanswered=True).pack())

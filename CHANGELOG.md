@@ -40,6 +40,9 @@ minor version may change behaviour; the notes will say so.
 - **Reading minutes: a new book counts from its first page.** What you read
   of a book before the first sync that saw it was left out of your minutes,
   so every new book lost its first days.
+- When Hardcover asks to slow down just as the connection is renewed, the
+  sync no longer says "Connect again under Settings". The connection is
+  fine; the next sync renews it.
 - Server mode: an upload whose gzip is broken inside is refused as one that
   cannot be read, and no longer leaves its temporary file in the data
   folder.
