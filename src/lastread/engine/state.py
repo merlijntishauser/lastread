@@ -228,7 +228,8 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 )
             continue
         row = con.execute(
-            "select mode, first_seen_reading, percent, status, finished_at, seconds_read, isbn, hc_book_id from book where reader=? and device=? and content_id=?",
+            """select mode, history, state, first_event, first_seen_reading, percent, status, finished_at, seconds_read, isbn, hc_book_id
+               from book where reader=? and device=? and content_id=?""",
             (reader, device, b.content_id),
         ).fetchone()
         reading_now = being_read(b.status, b.percent)
@@ -284,6 +285,12 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
             # The start date is the import that first saw the book being read.
             # One that was already being read when it was first seen has none.
             first_seen = row["first_seen_reading"] or (at if reading_now and not being_read(row["status"], row["percent"]) else "")
+            if _opened_here_since(con, reader, device, b, row, first_import, is_first):
+                # Known until now only from the Kobo account (someone else's reading of it, or the
+                # reader's own on another device): opened on this Kobo now, it is a new book (B3).
+                con.execute("update book set mode='auto', history=0 where reader=? and content_id=?", (reader, b.content_id))
+                first_seen = row["first_seen_reading"] or (at if reading_now else "")
+                new_auto += 1
             if b.isbn and b.isbn != (row["isbn"] or "") and not row["hc_book_id"]:
                 # An ISBN it did not have when it was looked up (one from the book's own file, M10): one more look.
                 con.execute("update book set hc_how = null where reader=? and device=? and content_id=?", (reader, device, b.content_id))
@@ -329,6 +336,25 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
         "minutes_read": read_seconds // 60,
         "first_import": is_first,
     }
+
+
+def _opened_here_since(con: sqlite3.Connection, reader: str, device: str, b: Book, row, first_import: str, is_first: bool) -> bool:
+    """A book this Kobo listed without ever having opened it, opened on it now,
+    after its first import: new from here on (B3). Not one the reader set
+    something for, not one that was finished already when it got here (nothing
+    from before goes to Hardcover by itself, B2), and not one opened on
+    another of the reader's Kobos: that Kobo decided what it is."""
+    if is_first or row["first_event"] or not b.first_event or b.first_event < first_import[:19]:
+        return False
+    if not row["history"] or row["mode"] != "off" or (row["state"] or "kobo") != "kobo":
+        return False
+    if row["status"] == 2 or row["finished_at"]:
+        return False
+    elsewhere = con.execute(
+        "select 1 from book where reader=? and content_id=? and device!=? and coalesce(first_event, '')!='' limit 1",
+        (reader, b.content_id, device),
+    ).fetchone()
+    return elsewhere is None
 
 
 def set_mode(con: sqlite3.Connection, reader: str, content_ids: list[str], mode: str) -> int:

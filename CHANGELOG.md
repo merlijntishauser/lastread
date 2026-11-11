@@ -7,7 +7,14 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **A book someone else on your Kobo account read first now syncs by itself
+  once you open it on your own Kobo.** The Kobo lists such a book with their
+  progress before you ever open it, and it was filed as history for good, so
+  you had to switch it on by hand. It is new from the day you open it. A
+  book that was finished already, one you set something for, and one you
+  opened on another Kobo of yours stay as they were.
 
 ## 0.26.0 - 2026-11-06
 

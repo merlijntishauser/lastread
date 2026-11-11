@@ -24,8 +24,14 @@ Three sources of truth, each for its own part:
   Hardcover by itself.
   Tests: `tests/test_core.py::test_history_off_then_new_books_auto`
 - **B3** A book first opened on that Kobo after the first import is *new*:
-  it syncs by itself (Auto), and can be switched off.
-  Tests: `tests/test_core.py::test_history_off_then_new_books_auto`
+  it syncs by itself (Auto), and can be switched off. Also a book the Kobo
+  listed before with someone else's progress, on a shared Kobo account: it
+  is new from the day you open it on yours. Not when it was finished
+  already, when you set something for it, or when you opened it on another
+  Kobo of yours before: those stay as they were.
+  Tests: `tests/test_core.py::test_history_off_then_new_books_auto`,
+  `tests/test_rules.py::test_a_book_known_from_the_account_is_new_once_it_is_opened_on_this_kobo`,
+  `tests/test_rules.py::test_a_book_opened_on_another_kobo_before_is_not_new_on_this_one`
 - **B4** A reader's choices and books are their own. Nothing one reader
   does reaches another reader's books.
   Tests: `tests/test_core.py::test_modes_and_dry_run_actions`,

@@ -5,7 +5,7 @@ import pytest
 
 from lastread.engine import hardcover, job, kobo_db, plan, state
 from lastread.engine.plan import action
-from tests.test_core import MINE, OLD, UNTOUCHED, make_kobo
+from tests.test_core import FAMILY, MINE, OLD, UNTOUCHED, make_kobo
 from tests.test_hardcover import BLIND, OLD_ED, READING, FakeHC, row, run, sent, setup
 
 MINE_HIT = {"Mine": [{"book_id": 81, "title": "Mine Now", "authors": ["C"], "pages": 100, "slug": "m"}]}  # what a search for MINE finds
@@ -30,6 +30,36 @@ def test_a_book_gone_from_the_kobo_stays_as_it_was(tmp_path):
     after = dict(row(st, "mine"))
     assert after == before and state.syncs(row(st, "mine"))  # still listed, still on, nothing forgotten
     assert run(tmp_path, fake)["sent"] == 0 and fake.calls == []  # and nothing is sent or taken off Hardcover for it
+
+
+def test_a_book_known_from_the_account_is_new_once_it_is_opened_on_this_kobo(tmp_path):
+    later = "2099-01-01T09:00:00"
+    st, _ = imported(tmp_path, [OLD])  # the first import: history
+    # Someone else on the Kobo account reads a book: this Kobo lists it with their progress, never opened here.
+    _, seen = imported(tmp_path, [OLD, FAMILY], name="2.sqlite")
+    assert seen["new_auto"] == 0 and not state.syncs(row(st, "fam")) and row(st, "fam")["history"] == 1
+    _, opened = imported(tmp_path, [OLD, FAMILY], [("fam", later)], name="3.sqlite")
+    fam = row(st, "fam")
+    assert opened["new_auto"] == 1 and (fam["mode"], fam["history"]) == ("auto", 0) and state.syncs(fam)
+    assert fam["first_seen_reading"]  # begun here now, whatever the account said before
+    _, again = imported(tmp_path, [OLD, FAMILY], [("fam", later)], name="4.sqlite")
+    assert again["new_auto"] == 0
+    # Not a book that was finished already (B2), and not one the reader set something for.
+    _, old = imported(tmp_path, [OLD, FAMILY], [("fam", later), ("old", later)], name="5.sqlite")
+    assert old["new_auto"] == 0 and not state.syncs(row(st, "old"))
+    aside = ("aside", "Set Aside", "F", "666", 20, 1, "2026-09-20T10:00:00Z", 1200)
+    imported(tmp_path, [OLD, FAMILY, aside], [("fam", later)], name="6.sqlite")
+    state.set_state(st, "alice", "aside", "dnf")
+    _, set_aside = imported(tmp_path, [OLD, FAMILY, aside], [("fam", later), ("aside", later)], name="7.sqlite")
+    assert set_aside["new_auto"] == 0 and not state.syncs(row(st, "aside"))
+
+
+def test_a_book_opened_on_another_kobo_before_is_not_new_on_this_one(tmp_path):
+    st, _ = imported(tmp_path, [OLD, FAMILY], [("fam", "2026-09-01T09:00:00")], name="other.sqlite", device="kobo2")  # read there: history
+    imported(tmp_path, [OLD])
+    imported(tmp_path, [OLD, FAMILY], name="2.sqlite")
+    _, opened = imported(tmp_path, [OLD, FAMILY], [("fam", "2099-01-01T09:00:00")], name="3.sqlite")
+    assert opened["new_auto"] == 0 and not any(state.syncs(r) for r in st.execute("select * from book where content_id='fam'"))
 
 
 def test_importing_the_same_kobo_twice_changes_nothing(tmp_path):
