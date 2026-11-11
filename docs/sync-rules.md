@@ -310,10 +310,12 @@ of the books that sync. This is the only thing ever written to the Kobo.
   `tests/test_collection.py::test_an_empty_list_creates_nothing`
 - **K3** Only the collection this tool made is touched, and it is known by
   the id it was given, not by its name. A collection of yours with the same
-  name is left alone.
+  name is left alone. Each Kobo's collection has an id of its own, so a
+  second Kobo gets the same collection and both are kept.
   Tests: `tests/test_collection.py::test_a_collection_of_that_name_that_is_not_ours_is_left_alone`,
   `tests/test_collection.py::test_ours_stays_ours_only_through_the_remembered_id`,
-  `tests/test_collection.py::test_ours_is_known_by_its_id_not_by_its_name`
+  `tests/test_collection.py::test_ours_is_known_by_its_id_not_by_its_name`,
+  `tests/test_collection.py::test_a_second_kobo_gets_its_own_collection_of_that_name_and_both_stay_ours`
 - **K4** The collection is the tool's: a book you add to it by hand on the
   Kobo is taken out again at the next sync. Keep your own collections for
   your own lists.

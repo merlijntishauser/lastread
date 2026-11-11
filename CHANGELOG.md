@@ -15,6 +15,12 @@ minor version may change behaviour; the notes will say so.
   you had to switch it on by hand. It is new from the day you open it. A
   book that was finished already, one you set something for, and one you
   opened on another Kobo of yours stay as they were.
+- **A second Kobo no longer locks the first out of its collection.** The
+  collection's id was remembered per name, so when another Kobo of yours got
+  the collection too, the first one was refused at every plug-in ("was not
+  made by lastread") and never updated again. Each Kobo's collection is now
+  remembered, and a new or cleared name reaches each Kobo when it is plugged
+  in.
 
 ## 0.26.0 - 2026-11-06
 

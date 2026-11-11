@@ -5,7 +5,8 @@ This is the only code in lastread that writes to the device.
 Rules:
   - It only ever touches the collection it created itself, remembered by
     its Shelf id in <state_dir>. A collection with the same name that it
-    did not create is left alone, and it stops.
+    did not create is left alone, and it stops. Each Kobo's collection has
+    an id of its own; all of them are remembered, by name.
   - Before anything else, a gate: the database version and the tables it
     is about to write must be ones this code knows. Otherwise it stops and
     says what it found. Nothing is written, not even a backup.
@@ -204,15 +205,41 @@ def _idfile(state_dir: str, name: str) -> str:
     return os.path.join(state_dir, "collection-id-" + hashlib.sha256(name.encode()).hexdigest()[:12])
 
 
-def _own_id(state_dir: str, name: str) -> str:
+def _own_ids(state_dir: str, name: str) -> set[str]:
+    """The ids of the collections of this name that this tool made: one for
+    each Kobo it made one on. A reader's second Kobo gets a collection of
+    the same name with an id of its own, and both stay this tool's."""
     try:
         with open(_idfile(state_dir, name)) as fh:
-            own = fh.read().strip()
+            own = fh.read().split()
     except FileNotFoundError:
-        return ""
-    if not SHELF_ID_OK.match(own):
+        return set()
+    if not own or not all(SHELF_ID_OK.match(i) for i in own):
         raise CollectionError("The remembered collection id is damaged; nothing was written to the Kobo.")
-    return own
+    return set(own)
+
+
+def _keep_ids(path: str, ids: set[str]) -> None:
+    """The ids a file remembers, whole or not at all; no file for none."""
+    if not ids:
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(path)
+        return
+    with open(path + ".tmp", "w") as fh:
+        fh.write("\n".join(sorted(ids)))
+    os.replace(path + ".tmp", path)
+
+
+def _forget(path: str, shelf_id: str) -> None:
+    """One collection is off its Kobo: its id goes. The collection of the
+    same name on another Kobo stays remembered, to be taken off when that
+    Kobo is plugged in."""
+    try:
+        with open(path) as fh:
+            ids = {i for i in fh.read().split() if SHELF_ID_OK.match(i)}
+    except FileNotFoundError:
+        return
+    _keep_ids(path, ids - {shelf_id})
 
 
 def _open(db_path: str) -> sqlite3.Connection:
@@ -259,12 +286,12 @@ def _members(con: sqlite3.Connection, name: str) -> int:
     return con.execute("select count(*) from ShelfContent where ShelfName = ? and _IsDeleted = 0", (name,)).fetchone()[0]
 
 
-def _existing(con: sqlite3.Connection, name: str, own: str) -> str:
+def _existing(con: sqlite3.Connection, name: str, own: set[str]) -> str:
     """The id of the live collection of that name, "" if there is none.
     Raises NotOurs when there is one that this tool did not make."""
     row = con.execute("select Id from Shelf where Name = ? and _IsDeleted = 0 limit 1", (name,)).fetchone()
     existing = row[0] if row else ""
-    if existing and existing != own:
+    if existing and existing not in own:
         raise NotOurs(f"A collection named '{name}' already exists on this Kobo and was not made by lastread: left alone.")
     return existing
 
@@ -407,7 +434,7 @@ def status(db_path: str, name: str, state_dir: str) -> dict:
     with contextlib.closing(con):
         version = con.execute("select version from DbVersion").fetchone()[0] if _has_table(con, "DbVersion") else None
         try:
-            existing = _existing(con, name, _own_id(state_dir, name))
+            existing = _existing(con, name, _own_ids(state_dir, name))
             ours = bool(existing)
         except NotOurs:
             existing, ours = "someone else's", False
@@ -437,7 +464,7 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
     name = clean_name(name)
     ids = list(ids)
     os.makedirs(state_dir, exist_ok=True)
-    own = _own_id(state_dir, name)
+    own = _own_ids(state_dir, name)
     remembered = _remembered(state_dir)
 
     if preflight_db:
@@ -496,13 +523,9 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
             # after this, the collection there is known to be this tool's,
             # and the ones taken off are not looked for again.
             if not early:
-                tmp = _idfile(state_dir, name) + ".tmp"
-                with open(tmp, "w") as fh:
-                    fh.write(shelf_id)
-                os.replace(tmp, _idfile(state_dir, name))
+                _keep_ids(_idfile(state_dir, name), own | {shelf_id})
             for other_id, _other_name in others:
-                with contextlib.suppress(FileNotFoundError):
-                    os.unlink(remembered[other_id])
+                _forget(remembered[other_id], other_id)
 
         _write(con, statements, backup, db_path, committed=remember)
 
@@ -516,7 +539,7 @@ def apply(db_path: str, name: str, ids, state_dir: str, *, preflight_db: str | N
     return Result("updated" if existing else "created", books, to_add, to_remove, backup, names)
 
 
-def _compare(con: sqlite3.Connection, name: str, ids, own: str, allow_untested: bool) -> tuple[str, int, int]:
+def _compare(con: sqlite3.Connection, name: str, ids, own: set[str], allow_untested: bool) -> tuple[str, int, int]:
     """The gate, then: (id of our live collection or "", books to add, books
     to take out). Reads only."""
     check(con, allow_untested)
@@ -537,7 +560,7 @@ def _nothing_to_write(con: sqlite3.Connection, name: str, existing: str, to_add:
 def remove(db_path: str, name: str, state_dir: str, *, allow_untested: bool = False) -> Result:
     """Take the collection off the Kobo again (its books stay, of course)."""
     name = clean_name(name)
-    own = _own_id(state_dir, name)
+    own = _own_ids(state_dir, name)
     con = _open(db_path)
     with contextlib.closing(con):
         check(con, allow_untested)
@@ -548,8 +571,7 @@ def remove(db_path: str, name: str, state_dir: str, *, allow_untested: bool = Fa
         now = _now()
 
         _write(con, lambda: _take_off(con, now, existing, name), backup, db_path)
-    with contextlib.suppress(FileNotFoundError):
-        os.unlink(_idfile(state_dir, name))
+    _forget(_idfile(state_dir, name), existing)
     _verify(db_path, name, backup)
     return Result("removed", backup=backup)
 
@@ -566,11 +588,12 @@ def _remembered(state_dir: str) -> dict[str, str]:
         if f.startswith("collection-id-") and not f.endswith(".tmp"):
             try:
                 with open(os.path.join(state_dir, f)) as fh:
-                    shelf_id = fh.read().strip()
+                    ids = fh.read().split()
             except OSError:
                 continue
-            if SHELF_ID_OK.match(shelf_id):
-                out[shelf_id] = os.path.join(state_dir, f)
+            for shelf_id in ids:
+                if SHELF_ID_OK.match(shelf_id):
+                    out[shelf_id] = os.path.join(state_dir, f)
     return out
 
 
@@ -626,8 +649,7 @@ def remove_others(db_path: str, keep_name: str, state_dir: str, *, preflight_db:
 
         _write(con, statements, backup, db_path)
     for shelf_id, _name in others:
-        with contextlib.suppress(FileNotFoundError):
-            os.unlink(remembered[shelf_id])
+        _forget(remembered[shelf_id], shelf_id)
     with contextlib.closing(_reopen(db_path, backup)) as con:
         if _ours_besides(con, keep, [i for i, _ in others]):
             raise _not_as_written(backup)

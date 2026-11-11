@@ -151,6 +151,30 @@ def test_ours_stays_ours_only_through_the_remembered_id(kobo):
         collection.apply(db, NAME, BOOKS[:3], state)
 
 
+def test_a_second_kobo_gets_its_own_collection_of_that_name_and_both_stay_ours(kobo, tmp_path):
+    db, state = kobo
+    other = tmp_path / "kobo2" / ".kobo" / "KoboReader.sqlite"
+    other.parent.mkdir(parents=True)
+    make(str(other))
+    other = str(other)
+    assert collection.apply(db, NAME, BOOKS[:2], state).action == "created"
+    assert collection.apply(other, NAME, BOOKS[:2], state).action == "created"
+    assert rows(db, "select Id from Shelf where Name = ?", NAME) != rows(other, "select Id from Shelf where Name = ?", NAME)
+    # The first Kobo again: its collection is still this tool's, and so is the second's.
+    assert collection.apply(db, NAME, BOOKS[:3], state).action == "updated" and members(db) == set(BOOKS[:3])
+    assert collection.apply(other, NAME, BOOKS[:1], state).action == "updated" and members(other) == set(BOOKS[:1])
+    # Another name: each Kobo's old collection goes when that Kobo is plugged in, not before.
+    assert collection.apply(db, "Renamed", BOOKS[:2], state).names == (NAME,)
+    assert os.path.exists(collection._idfile(state, NAME))  # the second Kobo's is still remembered
+    assert collection.apply(other, "Renamed", BOOKS[:2], state).names == (NAME,)
+    assert not os.path.exists(collection._idfile(state, NAME))
+    # A cleared name takes it off both.
+    assert collection.remove_others(db, "", state).names == ("Renamed",)
+    assert collection.remove_others(other, "", state).names == ("Renamed",)
+    assert not [f for f in os.listdir(state) if f.startswith("collection-id-")]
+    assert rows(other, "select count(*) from Shelf where Name in (?, 'Renamed') and _IsDeleted = 0", NAME) == [(0,)]
+
+
 def test_remove_and_create_again(kobo):
     db, state = kobo
     assert collection.remove(db, NAME, state).action == "absent" and backups(state) == []
