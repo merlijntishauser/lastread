@@ -33,6 +33,10 @@ minor version may change behaviour; the notes will say so.
   from the readers after them.** Something unexpected in one reader's run
   ended the whole round, every hour, so the others' edits on Hardcover were
   not taken over until their next upload.
+- **A book in a folder with a comma in its name can be switched on and off
+  from its row.** A book you put on the Kobo yourself is known by its file's
+  path, and a path like `Pratchett, Terry/Mort.epub` was read as two books:
+  the row's Sync showed the new choice and kept the old one.
 
 ### Security
 

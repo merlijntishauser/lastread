@@ -70,6 +70,25 @@ def test_one_readers_trouble_does_not_keep_the_hourly_sync_from_the_others(tmp_p
     assert web.sync_every_reader() == 1 and ran == ["robin", "sam"]
 
 
+def test_a_book_whose_id_holds_a_comma_is_switched_from_its_row(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin", "Origin": "https://kobo.example.org"}
+    c.get("/", headers=h)
+    cid = "file:///mnt/onboard/Pratchett, Terry/Mort.epub"  # as Calibre names its folders
+    st = state.connect(str(tmp_path / "state.db"))
+    k = tmp_path / "more.sqlite"
+    make_kobo(k, [OLD, MINE, (cid, "Mort", "Terry Pratchett", "", 12, 1, "2026-09-29T10:00:00Z", 900)], [])
+    state.import_books(st, "robin", "kobo1", kobo_db.read_books(kobo_db.open_db(str(k))))
+    r = c.post("/mode", data={"ids": cid, "mode": "on"}, headers={**h, "X-Requested-With": "fetch"})
+    assert r.status_code == 200 and r.json()["syncs"] is True
+    assert st.execute("select mode from book where content_id=?", (cid,)).fetchone()[0] == "on"
+    # Without JavaScript too; and several ids in one field still mean several books.
+    c.post("/mode", data={"ids": cid, "mode": "off"}, headers=h, follow_redirects=False)
+    assert st.execute("select mode from book where content_id=?", (cid,)).fetchone()[0] == "off"
+    c.post("/mode", data={"ids": "old,mine", "mode": "on"}, headers=h, follow_redirects=False)
+    assert [m for (m,) in st.execute("select mode from book where content_id in ('old', 'mine')")] == ["on", "on"]
+
+
 def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}

@@ -1020,7 +1020,10 @@ def set_mode(
     reader = me["name"]
     if mode not in state.MODES:
         return PlainTextResponse("unknown sync setting", status_code=400)
-    id_list = [i for i in ids.split(",") if i]
+    # A row sends its one book whole. The id of a book put on the Kobo by hand is its file's path,
+    # which may hold a comma (Calibre's "Pratchett, Terry/"): it is not a list of ids then.
+    whole = con.execute("select 1 from book where reader=? and content_id=? limit 1", (reader, ids)).fetchone()
+    id_list = [ids] if whole else [i for i in ids.split(",") if i]
     if bulk:
         # "Set all in this list": every book the search and filter match, shown or not yet. The
         # count the reader saw (n) must still hold, or nothing changes: the list moved meanwhile
