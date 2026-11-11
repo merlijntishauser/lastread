@@ -532,7 +532,9 @@ def details_fragment(r, status: tuple[str, str], back: str) -> str:
     keep = f'<input type="hidden" name="id" value="{cid}"><input type="hidden" name="back" value="{e(back)}">'
     sent = json.loads(r["last_sent"]) if r["last_sent"] else {}
     kind, status = status
-    cover = f'<img class="cover" src="/cover/{cid}" alt="" width="48" height="72">' if r["image_id"] else '<span class="cover"></span>'
+    # The id in an address, as the list writes it: a file's name may hold "#" or "?", which would cut the address short.
+    at = f"/cover/{quote(r['content_id'], safe='')}"
+    cover = f'<img class="cover" src="{at}" alt="" width="48" height="72">' if r["image_id"] else '<span class="cover"></span>'
 
     def dl(pairs):
         rows = "".join(f"<div><dt>{e(k)}</dt><dd>{v}</dd></div>" for k, v in pairs if v)

@@ -48,6 +48,7 @@ minor version may change behaviour; the notes will say so.
   plug-in also when the page or `lastread token` was used in between. They
   made an empty one, the unchanged Kobo was then not read, and its
   collection came off.
+- Details shows the cover of a book whose file name holds `#` or `?`.
 - When Hardcover asks to slow down just as the connection is renewed, the
   sync no longer says "Connect again under Settings". The connection is
   fine; the next sync renews it.

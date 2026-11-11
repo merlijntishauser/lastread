@@ -359,6 +359,25 @@ def test_up_to_date_links_to_the_book_on_hardcover(tmp_path, monkeypatch):
     assert '<a href="https://hardcover.app/id/book/20640" target="_blank" rel="noopener noreferrer">' in d
 
 
+def test_the_cover_in_details_is_asked_for_by_the_whole_id(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    h = {"Remote-User": "robin"}
+    c.get("/", headers=h)
+    cid = "file:///mnt/onboard/Dune #2 - what next?.epub"
+    st = state.connect(str(tmp_path / "state.db"))
+    make_kobo(tmp_path / "more.sqlite", [OLD, MINE, (cid, "Dune 2", "Frank Herbert", "", 12, 1, "2026-09-29T10:00:00Z", 900)], [])
+    state.import_books(st, "robin", "kobo1", kobo_db.read_books(kobo_db.open_db(str(tmp_path / "more.sqlite"))))
+    st.execute("update book set image_id='cover-of-dune' where content_id=?", (cid,))
+    st.commit()
+    from urllib.parse import quote
+
+    asked = "/cover/" + quote(cid, safe="")
+    assert "#" not in asked and "?" not in asked
+    details = c.get("/details/" + quote(cid, safe=""), headers={**h, "X-Requested-With": "fetch"}).text
+    assert f'<img class="cover" src="{asked}"' in details  # as the list asks for it
+    assert f'src="{asked}"' in c.get("/", headers=h).text
+
+
 def test_hardcover_column_and_details(tmp_path, monkeypatch):
     import json
 
