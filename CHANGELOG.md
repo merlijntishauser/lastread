@@ -64,6 +64,10 @@ minor version may change behaviour; the notes will say so.
   the server knows, and only 64 kB of it.** `/api/app/` is let through the
   sign-in, and a request's whole body was taken into memory before its
   token was looked at, so anyone who could reach the server could fill it.
+- **Server mode keeps no access log.** Each request's address went into the
+  container's log, and with it the file names of books you put on the Kobo
+  yourself and the words you searched for, which the log is meant never to
+  hold.
 - **Server mode: the upload token no longer follows a redirect.** When a
   proxy in front of the server sent a request on to its sign-in page, this
   computer's token went along to that address, also from https to plain

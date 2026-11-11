@@ -353,7 +353,9 @@ def _serve(a) -> None:
         sys.exit(f"lastread: not started. {ex}")
     # No proxy_headers: the address the app checks must be the one that
     # really connected (the proxy), not one a header claims.
-    uvicorn.run("lastread.web.app:app", host=a.host, port=a.port, proxy_headers=False)
+    # No access log: a request's path and query hold what a reader looked at (a book put on the
+    # Kobo by hand is known by its file's name, a search by its words), and logs.py keeps those out.
+    uvicorn.run("lastread.web.app:app", host=a.host, port=a.port, proxy_headers=False, access_log=False)
 
 
 def _own_path() -> str:

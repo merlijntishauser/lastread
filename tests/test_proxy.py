@@ -128,3 +128,14 @@ def test_without_a_proxy_address_nothing_is_served_and_the_server_does_not_start
             cli.main(["serve"])
         assert "not started" in str(ex.value.code) and "KHS_TRUSTED_PROXIES" in str(ex.value.code)
     assert c is not None
+
+
+def test_the_server_keeps_no_access_log(monkeypatch):
+    """A request's path and query hold what a reader looked at: a file's name, the words of a search."""
+    import uvicorn
+
+    started = {}
+    monkeypatch.setattr(uvicorn, "run", lambda *a, **kw: started.update(kw))
+    monkeypatch.setenv("KHS_TRUSTED_PROXIES", PROXY[0])
+    cli.main(["serve"])
+    assert started["access_log"] is False and started["proxy_headers"] is False
