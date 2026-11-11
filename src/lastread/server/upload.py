@@ -20,6 +20,7 @@ import os
 import shutil
 import tempfile
 import time
+import zlib
 from datetime import UTC, datetime
 
 from ..engine import kobo_db, state
@@ -63,7 +64,7 @@ def store_and_import(body_path: str, gzipped: bool, reader: str, device: str, da
                     if total > MAX_BYTES:
                         raise UploadError(413, f"database larger than {MAX_BYTES // 2**20} MB")
                     out.write(chunk)
-        except (OSError, EOFError) as e:  # bad gzip
+        except (OSError, EOFError, zlib.error) as e:  # bad gzip: its header, its end, or the stream inside
             os.unlink(db_path)
             raise UploadError(400, f"cannot read upload: {e}") from e
         except UploadError:  # larger than allowed once unpacked

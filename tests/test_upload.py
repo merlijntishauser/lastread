@@ -79,6 +79,17 @@ def test_an_upload_too_large_once_unpacked_leaves_nothing_behind(tmp_path, monke
     assert not list(tmp_path.glob("tmp*")) and not list(tmp_path.glob("*.upload"))
 
 
+def test_a_gzip_upload_broken_inside_is_refused_and_leaves_nothing_behind(tmp_path, monkeypatch):
+    c = setup(tmp_path, monkeypatch)
+    good = body(tmp_path, [OLD, MINE])
+    for at in (10, 12, 20, len(good) - 6):  # a good header, then a stream that breaks in its own way at each place
+        broken = bytearray(good)
+        broken[at : at + 4] = b"\xff" * 4
+        r = put(c, bytes(broken))
+        assert r.status_code == 400 and "cannot read upload" in r.json()["error"], at
+        assert not list(tmp_path.glob("tmp*.sqlite")) and not list(tmp_path.glob("*.upload")), at
+
+
 def test_collection_endpoint_lists_the_syncing_books(tmp_path, monkeypatch):
     c = setup(tmp_path, monkeypatch)
     from lastread.engine import state
