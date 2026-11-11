@@ -168,7 +168,9 @@ def books(folder: str, state_dir: str) -> list[dict]:
         sha, unread = _read(remembered, path)
         if unread:  # listed with why; the other books are not held up by it
             about = {"title": "", "author": "", "isbn": epub.in_name(path)}
-            out.append({"name": os.path.relpath(path, folder), **about, "kobo": "refused", "why": unread, "at": "", "format": "", "ids": []})
+            out.append(
+                {"name": os.path.relpath(path, folder), **about, "kobo": "refused", "why": unread, "at": "", "format": "", "ids": []}
+            )
             continue
         on = [kobo[sha] for kobo in remembered["kobos"].values() if sha in kobo]
         put = sorted((v for v in on if not v.get("refused")), key=lambda v: v.get("at", ""))
