@@ -49,6 +49,27 @@ def test_a_reader_is_not_taken_for_another_by_an_address_sent_along(tmp_path, mo
     assert "Old Finished" in c.get("/", headers={"Remote-User": "robin-renamed", "Remote-Email": "robin@example.org"}).text
 
 
+def test_one_readers_trouble_does_not_keep_the_hourly_sync_from_the_others(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    c.get("/", headers={"Remote-User": "robin"})
+    st = state.connect(str(tmp_path / "state.db"))
+    accounts.sign_up(st, "sam", "sam@example.org")
+    st.execute("update reader set hardcover_live=1")
+    st.commit()
+    import lastread.web.app as web
+
+    ran = []
+
+    def run(db_path, reader, live, token=""):
+        ran.append(reader)
+        if reader == "robin":
+            raise RuntimeError("database is locked")
+
+    monkeypatch.setattr(web, "token_to_use", lambda con, reader, live: "a token")
+    monkeypatch.setattr(web.job, "run", run)
+    assert web.sync_every_reader() == 1 and ran == ["robin", "sam"]
+
+
 def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}

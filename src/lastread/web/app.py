@@ -247,14 +247,26 @@ def start_hourly_sync():
         while True:
             time.sleep(SYNC_INTERVAL)
             try:
-                con = db()
-                for r in accounts.all_readers(con):
-                    if r["hardcover_live"] and (token := token_to_use(con, r["name"], True)):
-                        job.run(os.path.join(DATA, "state.db"), r["name"], True, token=token)
+                sync_every_reader()
             except Exception:  # a bad hour must not end the loop
                 pass
 
     threading.Thread(target=loop, daemon=True, name="hourly-sync").start()
+
+
+def sync_every_reader() -> int:
+    """One round of the hourly sync: every reader that is live and has a
+    token. What stops one reader's sync is theirs alone: the readers after
+    them still get theirs. Returns how many were stopped that way."""
+    con = db()
+    stopped = 0
+    for r in accounts.all_readers(con):
+        try:
+            if r["hardcover_live"] and (token := token_to_use(con, r["name"], True)):
+                job.run(os.path.join(DATA, "state.db"), r["name"], True, token=token)
+        except Exception:  # job.run wrote it in the log and on the run; the page says so to that reader
+            stopped += 1
+    return stopped
 
 
 def token_to_use(con, reader: str, live: bool) -> str | None:

@@ -29,6 +29,10 @@ minor version may change behaviour; the notes will say so.
   Kobo was unplugged".** Trouble reading a file on the computer was read as
   the Kobo's, and the books after it stayed behind. That book now waits and
   the rest go.
+- **Server mode: one reader's failed sync no longer keeps the hourly sync
+  from the readers after them.** Something unexpected in one reader's run
+  ended the whole round, every hour, so the others' edits on Hardcover were
+  not taken over until their next upload.
 
 ### Security
 
