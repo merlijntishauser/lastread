@@ -244,6 +244,10 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
             mode = "auto" if is_new else "off"
             new_auto += is_new
             added += 1
+            if is_new and 0 < b.seconds_read < 16 * 3600:
+                # First opened here since the last import: what was read of it before this one is this
+                # reader's too. Without it every new book lost its first days from the minutes.
+                read_seconds += b.seconds_read
             con.execute(
                 """insert into book (reader, device, content_id, title, author, isbn, percent, status,
                    last_read, seconds_read, first_event, first_seen_reading, history, mode, finished_at, image_id, language)

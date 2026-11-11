@@ -37,6 +37,9 @@ minor version may change behaviour; the notes will say so.
   from its row.** A book you put on the Kobo yourself is known by its file's
   path, and a path like `Pratchett, Terry/Mort.epub` was read as two books:
   the row's Sync showed the new choice and kept the old one.
+- **Reading minutes: a new book counts from its first page.** What you read
+  of a book before the first sync that saw it was left out of your minutes,
+  so every new book lost its first days.
 
 ### Security
 

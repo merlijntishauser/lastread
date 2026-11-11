@@ -22,6 +22,24 @@ def test_minutes_only_count_books_opened_on_this_device(tmp_path):
     assert s["current_title"] == "Title mine" and s["current_percent"] == 20
 
 
+def test_a_new_books_minutes_before_its_first_sync_count_once(tmp_path):
+    st = state.connect(str(tmp_path / "state.db"))
+
+    def read(name, books, events):
+        make_kobo(tmp_path / name, books, events)
+        return state.import_books(st, "alice", "kobo1", kobo_db.read_books(kobo_db.open_db(str(tmp_path / name))))
+
+    later = ("new", "2099-01-01T09:00:00")
+    read("a.sqlite", [book("mine", 600)], [("mine", "2026-09-05T09:00:00")])  # the first import: history, no minutes
+    # A book begun after it, twenty minutes in when the Kobo is plugged in next; and one someone else on the account began.
+    r = read("b.sqlite", [book("mine", 600), book("new", 1200, 8), book("family", 3000, 30)], [("mine", "2026-09-05T09:00:00"), later])
+    assert (r["new_auto"], r["minutes_read"]) == (1, 20)
+    again = read("c.sqlite", [book("mine", 600), book("new", 1200, 8), book("family", 3000, 30)], [("mine", "2026-09-05T09:00:00"), later])
+    assert again["minutes_read"] == 0
+    more = read("d.sqlite", [book("mine", 600), book("new", 1800, 12), book("family", 3000, 30)], [("mine", "2026-09-05T09:00:00"), later])
+    assert more["minutes_read"] == 10 and stats(st, "alice", today=state.local_day())["minutes_today"] == 30
+
+
 def test_finished_this_year_counts_synced_books_only(tmp_path):
     st = state.connect(str(tmp_path / "state.db"))
     k = tmp_path / "a.sqlite"

@@ -44,8 +44,10 @@ Three sources of truth, each for its own part:
   Tests: `tests/test_rules.py::test_importing_the_same_kobo_twice_changes_nothing`
 - **B7** Reading time counts only for books opened on this Kobo. The Kobo
   account's reading time is shared by everyone on the account; the rest of
-  the family's reading is not yours.
-  Tests: `tests/test_stats.py::test_minutes_only_count_books_opened_on_this_device`
+  the family's reading is not yours. A book you began since the last sync
+  counts from its first page, not from the sync that first saw it.
+  Tests: `tests/test_stats.py::test_minutes_only_count_books_opened_on_this_device`,
+  `tests/test_stats.py::test_a_new_books_minutes_before_its_first_sync_count_once`
 - **B8** Books are kept per reader and per Kobo: the same book on two
   Kobos is listed for each.
   Tests: `tests/test_rules.py::test_the_same_book_on_two_kobos_is_two_rows`
