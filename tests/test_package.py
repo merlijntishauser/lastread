@@ -41,7 +41,8 @@ def test_serve_listens_on_loopback_unless_told_otherwise(monkeypatch):
     cli.main(["serve"])
     cli.main(["serve", "--host", "0.0.0.0", "--port", "3012"])
     # proxy_headers off: the address the app checks is the one that really connected.
-    assert calls[0] == ("lastread.web.app:app", {"host": "127.0.0.1", "port": 3012, "proxy_headers": False})
+    # No access log: it would hold file names and search words (tests/test_proxy.py).
+    assert calls[0] == ("lastread.web.app:app", {"host": "127.0.0.1", "port": 3012, "proxy_headers": False, "access_log": False})
     assert calls[1][1]["host"] == "0.0.0.0"
 
 
