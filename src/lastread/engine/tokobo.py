@@ -111,7 +111,7 @@ def waiting(folder: str, device: str, state_dir: str) -> list[str]:
     remembered = _remembered(state_dir)
     kobos = remembered["kobos"]
     done = kobos.get(device, {}) if device else {sha for books in kobos.values() for sha in books}
-    out = [p for p in books_in(folder) if _hash(remembered, p) not in done]
+    out = [p for p in books_in(folder) if (sha := _read(remembered, p)[0]) and sha not in done]
     _keep(state_dir, remembered)
     return out
 
@@ -165,7 +165,11 @@ def books(folder: str, state_dir: str) -> list[dict]:
     remembered = _remembered(state_dir)
     out = []
     for path in books_in(folder):
-        sha = _hash(remembered, path)
+        sha, unread = _read(remembered, path)
+        if unread:  # listed with why; the other books are not held up by it
+            about = {"title": "", "author": "", "isbn": epub.in_name(path)}
+            out.append({"name": os.path.relpath(path, folder), **about, "kobo": "refused", "why": unread, "at": "", "format": "", "ids": []})
+            continue
         on = [kobo[sha] for kobo in remembered["kobos"].values() if sha in kobo]
         put = sorted((v for v in on if not v.get("refused")), key=lambda v: v.get("at", ""))
         refused = next((v["refused"] for v in on if v.get("refused")), "")
@@ -213,7 +217,7 @@ def put(folder: str, mount: str, device: str, state_dir: str, kepubify: str | No
     remembered = _remembered(state_dir)
     done = remembered["kobos"].setdefault(device, {})
     target = os.path.join(mount, FOLDER)
-    todo = [(p, sha) for p in books_in(folder) if (sha := _hash(remembered, p)) not in done]
+    todo = [(p, sha) for p in books_in(folder) if (sha := _read(remembered, p)[0]) and sha not in done]
     _keep(state_dir, remembered)
     if not todo:
         return r
@@ -230,7 +234,12 @@ def put(folder: str, mount: str, device: str, state_dir: str, kepubify: str | No
 
 def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: dict, remembered: dict, state_dir: str) -> None:
     for n, (path, sha) in enumerate(todo):
-        name, size = os.path.basename(path), os.path.getsize(path)
+        name = os.path.basename(path)
+        try:
+            size = os.path.getsize(path)
+        except OSError as ex:  # gone from the folder since it was listed
+            log.warning("a book could not be read, left for the next sync: %s", ex.strerror or ex)
+            continue
         if (name.lower(), size) in there and (same := _same(path, sha, there[name.lower(), size])):
             # Already on the Kobo: by hand, or a copy not remembered.
             done[sha] = {"name": name, "at": _now(), "found": True, "path": os.path.relpath(same, mount).replace(os.sep, "/")}
@@ -258,6 +267,10 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
                     r.unconverted.append(name)
         try:
             landed = _copy(source, target, as_name, sha)
+        except Unread as ex:
+            # The file on this computer, not the Kobo: it waits until it can be read, and the rest still go.
+            log.warning("a book could not be read, left for the next sync: %s", ex)
+            continue
         except OSError as ex:
             if not os.path.isdir(mount) or ex.errno in GONE:
                 r.left, r.why_left = len(todo) - n, "unplugged"
@@ -314,15 +327,24 @@ def fat_name(name: str) -> str:
 def _copy(path: str, target: str, name: str, sha: str) -> str:
     """One book into target as name, completely or not at all (P4, P5): a
     hidden partial copy, flushed, then renamed to a name nothing else has.
-    The partial copy is named by the book's hash, short whatever the name."""
+    The partial copy is named by the book's hash, short whatever the name.
+    Unread when it is the file here that fails, OSError when it is the Kobo."""
     partial = os.path.join(target, PARTIAL + sha[:16] + ".partial")
     try:
-        with open(path, "rb") as src, open(partial, "wb") as dst:
-            shutil.copyfileobj(src, dst, 1 << 20)
+        try:
+            src = open(path, "rb")  # noqa: SIM115 (closed by the with below)
+        except OSError as ex:
+            raise Unread(ex.strerror or str(ex)) from ex
+        with src, open(partial, "wb") as dst:
+            shutil.copyfileobj(_Source(src), dst, 1 << 20)
             dst.flush()
             os.fsync(dst.fileno())
         landed = _free_name(target, name)
         os.rename(partial, os.path.join(target, landed))
+    except Unread:
+        with contextlib.suppress(OSError):
+            os.unlink(partial)
+        raise
     except OSError as ex:
         if ex.errno not in GONE:  # a Kobo pulled out takes it along; the next plug-in clears what is left
             with contextlib.suppress(OSError):
@@ -361,6 +383,36 @@ def _on_the_kobo(mount: str) -> dict[tuple[str, int], list[str]]:
 def _same(path: str, sha: str, candidates: list[str]) -> str:
     """The one of candidates that is this book, "" for none."""
     return next((c for c in candidates if _sha256(c) == sha), "")
+
+
+class Unread(Exception):
+    """A book's file on this computer could not be read: gone since it was
+    listed, a link to nothing, not allowed. That is the file's trouble, not
+    the Kobo's, so it is never taken for a Kobo that was unplugged or that
+    refuses to be written to."""
+
+
+class _Source:
+    """The book's file while it is copied: what goes wrong reading it is
+    Unread, so only the Kobo's side of the copy is left to be an OSError."""
+
+    def __init__(self, fh):
+        self._fh = fh
+
+    def read(self, n: int = -1) -> bytes:
+        try:
+            return self._fh.read(n)
+        except OSError as ex:
+            raise Unread(ex.strerror or str(ex)) from ex
+
+
+def _read(remembered: dict, path: str) -> tuple[str, str]:
+    """(the file's hash, "") or ("", why this computer cannot read it): one
+    such file is left out and does not stop the folder's other books."""
+    try:
+        return _hash(remembered, path), ""
+    except OSError as ex:
+        return "", f"this computer cannot read it ({ex.strerror or ex})"
 
 
 def _hash(remembered: dict, path: str) -> str:

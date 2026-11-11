@@ -243,6 +243,42 @@ def test_a_name_the_kobo_cannot_hold_goes_with_those_characters_replaced(plugged
     assert tokobo.fat_name("Notes. ") == "Notes" and tokobo.fat_name("...") == "_"
 
 
+def test_a_file_this_computer_cannot_read_does_not_stop_the_other_books(plugged, home):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    os.symlink(home / "nowhere.epub", books / "Two.epub")  # a link whose file is gone
+    assert tokobo.choose(str(books), mount(home), tokobo_state(home)) == (str(books), 1)  # it does not wait: it cannot go
+    out = runner.sync(mac, cfg)
+    assert on_kobo(home) == ["One.epub"] and out.message == "1 book put on the Kobo. Eject before unplugging."
+    found = {b["name"]: b for b in tokobo.summary(str(books), tokobo_state(home))["list"]}
+    assert found["One.epub"]["kobo"] == "on"
+    two = found["Two.epub"]
+    assert (two["kobo"], two["why"], two["ids"]) == ("refused", "this computer cannot read it (No such file or directory)", [])
+    assert runner.sync(mac, cfg).message == ""  # and it is not said at every plug-in
+    # The file is there after all: it goes like any other.
+    os.unlink(books / "Two.epub")
+    a_book(books / "Two.epub", "Two")
+    assert runner.sync(mac, cfg).message == "1 book put on the Kobo. Eject before unplugging."
+
+
+def test_a_file_gone_from_the_folder_halfway_is_not_the_kobo_unplugged(plugged, home, monkeypatch):
+    mac, books, cfg, _ = plugged
+    a_book(books / "One.epub", "One")
+    a_book(books / "Two.epub", "Two")
+    real, taken = tokobo._changed, []
+
+    def taken_away_after_the_look(remembered, path):
+        said = real(remembered, path)
+        if path.endswith("One.epub") and not taken:
+            taken.append(path)
+            os.unlink(path)  # out of the folder between the look and the copy
+        return said
+
+    monkeypatch.setattr(tokobo, "_changed", taken_away_after_the_look)
+    out = runner.sync(mac, cfg)
+    assert on_kobo(home) == ["Two.epub"] and out.message == "1 book put on the Kobo. Eject before unplugging."
+
+
 def test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time(plugged, home, monkeypatch):
     mac, books, cfg, _ = plugged
     a_book(books / "One.epub", "One")

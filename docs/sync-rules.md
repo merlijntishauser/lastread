@@ -389,10 +389,15 @@ any other you put on it yourself (M10).
   pulled out halfway; what was left half is cleared at the next plug-in.
   A Kobo without room gets nothing half; the books wait, and so they do
   when the Kobo refuses every copy (read-only, for one). A book the Kobo
-  refuses for itself is said once, and the books after it still go.
+  refuses for itself is said once, and the books after it still go. A file
+  this computer cannot read (a link to a file that is gone, one taken out
+  of the folder halfway) is left out and the others still go: the folder's
+  list says why, and it is never taken for a Kobo that was unplugged.
   Tests: `tests/test_tokobo.py::test_a_copy_is_whole_or_not_there_also_when_the_kobo_is_pulled_out`,
   `tests/test_tokobo.py::test_a_long_name_goes_and_a_book_the_kobo_will_not_take_is_said_once`,
-  `tests/test_tokobo.py::test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time`
+  `tests/test_tokobo.py::test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time`,
+  `tests/test_tokobo.py::test_a_file_this_computer_cannot_read_does_not_stop_the_other_books`,
+  `tests/test_tokobo.py::test_a_file_gone_from_the_folder_halfway_is_not_the_kobo_unplugged`
 - **P6** Only files are written: the Kobo's database is never touched for
   this. In server mode the computer does it, and no book goes to the
   server.

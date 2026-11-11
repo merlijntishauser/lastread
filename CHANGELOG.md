@@ -21,6 +21,14 @@ minor version may change behaviour; the notes will say so.
   made by lastread") and never updated again. Each Kobo's collection is now
   remembered, and a new or cleared name reaches each Kobo when it is plugged
   in.
+- **One file your computer cannot read no longer stops the EPUB folder.** A
+  link to a file that is gone made the folder's list fail, in the app and in
+  `lastread to-kobo`, and no book went on the Kobo. Such a file is now left
+  out and listed with the reason; the other books go.
+- **A book taken out of the EPUB folder while a sync runs is no longer "the
+  Kobo was unplugged".** Trouble reading a file on the computer was read as
+  the Kobo's, and the books after it stayed behind. That book now waits and
+  the rest go.
 
 ## 0.26.0 - 2026-11-06
 
