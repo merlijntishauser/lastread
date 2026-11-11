@@ -44,9 +44,11 @@ is in [local-mode.md](local-mode.md); what Hardcover's API allows is in
 - **Local mode:** one reader, no server. Plugging in the Kobo runs one
   sync; the page is started when asked for.
 - **Server mode:** several readers. The server has no login of its own: it
-  sits behind a forward-auth proxy and believes the `Remote-User` header
-  only from the proxy's address. It refuses to start without knowing that
-  address.
+  sits behind a forward-auth proxy and believes the `Remote-User` and
+  `Remote-Email` headers only from the proxy's address; the proxy has to
+  set both, or remove the one it does not set. `Remote-User` goes first:
+  the address is only looked at when the name is no reader's. It refuses
+  to start without knowing the proxy's address.
 
 The engine (reading the Kobo's database, the state, the plan, Hardcover,
 the collection) is the same code in both.

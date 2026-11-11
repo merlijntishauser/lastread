@@ -46,5 +46,6 @@ def trusted(host: str | None, nets: list) -> bool:
 HOW = (
     "Set KHS_TRUSTED_PROXIES to the address of the sign-in proxy in front of this server "
     "(for example KHS_TRUSTED_PROXIES=192.0.2.10). The page has no login of its own: it believes "
-    "the Remote-User header, so only the proxy may be allowed to send it."
+    "the Remote-User and Remote-Email headers, so only the proxy may be allowed to send them, and the "
+    "proxy has to set or remove both."
 )

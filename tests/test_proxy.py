@@ -2,6 +2,7 @@
 proxy's address, and without that address configured nothing is served."""
 
 import importlib
+import pathlib
 
 import pytest
 from fastapi.routing import APIRoute
@@ -13,6 +14,16 @@ from tests.test_web import client
 
 FORGED = {"Remote-User": "robin", "Remote-Email": "robin@example.org", "X-Forwarded-For": PROXY[0], "X-Real-IP": PROXY[0]}
 NOT_THROUGH = "This page is only served through its sign-in proxy."
+
+
+def test_every_place_that_says_which_header_is_believed_names_both():
+    """The server knows a reader by Remote-User or Remote-Email. An admin who is told to guard only
+    the first leaves the second to whoever's browser sends it."""
+    root = pathlib.Path(__file__).resolve().parents[1]
+    for page in ("README.md", "docs/how-it-works.md", "examples/docker-compose.example.yml"):
+        text = (root / page).read_text()
+        assert "Remote-User" in text and "Remote-Email" in text, page
+    assert "Remote-User and Remote-Email" in proxy.HOW
 
 
 def test_parse_and_trusted():

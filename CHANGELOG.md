@@ -30,6 +30,18 @@ minor version may change behaviour; the notes will say so.
   the Kobo's, and the books after it stayed behind. That book now waits and
   the rest go.
 
+### Security
+
+- **Server mode: the proxy has to set or remove `Remote-Email` as well as
+  `Remote-User`.** The server knows a reader by either header, and the
+  README named only the first. Behind a proxy that passes a browser's own
+  `Remote-Email` on, someone signed in could be taken for another reader.
+  The README, the example compose file and the start-up message now name
+  both; check your proxy (with Traefik: both under `authResponseHeaders`).
+  And `Remote-User` now goes first: a reader is no longer taken for another
+  by an address sent along. The address is still looked at when the name is
+  no reader's, so the proxy's setting is what closes this.
+
 ## 0.26.0 - 2026-11-06
 
 ### Added

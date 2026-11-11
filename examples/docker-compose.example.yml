@@ -22,8 +22,10 @@ services:
     environment:
       KHS_DATA: /data
       KHS_HOST: kobo.example.org        # public hostname (same-origin check)
-      # The address your sign-in proxy connects from. Remote-User is believed
-      # from here only; without this setting the server does not start.
+      # The address your sign-in proxy connects from. Remote-User and
+      # Remote-Email are believed from here only; without this setting the
+      # server does not start. The proxy has to set both, or remove the one
+      # it does not set from what a browser sends (README).
       KHS_TRUSTED_PROXIES: 192.0.2.10
       # Dates and "today" follow this; without it the container counts in UTC.
       TZ: Europe/London

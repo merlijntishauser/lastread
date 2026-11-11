@@ -297,7 +297,7 @@ Every rule it follows is written down, each with the test that holds it:
 The server holds the books and the settings of every reader, and talks to
 Hardcover for each of them. It has **no login of its own**: it sits behind
 a sign-in proxy you already run (forward authentication) and believes the
-`Remote-User` header only from that proxy's address.
+`Remote-User` and `Remote-Email` headers only from that proxy's address.
 
 ```
 mkdir lastread && cd lastread
@@ -317,6 +317,11 @@ line.
   connects from. The server refuses to start without it, and answers 403
   to anyone else who sends a `Remote-User` header. Publish the port only
   where the proxy can reach it.
+- Have the proxy set **both** `Remote-User` and `Remote-Email`, or remove
+  the one it does not set from what a browser sends. The server knows a
+  reader by either; a `Remote-Email` the proxy lets through from a browser
+  is believed like one it set itself. With Traefik's forward
+  authentication, name both under `authResponseHeaders`.
 - Open the page through the proxy and press *Start using Kobo Hardcover
   Sync*. The first reader is the admin. Everyone else the proxy lets in
   signs up with one click and starts in dry run.

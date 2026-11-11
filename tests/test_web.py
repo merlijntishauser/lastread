@@ -36,6 +36,19 @@ def test_page_lists_books_for_mapped_user(tmp_path, monkeypatch):
     assert r.status_code == 200 and "Old Finished" in r.text and "Not connected to Hardcover yet" in r.text
 
 
+def test_a_reader_is_not_taken_for_another_by_an_address_sent_along(tmp_path, monkeypatch):
+    c = client(tmp_path, monkeypatch)
+    assert "Old Finished" in c.get("/", headers={"Remote-User": "robin"}).text  # robin's books, and robin is there
+    accounts.sign_up(state.connect(str(tmp_path / "state.db")), "sam", "sam@example.org")
+    # Sam, signed in at the proxy as sam, with robin's address in a header the proxy let through.
+    for forged in ("robin@example.org", "robin"):
+        r = c.get("/", headers={"Remote-User": "sam", "Remote-Email": forged})
+        assert r.status_code == 200 and "Old Finished" not in r.text, forged
+        assert c.get("/details/old", headers={"Remote-User": "sam", "Remote-Email": forged}).status_code == 404
+    # The address still finds a reader whose name at the proxy is no reader's: renamed there, or never sent.
+    assert "Old Finished" in c.get("/", headers={"Remote-User": "robin-renamed", "Remote-Email": "robin@example.org"}).text
+
+
 def test_mode_post_and_cross_origin_refusal(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     h = {"Remote-User": "robin"}

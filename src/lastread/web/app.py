@@ -127,7 +127,13 @@ def me_for(request: Request, con=None):
     this far."""
     if local:
         return accounts.local_reader(con or db(), local.user)
-    return accounts.by_identity(con or db(), (request.headers.get("remote-user"), request.headers.get("remote-email")))
+    # Remote-User first; Remote-Email only when Remote-User names no reader (a login that was renamed
+    # at the proxy, or a proxy that sends the address alone). Someone who is a reader is then never
+    # taken for another by an address their own browser sent along, should the proxy let it through.
+    con = con or db()
+    return accounts.by_identity(con, (request.headers.get("remote-user"),)) or accounts.by_identity(
+        con, (request.headers.get("remote-email"),)
+    )
 
 
 def reader_for(request: Request) -> str | None:
