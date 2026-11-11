@@ -314,7 +314,6 @@ def _sync_here(
     """Local mode: the books are imported here and the engine runs here."""
     where = "in the app" if computer.in_app else "on the page"  # where a match is chosen and Hardcover connected
     db_path = os.path.join(state_dir, "state.db")
-    fresh = not os.path.exists(db_path)  # deleted, or never made: the Kobo is read again whatever it was last time
     con = state.connect(db_path)
     reader = accounts.local_reader(con, getpass.getuser())
     said, wrote, imported = [], False, False
@@ -333,9 +332,13 @@ def _sync_here(
             except OSError as ex:
                 log.error("cannot read the Kobo's database: %s", ex)
                 return Outcome(False, message=unreadable(computer, ex, by_hand), about="Kobo")
+            # Unchanged since the last import, and the state still has that import: a state.db that
+            # was deleted, or made anew by the page or `token` since, has the Kobo read again whatever
+            # it was last time. Skipped on an empty state, the collection would come off the Kobo.
+            known = con.execute("select 1 from device where reader=? and device=?", (reader["name"], kobo_db.device(mount).name)).fetchone()
             try:
                 with open(hash_file) as fh:
-                    unchanged = fh.read().strip() == seen and not fresh
+                    unchanged = fh.read().strip() == seen and known is not None
             except FileNotFoundError:
                 unchanged = False
             _keep_covers(copy, mount, state_dir)

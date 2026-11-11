@@ -133,6 +133,12 @@ def test_a_state_database_deleted_since_the_last_sync_has_the_kobo_read_again(ho
     os.remove(home / "state" / "state.db")
     assert runner.sync(mac, LOCAL).message.startswith("9 books updated.")  # the Kobo had not changed, but here nothing was left
     assert st(home).execute("select count(*) from book").fetchone()[0] == 9
+    # Deleted, and made again before the next plug-in by something that only opens it (the page, `token`).
+    os.remove(home / "state" / "state.db")
+    st(home).close()
+    assert runner.sync(mac, LOCAL).message.startswith("9 books updated.")
+    assert st(home).execute("select count(*) from book").fetchone()[0] == 9
+    assert runner.sync(mac, LOCAL).message == ""  # and then, as ever, nothing to do
 
 
 def test_a_book_marked_read_gets_a_notification_of_its_own_with_its_cover(home, monkeypatch, capsys):

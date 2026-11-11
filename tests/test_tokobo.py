@@ -164,7 +164,8 @@ def test_a_book_goes_on_each_kobo_once_and_a_delete_on_the_kobo_stays(plugged, h
     shutil.rmtree(os.path.join(mount(home), tokobo.FOLDER))
     os.unlink(os.path.join(mount(home), "Four.epub"))
     out = runner.sync(mac, cfg)
-    assert out.message == "3 books put on the Kobo. Eject before unplugging."
+    assert out.message.startswith("9 books updated.")  # a Kobo the state has not seen is read, whatever its database's hash
+    assert out.message.endswith("3 books put on the Kobo. Eject before unplugging.")
     assert on_kobo(home) == ["Four.epub", "One.epub", "Three, renamed.epub"]  # what the folder holds now
     remembered = json.load(open(os.path.join(config.state_dir(), tokobo.REMEMBERED)))
     assert len(remembered["kobos"]) == 2

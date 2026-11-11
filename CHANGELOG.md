@@ -44,6 +44,10 @@ minor version may change behaviour; the notes will say so.
   A long first sync worked from the list it began with, so a book you
   switched off on the page meanwhile still went to Hardcover. Each book is
   now looked at again just before it is sent.
+- Local mode: a state database you deleted is filled again at the next
+  plug-in also when the page or `lastread token` was used in between. They
+  made an empty one, the unchanged Kobo was then not read, and its
+  collection came off.
 - When Hardcover asks to slow down just as the connection is renewed, the
   sync no longer says "Connect again under Settings". The connection is
   fine; the next sync renews it.
