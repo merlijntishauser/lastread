@@ -40,6 +40,10 @@ minor version may change behaviour; the notes will say so.
 - **Reading minutes: a new book counts from its first page.** What you read
   of a book before the first sync that saw it was left out of your minutes,
   so every new book lost its first days.
+- **A book switched off while a sync runs is no longer sent by that sync.**
+  A long first sync worked from the list it began with, so a book you
+  switched off on the page meanwhile still went to Hardcover. Each book is
+  now looked at again just before it is sent.
 - When Hardcover asks to slow down just as the connection is renewed, the
   sync no longer says "Connect again under Settings". The connection is
   fine; the next sync renews it.

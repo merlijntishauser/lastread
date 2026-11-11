@@ -356,6 +356,25 @@ def test_one_failing_book_does_not_stop_the_others_and_is_tried_again(tmp_path):
     assert len(fake.books) == 2
 
 
+def test_a_book_switched_off_while_the_sync_runs_is_not_sent_by_it(tmp_path):
+    st = setup(tmp_path, [OLD, READING])
+
+    class Meanwhile(FakeHC):
+        """The reader switches the other book off on the page while the first is on its way."""
+
+        def insert_user_book(self, obj):
+            if not self.books:
+                state.set_mode(st, "alice", ["rd" if obj["book_id"] == 70 else "old"], "off")
+            return super().insert_user_book(obj)
+
+    fake = Meanwhile(isbn=OLD_ED, search=BLIND)
+    r = run(tmp_path, fake)
+    assert (r["status"], r["sent"], r["errors"]) == ("ok", 1, 0) and len(fake.books) == 1
+    off = next(c for c in ("old", "rd") if row(st, c)["mode"] == "off")
+    assert row(st, off)["last_sent"] is None  # not on the shelf, and not recorded as if it were
+    assert run(tmp_path, fake)["sent"] == 0 and len(fake.books) == 1
+
+
 def test_hardcover_out_of_reach_fails_the_run_and_loses_nothing(tmp_path):
     st = setup(tmp_path, [OLD, READING])
 

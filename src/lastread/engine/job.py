@@ -113,9 +113,16 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
             silent = quiet(rows)
             rows = [r for r in rows if r["hc_book_id"] and (r["device"], r["content_id"]) not in silent and action(r)]
             progress[reader] = {"phase": "send", "done": 0, "total": len(rows)}
-            for i, r in enumerate(rows):
+            for i, planned in enumerate(rows):
                 progress[reader] = {"phase": "send", "done": i, "total": len(rows)}
-                what = action(r)
+                # The book as it is now, not as it was when the run began: a first sync of hundreds of
+                # books takes minutes, and what the reader switches off or sets on the page meanwhile holds.
+                r = con.execute(
+                    "select * from book where reader=? and device=? and content_id=?", (reader, planned["device"], planned["content_id"])
+                ).fetchone()
+                what = action(r) if r is not None and state.syncs(r) and r["hc_book_id"] else ""
+                if not what:
+                    continue
                 if not live:
                     counts["planned"] += 1
                     log.debug("would send %r: %s", r["title"], what)

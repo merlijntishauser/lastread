@@ -280,6 +280,10 @@ or found there.
   Tests: `tests/test_rules.py::test_a_token_for_another_account_sends_and_switches_off_nothing`,
   `tests/test_rules.py::test_the_account_is_bound_once_books_are_on_its_shelf`,
   `tests/test_accounts.py::test_a_connection_to_another_account_offers_to_start_over_on_it`
+- **F15** A book you switch off, or set otherwise, while a sync is running
+  is sent as you left it, or not at all: the run looks at each book again
+  just before it sends it.
+  Tests: `tests/test_rules.py::test_a_book_switched_off_while_the_sync_runs_is_not_sent_by_it`
 - **F3** A run that is cut off after Hardcover took a book, and before
   that was written down here, does not add the book a second time: the
   next run finds it on the shelf.
