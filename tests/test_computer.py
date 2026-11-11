@@ -517,6 +517,10 @@ def test_the_server_client_says_what_a_person_can_act_on():
     html = remote.Server("https://x.example", "t", lambda req, timeout: Answer(200, b"Shelf\nid-1\n", "text/html"))
     with pytest.raises(remote.ServerError, match="not from lastread"):
         html.collection()
+    # Any site's page is not "this server knows this computer" (setup --check).
+    with pytest.raises(remote.ServerError, match="not from lastread"):
+        html.knows_me()
+    assert remote.Server("https://x.example", "t", lambda req, timeout: Answer(204, b"")).knows_me() is True
     # The app's questions (/api/app/): a sign-in page means the proxy does not let them through.
     with pytest.raises(remote.ServerError, match="older than 0.15.0, or its proxy does not route /api/app/"):
         s.app("GET", "books")
@@ -714,3 +718,40 @@ def test_on_a_platform_without_seams_the_tool_says_so(monkeypatch):
     for cmd in (["status"], ["sync"], ["setup", "--server", "https://kobo.example.org"]):
         with pytest.raises(SystemExit, match="runs on macOS and on desktop Linux"):
             cli.main(cmd)
+
+
+def test_a_redirect_is_never_followed_with_the_upload_token():
+    """A proxy that sends /collection on to its sign-in page: the token stays here."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    seen = []
+
+    class Elsewhere(BaseHTTPRequestHandler):
+        def do_GET(self):
+            seen.append((self.path, self.headers.get("Authorization")))
+            if self.path == "/collection":
+                self.send_response(302)
+                self.send_header("Location", f"http://localhost:{self.server.server_address[1]}/login")
+            else:
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        do_PUT = do_GET
+
+        def log_message(self, *a):
+            pass
+
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), Elsewhere)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        s = remote.Server(f"http://127.0.0.1:{srv.server_address[1]}", "tok")
+        for ask in (s.collection, s.knows_me):
+            with pytest.raises(remote.ServerError, match="sent this computer on to localhost instead of answering") as refused:
+                ask()
+            assert refused.value.status == 302
+    finally:
+        srv.shutdown()
+        srv.server_close()
+    assert seen == [("/collection", "Bearer tok")] * 2  # asked twice, and /login never

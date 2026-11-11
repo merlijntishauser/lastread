@@ -40,6 +40,8 @@ minor version may change behaviour; the notes will say so.
 - **Reading minutes: a new book counts from its first page.** What you read
   of a book before the first sync that saw it was left out of your minutes,
   so every new book lost its first days.
+- `lastread setup --server ... --check`, and Set up in the Mac app, no
+  longer take any web page's answer for "this server knows this computer".
 
 ### Security
 
@@ -52,6 +54,11 @@ minor version may change behaviour; the notes will say so.
   And `Remote-User` now goes first: a reader is no longer taken for another
   by an address sent along. The address is still looked at when the name is
   no reader's, so the proxy's setting is what closes this.
+- **Server mode: the upload token no longer follows a redirect.** When a
+  proxy in front of the server sent a request on to its sign-in page, this
+  computer's token went along to that address, also from https to plain
+  http. A redirect is now an answer: the sync says where the server pointed
+  and sends nothing there.
 
 ## 0.26.0 - 2026-11-06
 

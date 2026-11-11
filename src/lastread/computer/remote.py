@@ -21,12 +21,21 @@ class ServerError(Exception):
         self.said = said  # the server's own words for a refusal, {"error": ...}
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """A redirect is an answer, not somewhere to go: urllib would carry the
+    upload token along to wherever a proxy in front of the server points,
+    its sign-in page on another host or plain http included."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None  # the 3xx then comes back as an HTTPError, with its Location
+
+
 class Server:
     def __init__(self, url: str, token: str, opener=None):
         self.url = url.rstrip("/")
         self.host = urlparse(self.url).hostname or self.url
         self._token = token
-        self._open = opener or urllib.request.urlopen
+        self._open = opener or urllib.request.build_opener(_NoRedirect).open
 
     def _request(
         self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = "", with_type: bool = False
@@ -49,6 +58,14 @@ class Server:
             except (ValueError, AttributeError):
                 pass
             detail = said or detail
+            if 300 <= ex.code < 400:
+                to = urlparse(ex.headers.get("Location") or "").hostname or "another address"
+                raise ServerError(
+                    f"{self.host} sent this computer on to {to} instead of answering, as a sign-in proxy does. Nothing was "
+                    "sent there. Give the server's own https address in setup, and let its proxy pass /upload, /collection "
+                    "and /api/app/ through.",
+                    ex.code,
+                ) from ex
             if ex.code == 401:
                 raise ServerError(
                     f"{self.host} does not know this computer. Add its hash under Settings, Devices (run setup to see it).", 401
@@ -72,21 +89,22 @@ class Server:
 
     def knows_me(self) -> bool:
         """Whether the server knows this computer's token. ServerError when it
-        cannot be reached, or answers as lastread never does."""
+        cannot be reached, or answers as lastread never does: any other
+        site's page, or a proxy's sign-in page, is not "it knows me"."""
         try:
-            self._request("GET", "/collection", timeout=15)
+            self.collection(timeout=15)
         except ServerError as ex:
             if ex.status == 401:
                 return False
             raise
         return True
 
-    def collection(self) -> tuple[str, list[str]] | None:
+    def collection(self, timeout: int = 60) -> tuple[str, list[str]] | None:
         """(name, book ids) of the collection to keep on the Kobo, or None
         when the reader set no collection name. ServerError for an answer
         lastread never gives, such as a proxy's sign-in page: read as a
         collection, it would empty the one on the Kobo."""
-        status, raw, kind = self._request("GET", "/collection", with_type=True)
+        status, raw, kind = self._request("GET", "/collection", timeout=timeout, with_type=True)
         text = raw.decode("utf-8", "replace")
         if status == 204 or not text.strip():
             return None
