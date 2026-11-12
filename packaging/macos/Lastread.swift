@@ -28,6 +28,14 @@ let agentPlist = "org.gargleblaster.kobo-hardcover-sync.app.agent.plist"
 let agentRegisteredByKey = "AgentRegisteredBy"
 func agentRegisteredBy() -> String? { UserDefaults.standard.string(forKey: agentRegisteredByKey) }
 func thisApp() -> String { "\(bundleVersion())\n\(Bundle.main.bundlePath)" }
+
+/// False for a copy opened from a disk image (a volume that cannot be written), or run by macOS from the
+/// temporary place it gives a download that was never moved.
+func staysWhereItIs() -> Bool {
+    let here = Bundle.main.bundleURL.resolvingSymlinksInPath().standardizedFileURL
+    if here.path.contains("/AppTranslocation/") { return false }
+    return !((try? here.resourceValues(forKeys: [.volumeIsReadOnlyKey]))?.volumeIsReadOnly ?? false)
+}
 let releases = "https://github.com/merlijntishauser/lastread/releases/tag/v"
 let notificationSettings = "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=" + (Bundle.main.bundleIdentifier ?? "")
 let privacySettings = "x-apple.systempreferences:com.apple.preference.security?Privacy_FilesAndFolders"
@@ -475,7 +483,9 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             if !isPreview && stateFile("config.toml") != nil {
                 // Set up by the tool in a terminal, not allowed yet, or registered by an older
                 // version: what macOS still asks, the overview's Trigger check says.
-                _ = registerAgent(again: agentRegisteredBy() != thisApp())
+                // Not taken over by a copy that will not stay: opened from a disk image, the trigger would
+                // start a program that is gone once the image is ejected.
+                _ = registerAgent(again: staysWhereItIs() && agentRegisteredBy() != thisApp())
             }
             showWindow()
             if !isPreview { DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.offerToTrashOldCopies() } }

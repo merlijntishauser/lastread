@@ -76,6 +76,7 @@ extension WindowModel {
                     self.signIn?.problem = said(NoAnswer(said: last.isEmpty ? "The sign-in ended without a word." : last))
                 }
                 self.refresh()
+                self.tellSettings()
             }
         }
     }
@@ -101,6 +102,7 @@ extension WindowModel {
                     self.signIn?.problem = said(NoAnswer(said: output.trimmingCharacters(in: .whitespacesAndNewlines)))
                 }
                 self.refresh()
+                self.tellSettings()
             }
         }
     }
@@ -112,8 +114,14 @@ extension WindowModel {
             DispatchQueue.main.async {
                 if case .failure(let why) = found { self.problem = said(why) }
                 self.refresh(check: false)
+                self.tellSettings()
             }
         }
+    }
+
+    /// Settings, when its window is open, shows the connection and Go Live as well: it looks again.
+    fileprivate func tellSettings() {
+        (NSApp.delegate as? App)?.settingsModel?.load()
     }
 }
 

@@ -99,6 +99,10 @@ minor version may change behaviour; the notes will say so.
   Sync now without a Kobo, the Kobo you then plugged in was not read until
   you plugged it in again. It now leaves word, and the sync that runs reads
   the Kobo before it ends, unless it has read it already as it is.
+- Mac app: opening a copy from its disk image no longer takes the plug-in
+  trigger away from the copy in Applications (after the image was ejected,
+  plugging in started nothing). And Settings, when open, shows Connected
+  and Go Live as soon as you connect or go live in the window.
 
 ### Security
 
