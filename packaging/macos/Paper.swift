@@ -239,17 +239,19 @@ func sends(_ selected: Bool, chosen: Bool) -> AnyShapeStyle {
 /// A cover from the tool's cache, or the crossed box of a book without one.
 /// The small ones (240 points wide, the run's) are all kept, as the run shows
 /// them again and again; of the large ones (`book --large-cover`, some 9 MB
-/// each when drawn) only the last few.
+/// each when drawn) only the last few. `whole`: this is the large one, shown
+/// as it is; any other is read small, whatever the file holds.
 struct Cover: View {
     let path: String
     let width: CGFloat
+    var whole = false
     private static var cache: [String: NSImage] = [:]
     private static var large: [(path: String, image: NSImage)] = []  // the last used first
     private static let largeKept = 4
 
     var body: some View {
         Group {
-            if let image = Self.image(path) {
+            if let image = Self.image(path, whole: whole) {
                 Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
             } else {
                 Canvas { context, box in
@@ -267,17 +269,39 @@ struct Cover: View {
         .accessibilityHidden(true)
     }
 
-    private static func image(_ path: String) -> NSImage? {
+    private static func image(_ path: String, whole: Bool) -> NSImage? {
         guard !path.isEmpty else { return nil }
-        if let kept = cache[path] { return kept }
-        if let n = large.firstIndex(where: { $0.path == path }) {
-            let kept = large.remove(at: n)
-            large.insert(kept, at: 0)
-            return kept.image
+        if whole {
+            if let n = large.firstIndex(where: { $0.path == path }) {
+                let kept = large.remove(at: n)
+                large.insert(kept, at: 0)
+                return kept.image
+            }
+            guard let image = NSImage(contentsOfFile: path) else { return nil }  // one that had gone from the last few
+            keep(path, image)
+            return image
         }
-        guard let image = NSImage(contentsOfFile: path) else { return nil }
-        if (image.representations.first?.pixelsWide ?? 0) > 600 { keep(path, image) } else { cache[path] = image }
+        if let kept = cache[path] { return kept }
+        guard var image = NSImage(contentsOfFile: path) else { return nil }
+        if (image.representations.first?.pixelsWide ?? 0) > 600 { image = small(path) ?? image }
+        cache[path] = image
         return image
+    }
+
+    /// A list cover read small. A book's own EPUB can hold a picture of several megabytes: it was decoded
+    /// whole while drawing, counted as a large one, and decoded again once more than a few of them were
+    /// shown, pushing the cover that was open large out of what is kept.
+    private static func small(_ path: String) -> NSImage? {
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 720,  // the run's 240 points at 2x, on the long side
+            kCGImageSourceShouldCacheImmediately: true,
+        ]
+        guard let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
+            let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+        else { return nil }
+        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
     }
 
     /// A large cover, read and decoded away from the main thread, so that showing it does not wait on either.

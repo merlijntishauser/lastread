@@ -583,7 +583,7 @@ struct Spread: View {
     var body: some View {
         GeometryReader { box in
             HStack(spacing: 0) {
-                Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width / 3 - 56, (box.size.height - 64) / 1.5)))
+                Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width / 3 - 56, (box.size.height - 64) / 1.5)), whole: large?.id == book.id)
                     .background(Pencil.sheet)
                     .shadow(color: .black.opacity(0.28), radius: 1, y: 1)
                     .shadow(color: .black.opacity(0.16), radius: 18, y: 12)
@@ -632,7 +632,7 @@ struct Lightbox: View {
             ZStack {
                 Color(red: 10 / 255, green: 12 / 255, blue: 14 / 255).opacity(0.88)
                 VStack(spacing: 14) {
-                    Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width - 96, (box.size.height - 104) / 1.5)))
+                    Cover(path: large?.id == book.id ? large?.path ?? "" : book.cover, width: max(96, min(box.size.width - 96, (box.size.height - 104) / 1.5)), whole: large?.id == book.id)
                         .shadow(color: .black.opacity(0.55), radius: 32, y: 24)
                     Text(book.title).font(titleFont(22)).foregroundStyle(.white).lineLimit(1)
                 }
@@ -739,7 +739,7 @@ private struct CoverOnBlack: View {
 
     var body: some View {
         GeometryReader { box in
-            Cover(path: path, width: min(box.size.width, box.size.height / 1.5))
+            Cover(path: path, width: min(box.size.width, box.size.height / 1.5), whole: true)  // the picture as the file has it
                 .frame(width: box.size.width, height: box.size.height)
         }
         .background(Color.black)

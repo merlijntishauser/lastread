@@ -24,6 +24,12 @@ minor version may change behaviour; the notes will say so.
   last page; Hardcover then marked the book Read, and the next sync took
   that for your own edit and pinned it as finished today. The re-read now
   stands at its beginning until the book is opened again on the Kobo.
+- **Mac app: a book's own cover is read small in the lists.** A cover
+  taken from a book's own EPUB can be a picture of several megabytes. It
+  was decoded whole while drawing, and again once more than four such
+  covers had been shown, which also pushed out the cover that was open
+  large. Lists and the run of Covers now read such a picture at the size
+  they show; the large view still shows it whole.
 
 ## 0.29.0 - 2026-11-12
 
