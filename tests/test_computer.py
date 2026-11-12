@@ -242,6 +242,29 @@ def test_plug_in_upload_then_collection_then_nothing(home, server):
     assert uploads(server) == 2 and mac.ejected == []
 
 
+def test_a_collection_may_have_any_name_also_one_that_starts_as_a_page_does(home, server):
+    """The computer takes an answer with a line that starts with "<" for a
+    proxy's sign-in page. The server says in a header that the answer is its
+    own, so a collection named "<3" is kept as any other."""
+    db = plug_in(home)
+    mac = FakeComputer(home / "Volumes")
+    register(server, mac)
+    cfg = config.Config(server=server.url)
+    runner.sync(mac, cfg)
+    server.page.post("/settings/collection", data={"collection": "<3 these>"})
+    server.page.post("/mode", data={"ids": ",".join(BOOKS[:2]), "mode": "on"})
+    out = runner.sync(mac, cfg)
+    assert out.message == "Collection '<3 these>': 2 books (+2, -0). Eject before unplugging."
+    assert members(db, "<3 these>") == set(BOOKS[:2])
+    # A server from before the header, or anything else that answers: such a line is still not believed.
+    older = remote.Server("https://x.example", "t")
+    older._request = lambda *a, **k: (200, b"<3 these>\nid-1\n", "text/plain", "")
+    with pytest.raises(remote.ServerError, match="not from lastread"):
+        older.collection()
+    older._request = lambda *a, **k: (200, b"<3 these>\nid-1\n", "text/plain", "collection")
+    assert older.collection() == ("<3 these>", ["id-1"])
+
+
 def test_in_server_mode_a_cleared_name_removes_the_collection_but_a_server_out_of_reach_does_not(home, server):
     db = plug_in(home)
     mac = FakeComputer(home / "Volumes")
@@ -284,7 +307,7 @@ def test_a_sign_in_page_in_place_of_the_collection_leaves_the_kobo_as_it_is(home
 
     def proxied(self, method, path, *a, **k):
         if path == "/collection":
-            return answer if k.get("with_type") else answer[:2]
+            return (*answer, "") if k.get("with_type") else answer[:2]
         return real(self, method, path, *a, **k)
 
     monkeypatch.setattr(remote.Server, "_request", proxied)

@@ -78,6 +78,11 @@ minor version may change behaviour; the notes will say so.
   it found before.** In a book's Details, Search with an empty box asked
   Hardcover for nothing and replaced the books to choose from with that
   answer. Now nothing is asked and the list stays.
+- **Server mode: a collection may have any name, also one that starts with
+  `<`.** A computer takes such a line for a proxy's sign-in page and left
+  the Kobo alone at every sync ("gave an answer that is not from
+  lastread"). The server now says in a header that the answer is its own.
+  Both sides need this version.
 
 ### Security
 

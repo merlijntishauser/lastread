@@ -1328,7 +1328,9 @@ def collection(request: Request):
         for r in con.execute("select * from reader_book where reader=? order by last_read desc", (reader,))
         if state.syncs(r)
     ]
-    return PlainTextResponse(name.strip() + "\n" + "\n".join(ids) + ("\n" if ids else ""))
+    # The header says this answer is lastread's own: a name may start with "<", which the computer
+    # otherwise takes for a proxy's page (computer/remote.py).
+    return PlainTextResponse(name.strip() + "\n" + "\n".join(ids) + ("\n" if ids else ""), headers={"X-Lastread": "collection"})
 
 
 @app.get("/details/{content_id:path}", response_class=HTMLResponse)

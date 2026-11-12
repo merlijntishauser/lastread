@@ -40,15 +40,16 @@ class Server:
     def _request(
         self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = "", with_type: bool = False
     ):
-        """(status, body), or (status, body, media type) with with_type."""
+        """(status, body), or with with_type (status, body, media type, what
+        the X-Lastread header says)."""
         headers = {"Authorization": "Bearer " + self._token, "User-Agent": f"lastread/{__version__}"}  # the server notes it
         if content_type:
             headers["Content-Type"] = content_type
         req = urllib.request.Request(self.url + path, data=body, method=method, headers=headers)
         try:
             with self._open(req, timeout=timeout) as r:
-                if with_type:
-                    return r.status, r.read(), r.headers.get_content_type()  # text/plain when none was sent
+                if with_type:  # the type is text/plain when none was sent
+                    return r.status, r.read(), r.headers.get_content_type(), r.headers.get("X-Lastread") or ""
                 return r.status, r.read()
         except urllib.error.HTTPError as ex:
             detail = ex.read()[:300].decode("utf-8", "replace")
@@ -103,13 +104,15 @@ class Server:
         """(name, book ids) of the collection to keep on the Kobo, or None
         when the reader set no collection name. ServerError for an answer
         lastread never gives, such as a proxy's sign-in page: read as a
-        collection, it would empty the one on the Kobo."""
-        status, raw, kind = self._request("GET", "/collection", timeout=timeout, with_type=True)
+        collection, it would empty the one on the Kobo. A server from 0.27
+        on says in a header that the answer is its own; an older one is
+        believed when nothing in the answer looks like a page."""
+        status, raw, kind, said = self._request("GET", "/collection", timeout=timeout, with_type=True)
         text = raw.decode("utf-8", "replace")
         if status == 204 or not text.strip():
             return None
         lines = text.split("\n")
-        if kind != "text/plain" or any(line.strip().startswith("<") for line in lines):
+        if kind != "text/plain" or (said != "collection" and any(line.strip().startswith("<") for line in lines)):
             raise ServerError(f"{self.host} gave an answer that is not from lastread.")
         return lines[0].strip(), [i for i in lines[1:] if i.strip()]
 
