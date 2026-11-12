@@ -83,7 +83,7 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
                 content_id=cid,
                 title=(title or "").strip(),
                 author=(author or "").strip(),
-                isbn=(isbn or "").strip(),
+                isbn=_isbn(isbn),
                 percent=int(pct or 0),
                 status=int(status or 0),
                 last_read=last_read or "",
@@ -95,6 +95,14 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
             )
         )
     return books
+
+
+def _isbn(text: str | None) -> str:
+    """The Kobo's own ISBN column as Hardcover keeps an ISBN: thirteen digits,
+    also when the Kobo has it with hyphens or spaces, or as an ISBN-10. What
+    is no ISBN stays as the Kobo has it."""
+    text = (text or "").strip()
+    return epub.isbn13(text, marked=True) or text
 
 
 # ---------- books put on the Kobo by hand ----------

@@ -220,3 +220,19 @@ def test_the_cover_a_book_names(tmp_path):
     # A file that is no EPUB; one that is not there.
     (tmp_path / "no.epub").write_bytes(b"not a zip")
     assert epub.cover(str(tmp_path / "no.epub")) is None and epub.cover(str(tmp_path / "gone.epub")) is None
+
+
+def test_an_isbn_the_kobo_keeps_with_hyphens_or_as_ten_digits_is_the_isbn_hardcover_knows(tmp_path):
+    k = str(tmp_path / "k.sqlite")
+    books = [
+        ("hyphens", "A", "X", "978-0-14-143951-8", 10, 1, "", 60),
+        ("ten", "B", "X", "0141439513", 10, 1, "", 60),
+        ("spaced", "C", "X", " ISBN 978 0 14 143951 8 ", 10, 1, "", 60),
+        ("plain", "D", "X", "9780141439518", 10, 1, "", 60),
+        ("other", "E", "X", "B00ABC1234", 10, 1, "", 60),  # no ISBN: as the Kobo has it
+        ("none", "F", "X", None, 10, 1, "", 60),
+    ]
+    make_kobo(k, books, [])
+    isbns = {b.content_id: b.isbn for b in kobo_db.read_books(kobo_db.open_db(k))}
+    assert [isbns[c] for c in ("hyphens", "ten", "spaced", "plain")] == ["9780141439518"] * 4
+    assert (isbns["other"], isbns["none"]) == ("B00ABC1234", "")

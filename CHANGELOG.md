@@ -57,6 +57,9 @@ minor version may change behaviour; the notes will say so.
   folder.
 - `lastread setup --server ... --check`, and Set up in the Mac app, no
   longer take any web page's answer for "this server knows this computer".
+- **An ISBN the Kobo keeps with hyphens, with spaces or as ten digits is
+  now taken for the ISBN it is.** Such a book was looked up by title and
+  author instead, and its edition was not found by its number.
 
 ### Security
 

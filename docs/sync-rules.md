@@ -105,8 +105,10 @@ Three sources of truth, each for its own part:
 
 - **M1** By ISBN first, then by a search on title and author. A book the
   search finds is only taken when a title and an author both agree; a
-  doubtful hit is put to you instead.
+  doubtful hit is put to you instead. An ISBN the Kobo keeps with hyphens
+  or as ten digits is the same ISBN.
   Tests: `tests/test_matching.py::test_a_title_agrees_exactly_as_a_part_or_as_a_start`,
+  `tests/test_epub.py::test_an_isbn_the_kobo_keeps_with_hyphens_or_as_ten_digits_is_the_isbn_hardcover_knows`,
   `tests/test_matching.py::test_an_author_has_to_agree_and_may_be_any_name_the_kobo_lists`,
   `tests/test_hardcover.py::test_dry_run_matches_but_writes_nothing`
 - **M2** A book without a match is never sent. It is looked up once and
