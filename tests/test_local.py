@@ -259,6 +259,69 @@ def test_a_kobo_unplugged_halfway(home, monkeypatch):
     )
 
 
+def test_a_kobo_plugged_in_while_a_sync_runs_is_read_before_that_sync_ends(home):
+    """Sync now without a Kobo, and the Kobo plugged in while Hardcover is being
+    asked: the sync the plug-in starts finds one running and leaves (F4). It
+    leaves word, and the one that runs reads the Kobo before it ends."""
+    db = kobo(home)
+    volume, aside = home / "Volumes" / "KOBOeReader", home / "unplugged"
+    mac = FakeComputer(home / "Volumes")
+    mac.set_secret(HARDCOVER, TOKEN)
+    word = home / "state" / "kobo-plugged-in"
+
+    def read_on(percent, book):
+        con = sqlite3.connect(str(db).replace(str(volume), str(aside)) if aside.exists() else db)
+        con.execute("update content set ___PercentRead = ? where ContentID = ?", (percent, book))
+        con.commit()
+        con.close()
+
+    class Meanwhile(FakeHC):
+        """A Hardcover during whose answer something happens at the computer, once."""
+
+        then = None
+
+        def shelf(self):
+            self.asked += 1
+            if self.then:
+                then, self.then = self.then, None
+                then()
+                self.left.append(runner.sync(mac, LOCAL, trigger="mount", hardcover_client=FakeHC()))  # what the plug-in starts
+            return super().shelf()
+
+    hc = Meanwhile(isbn=catalogue())
+
+    def sync(then=None):
+        hc.then, hc.asked, hc.left = then, 0, []
+        return runner.sync(mac, LOCAL, hardcover_client=hc)
+
+    assert sync().message == "9 books updated."
+    con = st(home)
+    con.execute("update book set mode = 'on' where reader = 'me'")
+    con.execute("update reader set hardcover_live = 1 where name = 'me'")
+    con.commit()
+    assert "sent to Hardcover." in sync().message and sync().message == ""  # the shelf is made; nothing left to say
+
+    os.rename(volume, aside)
+    read_on(77, BOOKS[4])
+    out = sync(lambda: os.rename(aside, volume))
+    assert hc.left == [runner.Outcome(True)]  # it left quietly, as before
+    assert out.ok and out.message == "1 book updated. 1 sent to Hardcover." and hc.asked == 2 and not word.exists()
+    assert st(home).execute("select percent from book where content_id = ?", (BOOKS[4],)).fetchone()[0] == 77
+    assert [(h["trigger"], h["message"]) for h in history._lines()[-2:]] == [("hand", ""), ("mount", out.message)]
+
+    # The same Kobo, as this sync read it (a second volume of it mounting starts a sync too): not read twice.
+    assert sync(lambda: None).message == "" and hc.asked == 1 and hc.left == [runner.Outcome(True)] and not word.exists()
+    # The same Kobo, read on since this sync read it: read once more.
+    assert sync(lambda: read_on(88, BOOKS[5])).message == "1 book updated. 1 sent to Hardcover." and hc.asked == 2
+    # Word left over from a sync that was killed says nothing to the next one, which looks for the Kobo itself.
+    word.write_text("")
+    assert sync().message == "" and hc.asked == 1 and not word.exists()
+    # A sync that leaves without a Kobo of its own has no word to leave.
+    os.rename(volume, aside)
+    sync(lambda: None)
+    assert hc.left == [runner.Outcome(True)] and hc.asked == 1 and not word.exists()
+
+
 def test_hardcover_trouble_is_said_and_the_books_are_still_imported(home):
     kobo(home)
     mac = FakeComputer(home / "Volumes")

@@ -297,7 +297,10 @@ or found there.
   next run finds it on the shelf.
   Tests: `tests/test_rules.py::test_a_run_cut_off_after_hardcover_took_the_book_does_not_add_it_twice`
 - **F4** One sync at a time. A second one started meanwhile leaves quietly.
-  Tests: `tests/test_computer.py::test_a_second_sync_at_the_same_time_leaves_quietly`
+  When it was a Kobo being plugged in that started it, the sync that runs
+  reads that Kobo before it ends, unless it has read it already as it is.
+  Tests: `tests/test_computer.py::test_a_second_sync_at_the_same_time_leaves_quietly`,
+  `tests/test_local.py::test_a_kobo_plugged_in_while_a_sync_runs_is_read_before_that_sync_ends`
 - **F5** A Kobo unplugged halfway is said, and nothing is left half done.
   Tests: `tests/test_local.py::test_a_kobo_unplugged_halfway`
 - **F6** Plugging in again without having read does nothing: no import,

@@ -33,6 +33,7 @@ NOT_REACHED = "Hardcover not reached"  # the Kobo was read, the sync to Hardcove
 CLICKED = "app"  # the trigger of Sync now in the Mac app: someone is waiting for an answer
 LOG_FILE = "agent.log"
 LOCK = "sync.lock"
+WAITING = "kobo-plugged-in"  # left by a sync that found a Kobo while another sync ran: that one reads it before it ends (F4)
 RUNNING = "sync.running"  # what started the sync that runs now; there only while it runs, which the Mac app's window notices
 log = logging.getLogger(__name__)
 
@@ -149,31 +150,45 @@ def sync(
     held = False
     try:
         if not _take(lock):
-            step(Row(NOTE, "Sync", "Another sync is running; it carries on."))
+            if mount:  # the sync that runs may have started without this Kobo, or before it was read on: it looks again
+                _leave_word(state_dir)
+            step(Row(NOTE, "Sync", "Another sync is running; it carries on" + (" and reads this Kobo before it ends." if mount else ".")))
             if trigger == CLICKED:
                 return Outcome(True, message="A sync is already running. It says so when it is done.")
             return Outcome(True)  # a sync is already running; it wins
         held = True
+        _plugged_in_meanwhile(computer, cfg, state_dir, mount)  # word left before this sync began: it has looked for the Kobo itself
         with open(marker, "w") as fh:
             fh.write(trigger or "hand")
         log.debug("sync started (%s), Kobo: %s", f"by {trigger}" if trigger else "by hand", _describe(mount))
-        try:
-            if cfg.server:
-                out = _sync_to_server(computer, cfg, mount, state_dir, opener, by_hand=not trigger, step=step)
-            else:
-                out = _sync_here(computer, cfg, mount, state_dir, hardcover_client, by_hand=not trigger, step=step)
-        except Exception as ex:  # nothing this tool knows what to say about
-            log.exception("sync stopped by something unexpected")
-            out = Outcome(
-                False,
-                FAILED,
-                f"Something went wrong that this tool did not expect ({ex.__class__.__name__}). The details are in "
-                f"{os.path.join(state_dir, LOG_FILE)}. Please report it: {ISSUES}",
-            )
-        if out.message:
-            log.log(logging.INFO if out.ok else logging.ERROR, "said: %s: %s", out.title, out.message)
-        out = remember(out)
-        history.record(out.ok, out.title, out.message, trigger)
+
+        def one(mount: str | None, started_by: str) -> Outcome:
+            try:
+                if cfg.server:
+                    out = _sync_to_server(computer, cfg, mount, state_dir, opener, by_hand=not trigger, step=step)
+                else:
+                    out = _sync_here(computer, cfg, mount, state_dir, hardcover_client, by_hand=not trigger, step=step)
+            except Exception as ex:  # nothing this tool knows what to say about
+                log.exception("sync stopped by something unexpected")
+                out = Outcome(
+                    False,
+                    FAILED,
+                    f"Something went wrong that this tool did not expect ({ex.__class__.__name__}). The details are in "
+                    f"{os.path.join(state_dir, LOG_FILE)}. Please report it: {ISSUES}",
+                )
+            if out.message:
+                log.log(logging.INFO if out.ok else logging.ERROR, "said: %s: %s", out.title, out.message)
+            out = remember(out)
+            history.record(out.ok, out.title, out.message, started_by)
+            return out
+
+        out = one(mount, trigger)
+        # A Kobo plugged in while this ran: the sync it started left word and went (F4). Once: what is
+        # plugged in during the second look waits for the next sync.
+        if later := _plugged_in_meanwhile(computer, cfg, state_dir, mount):
+            log.info("a Kobo was plugged in while this sync ran: it is read now")
+            step(Row(NOTE, "Kobo", "Plugged in while this sync ran: it is read now"))
+            mount, out = later, _both(out, one(later, "mount"))
         if trigger == CLICKED and not out.message:  # an answer, but not one to keep over the last real news
             out = replace(out, message="Nothing new since the last sync." if mount else "No Kobo plugged in, and nothing else to do.")
         return out
@@ -184,6 +199,44 @@ def sync(
             except FileNotFoundError:
                 pass
         lock.close()
+
+
+def _leave_word(state_dir: str) -> None:
+    try:
+        with open(os.path.join(state_dir, WAITING), "w"):
+            pass
+    except OSError as ex:  # then the Kobo waits for the next plug-in, as it did before
+        log.info("no word left for the sync that runs: %s", ex)
+
+
+def _plugged_in_meanwhile(computer: Computer, cfg: config.Config, state_dir: str, read: str | None) -> str | None:
+    """The Kobo to read after all: word was left that one was plugged in, and
+    it is not the Kobo this sync read, as it read it. The word is gone after."""
+    try:
+        os.unlink(os.path.join(state_dir, WAITING))
+    except FileNotFoundError:
+        return None
+    mount = computer.find_kobo()
+    if not mount or mount != read:
+        return mount
+    try:  # the same Kobo: only when it has changed since (unplugged, read on, plugged in again)
+        with open(os.path.join(state_dir, "last-upload.sha256" if cfg.server else "last-import.sha256")) as fh:
+            seen = fh.read().split()[:1]
+        return None if seen == [fingerprint(os.path.join(mount, KOBO_DB))] else mount
+    except OSError:
+        return mount
+
+
+def _both(first: Outcome, second: Outcome) -> Outcome:
+    """Two looks of one sync, as one answer: what the second found, after
+    what the first had to say when it went well. Each is in the history."""
+    before = first.message.removesuffix(first.closing).strip() if first.ok else ""
+    return replace(
+        second,
+        message=f"{before} {second.message}".strip(),
+        books=[*first.books, *second.books],
+        finished=[*first.finished, *second.finished],
+    )
 
 
 LOCK_TRIES = 5  # running() holds the lock for a moment to look: that is not another sync

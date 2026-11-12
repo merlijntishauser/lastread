@@ -94,6 +94,11 @@ minor version may change behaviour; the notes will say so.
   State you just set is no longer put back by a list of books that was
   asked for before it. And Cancel on a sign-in whose tool could not be
   started no longer takes the app down.
+- **A Kobo plugged in while a sync is running is no longer left unread.**
+  The sync that the plug-in started found one running and left, so after
+  Sync now without a Kobo, the Kobo you then plugged in was not read until
+  you plugged it in again. It now leaves word, and the sync that runs reads
+  the Kobo before it ends, unless it has read it already as it is.
 
 ### Security
 
