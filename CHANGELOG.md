@@ -108,6 +108,9 @@ minor version may change behaviour; the notes will say so.
   computer's token went along to that address, also from https to plain
   http. A redirect is now an answer: the sync says where the server pointed
   and sends nothing there.
+- **The release job that may publish to PyPI runs its actions pinned by
+  commit**, as the job that signs the Mac app does. A tag or a branch of an
+  action can be moved to other code; a commit cannot.
 
 ## 0.26.0 - 2026-11-06
 

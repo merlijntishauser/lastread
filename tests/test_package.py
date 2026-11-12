@@ -86,3 +86,13 @@ def test_the_readme_pypi_shows_has_no_link_that_leads_nowhere():
     assert "https://raw.githubusercontent.com/merlijntishauser/lastread/v9.9.9/docs/img/books.png" in text
     assert "(https://github.com/merlijntishauser/lastread/blob/v9.9.9/docs/sync-rules.md)" in text
     assert "](#the-collection-on-the-kobo)" in text  # a link within the page stays as it is
+
+
+def test_the_job_that_may_publish_to_pypi_runs_no_action_that_can_change_under_it():
+    """A tag or a branch of an action can be moved to other code; a commit
+    cannot. The job that signs the Mac app pins its actions the same way."""
+    workflow = (pathlib.Path(__file__).resolve().parents[1] / ".github" / "workflows" / "release.yml").read_text()
+    job = re.search(r"^  pypi:\n(.*?)(?=^  \w[\w-]*:\n|\Z)", workflow, re.M | re.S).group(1)
+    assert "id-token: write" in job
+    used = re.findall(r"uses: (\S+)", job)
+    assert len(used) == 2 and all(re.fullmatch(r"[\w.-]+/[\w.-]+@[0-9a-f]{40}", u) for u in used), used
