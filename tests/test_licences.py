@@ -74,6 +74,16 @@ def test_the_list_of_what_is_installed_next_to_it_is_the_real_one():
         assert permissive.match(licence), f"{name}: {licence} needs a look before it is passed on"
 
 
+def test_nothing_a_user_gets_can_send_telemetry():
+    """FastAPI brings opentelemetry-api: the names a program can report through,
+    which do nothing by themselves. What would send something somewhere is the
+    SDK or an exporter, and neither is among what is installed (README: "There
+    is no telemetry")."""
+    real = installed_with_it()
+    assert [n for n in real if n.startswith("opentelemetry")] == ["opentelemetry-api"]
+    assert not [n for n in real if "sentry" in n or "exporter" in n or "instrumentation" in n]
+
+
 def test_the_kepubify_in_the_mac_app_travels_with_every_licence_it_needs():
     notices = (ROOT / "packaging" / "macos" / "kepubify-NOTICES.txt").read_text()
     for holder in ("Patrick Gaskin", "The Go Authors", "Brett Vickers", "Russ Ross", "Alex Ogier"):

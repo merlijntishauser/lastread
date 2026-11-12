@@ -9,6 +9,7 @@ gets a sign-up page; admins get /admin."""
 
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import json
 import os
@@ -56,7 +57,21 @@ if MODE == "local":
 else:
     accounts.token_store = None
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+on_stop: list = []  # called as the app shuts down: the local page forgets where it was (computer/page.py)
+
+
+@contextlib.asynccontextmanager
+async def _lifespan(app: FastAPI):
+    """What the app does as it starts, and as it stops."""
+    refuse_to_run_without_a_proxy()
+    end_interrupted_runs()
+    start_hourly_sync()
+    yield
+    for stop in on_stop:
+        stop()
+
+
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=_lifespan)
 
 
 class Compress(GZipMiddleware):
@@ -215,7 +230,6 @@ async def only_through_the_proxy(request: Request, call_next):
     return await call_next(request)
 
 
-@app.on_event("startup")
 def refuse_to_run_without_a_proxy():
     if local:
         if not local.port:
@@ -224,7 +238,6 @@ def refuse_to_run_without_a_proxy():
         raise RuntimeError(proxy.HOW)
 
 
-@app.on_event("startup")
 def end_interrupted_runs():
     """A restart in the middle of a sync left its run on "running"; the server
     runs every sync itself, so none is still going. Not in local mode: there
@@ -233,7 +246,6 @@ def end_interrupted_runs():
         job.interrupted(os.path.join(DATA, "state.db"))
 
 
-@app.on_event("startup")
 def start_hourly_sync():
     """Two-way sync without an upload: an edit on Hardcover shows up here
     within the hour. Only readers that are live and have a token. Not in

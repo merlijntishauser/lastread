@@ -23,9 +23,9 @@ license = "MIT"
 license-files = ["LICENSE", "THIRD-PARTY-NOTICES.md"]
 authors = [{ name = "Merlijn Tishauser", email = "merlijn@ccadd.nl" }]
 dependencies = [
-    "fastapi==0.115.6",
-    "uvicorn==0.34.0",
-    "python-multipart==0.0.20",
+    "fastapi==0.162.0",
+    "uvicorn==0.54.0",
+    "python-multipart==0.0.33",
     "PyYAML==6.0.2",
     "cryptography==50.0.2",
 ]

@@ -57,23 +57,25 @@ file. As locked in `uv.lock`:
 
 | Package | Version | Licence |
 |---|---|---|
+| annotated-doc | 0.0.6 | MIT |
 | annotated-types | 0.8.0 | MIT |
 | anyio | 4.15.1 | MIT |
 | cffi | 2.1.1 | MIT-0 |
 | click | 8.5.0 | BSD-3-Clause |
 | cryptography | 50.0.2 | Apache-2.0 OR BSD-3-Clause |
-| fastapi | 0.115.6 | MIT |
+| fastapi | 0.162.0 | MIT |
 | h11 | 0.16.0 | MIT |
 | idna | 3.20 | BSD-3-Clause |
+| opentelemetry-api | 1.45.2 | Apache-2.0 |
 | pycparser | 3.0 | BSD-3-Clause |
 | pydantic | 2.13.5 | MIT |
 | pydantic-core | 2.46.5 | MIT |
-| python-multipart | 0.0.20 | Apache-2.0 |
+| python-multipart | 0.0.33 | Apache-2.0 |
 | pyyaml | 6.0.2 | MIT |
-| starlette | 0.41.3 | BSD-3-Clause |
+| starlette | 1.10.0 | BSD-3-Clause |
 | typing-extensions | 4.16.0 | PSF-2.0 |
 | typing-inspection | 0.4.4 | MIT |
-| uvicorn | 0.34.0 | BSD-3-Clause |
+| uvicorn | 0.54.0 | BSD-3-Clause |
 
 The licences are what each package declares in its own metadata. A test
 (`tests/test_licences.py`) fails when the lock file gains a package or a

@@ -236,7 +236,7 @@ def serve() -> None:
 
     # On the way down, also when stopped by a signal: uvicorn shuts the app
     # down first and only then lets the signal end the process.
-    web.app.add_event_handler("shutdown", forget)
+    web.on_stop.append(forget)
     threading.Thread(target=watch, daemon=True).start()
     threading.Thread(target=announce, daemon=True).start()
     try:

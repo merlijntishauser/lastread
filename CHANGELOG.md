@@ -117,6 +117,13 @@ minor version may change behaviour; the notes will say so.
 - **The release job that may publish to PyPI runs its actions pinned by
   commit**, as the job that signs the Mac app does. A tag or a branch of an
   action can be moved to other code; a commit cannot.
+- **Newer FastAPI, Starlette, uvicorn and python-multipart** (0.162.0,
+  1.10.0, 0.54.0, 0.0.33). The versions before had fourteen published
+  advisories between them, among them a Host header that was not checked
+  and limits on a form that were ignored. None is known for these. FastAPI
+  now brings `opentelemetry-api` along: the names a program can report
+  through, which send nothing by themselves; nothing that could send is
+  installed, and a test keeps it so.
 
 ## 0.26.0 - 2026-11-06
 
