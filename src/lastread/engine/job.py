@@ -26,6 +26,9 @@ _lock = threading.Lock()
 # Where a reader's sync is, for the page to show while it runs: {"phase": "start" | "shelf" | "match" | "send",
 # "done": books sent so far, "total": books to send}. Set before the work begins, gone when it ends.
 progress: dict[str, dict] = {}
+# Hardcover grows: a book it did not have, or a title it did not list for one, may be there a week later.
+LOOK_AGAIN_DAYS = 7
+LOOK_AGAIN_AT_ONCE = 25  # so a long list of waiting books is not searched for in one run
 
 
 def begin(reader: str) -> None:
@@ -80,14 +83,17 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                 counts.update(syncback.pull(con, reader, shelf))
             progress[reader] = {"phase": "match", "done": 0, "total": 0}
             # Not looked up yet, or waiting for the reader since rules that have changed since: those get one more look.
-            todo = [
-                r
-                for r in syncing_rows(con, reader)
-                if not r["hc_book_id"] and (r["hc_how"] not in ("uncertain", "none") or (r["hc_looked"] or 1) < hardcover.MATCH_RULES)
-            ]
+            # So do the ones that have waited a while, since Hardcover grows: a few per run, the longest-waiting first.
+            waiting = [r for r in syncing_rows(con, reader) if not r["hc_book_id"]]
+            todo = [r for r in waiting if r["hc_how"] not in ("uncertain", "none") or (r["hc_looked"] or 1) < hardcover.MATCH_RULES]
+            first_look = {r["content_id"] for r in todo}
+            long_ago = (datetime.now(UTC) - timedelta(days=LOOK_AGAIN_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            again = [r for r in waiting if r["content_id"] not in first_look and (r["hc_looked_at"] or "") <= long_ago]
+            todo += sorted(again, key=lambda r: r["hc_looked_at"] or "")[:LOOK_AGAIN_AT_ONCE]
             for cid, m in hardcover.match_books(client, todo).items():
                 con.execute(
-                    """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?, hc_looked=?
+                    """update book set hc_how=?, hc_book_id=?, hc_edition_id=?, hc_pages=?, hc_title=?, hc_candidates=?, hc_looked=?,
+                               hc_looked_at=?
                                where reader=? and content_id=?""",
                     (
                         m["how"],
@@ -97,11 +103,13 @@ def run(db_path: str, reader: str, live: bool, client: hardcover.Client | None =
                         m["title"],
                         json.dumps(m["candidates"]),
                         hardcover.MATCH_RULES,
+                        started,
                         reader,
                         cid,
                     ),
                 )
-                counts["matched" if m["book_id"] else "uncertain"] += 1
+                if m["book_id"] or cid in first_look:  # a book that waits as it did is no news to the reader
+                    counts["matched" if m["book_id"] else "uncertain"] += 1
                 if m["book_id"]:
                     log.debug("matched %r: Hardcover book %s (%s)", m["title"], m["book_id"], m["how"])
                 else:

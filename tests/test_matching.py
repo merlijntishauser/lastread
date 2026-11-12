@@ -3,8 +3,9 @@ never the first hit because it is the first. The made-up hits here have the
 shapes that turned up on a real shelf."""
 
 import json
+from datetime import UTC, datetime, timedelta
 
-from lastread.engine import hardcover
+from lastread.engine import hardcover, job
 from lastread.engine.hardcover import EXACT, PART, PREFIX, agreement, choose
 from tests.test_hardcover import READING, FakeHC, row, run, setup
 
@@ -106,7 +107,8 @@ def test_a_waiting_book_gets_one_more_look_when_the_rules_have_changed(tmp_path)
     st.commit()
     fake = Counting(search={"Het": [JORDAN]})  # Hardcover knows the first, not the second
     r = run(tmp_path, fake, live=False)
-    assert sorted(c[1] for c in fake.calls) == ["Blindness José Saramago", "Het Oog van de Wereld Robert Jordan"]
+    # The book the search does not find is looked for among its author's books as well (M12).
+    assert sorted(c[1] for c in fake.calls) == ["Blindness José Saramago", "Het Oog van de Wereld Robert Jordan", "José Saramago"]
     assert (r["matched"], r["uncertain"]) == (1, 1) and row(st, "eye")["hc_book_id"] == 1
     assert row(st, "rd")["hc_how"] == "none" and row(st, "rd")["hc_looked"] == hardcover.MATCH_RULES
     # Once: the book that is still not found waits for the reader again.
@@ -134,7 +136,6 @@ def test_a_title_and_an_author_in_another_script_agree_as_any_other():
     # Latin is compared as before: accents do not count, and neither does which apostrophe was typed.
     assert hardcover.norm("  L'Œil du Monde: Brontë, Straße_1  ") == "l œil du monde bronte strasse 1"
     assert agreement("Ender\u2019s Game", "Orson Scott Card", hit(35, "Ender's Game", ["Orson Scott Card"])) == EXACT
-    assert hardcover.MATCH_RULES == 3  # a book that waited under the rules before is looked up once more (M2)
 
 
 def test_a_hit_that_agrees_in_nothing_is_not_put_to_the_reader(tmp_path):
@@ -159,3 +160,101 @@ def test_a_hit_that_agrees_in_nothing_is_not_put_to_the_reader(tmp_path):
     assert related("Dune", "Frank Herbert", hit(21, "Dune Messiah", ["Someone Else"]))  # a start, wherever it stands
     assert related("Het Oog van de Wereld", "", JORDAN) and not related("", "", JORDAN)  # a title Hardcover lists for it
     assert not related("Vierkante ogen", "Felienne Hermans", unrelated[1])
+
+
+def test_a_book_the_search_does_not_find_is_looked_for_among_its_authors_books(tmp_path):
+    """The words of a title can crowd the author out of the search. "Op zee"
+    got five books with those words by other authors, while Hardcover had the
+    novel in French among the author's own books."""
+    sea = ("sea", "Op zee", "Toine Heijmans", "9789493256019", 100, 2, "2026-09-29T10:00:00Z", 900)
+    fleet = ("fleet", "Spookvloot", "P.W. Singer, August Cole", "9789000000003", 100, 2, "2026-09-29T10:00:00Z", 900)
+    dune = ("dune", "Dune", "Frank Herbert", "9789000000004", 10, 1, "2026-09-29T10:00:00Z", 900)
+    kings = ("kings", "De strijd der koningen", "George R.R. Martin", "9789000000002", 10, 1, "2026-09-29T10:00:00Z", 900)
+    nameless = ("nameless", "Zonder naam", "", "9789000000005", 10, 1, "2026-09-29T10:00:00Z", 900)
+    by_others = [hit(3086761, "Een huwelijk op zee", ["Sophie Elmhirst"]), hit(3051685, "Brommer op zee", ["J.M.A. Biesheuvel"])]
+    his = [
+        hit(1550299, "Olanda", ["Iperborea", "George Blaustein"]),
+        hit(1273808, "En mer", ["Toine Heijmans"]),
+        hit(2402580, "Buitendijks", ["Toine Heijmans"]),
+    ]
+    theirs = [hit(451752, "Burn-In", ["P.W. Singer", "August Cole"]), hit(1090706, "Ghost Fleet", ["P.W. Singer"], also=["Spookvloot"])]
+    st = setup(tmp_path, [sea, fleet, dune, kings, nameless])
+    fake = Counting(
+        search={
+            "Op": by_others,
+            "Toine": his,
+            "P.W.": theirs,
+            "Frank": [hit(21, "Dune Messiah", ["Frank Herbert"])],
+            "De": [hit(7, "A Clash of Kings", ["George R.R. Martin"])],
+        }
+    )
+    r = run(tmp_path, fake, live=False)
+    assert (r["matched"], r["uncertain"]) == (1, 4)
+    # Offered: what is by the author. The first hit is about the author's country, by others, and is not.
+    assert row(st, "sea")["hc_how"] == "uncertain"
+    assert [c["book_id"] for c in json.loads(row(st, "sea")["hc_candidates"])] == [1273808, 2402580]
+    # Taken: the book that lists the Kobo's title, wherever it stands among the author's books.
+    assert (row(st, "fleet")["hc_how"], row(st, "fleet")["hc_book_id"]) == ("search", 1090706)
+    # Not taken: a title that only starts the same is believed of the first hit of a search for the title, not of an author's list.
+    assert hardcover.choose("Dune", "Frank Herbert", fake.search_res["Frank"]) and row(st, "dune")["hc_book_id"] is None
+    assert [c["book_id"] for c in json.loads(row(st, "dune")["hc_candidates"])] == [21]
+    # A search that found something related is not followed by another, and a book without an author has no second one.
+    asked = [c[1] for c in fake.calls]
+    assert "George R.R. Martin" not in asked and asked.count("Zonder naam ") == 1 and "" not in asked
+    assert sorted(asked) == sorted(
+        ["Op zee Toine Heijmans", "Toine Heijmans", "Spookvloot P.W. Singer", "P.W. Singer", "Dune Frank Herbert", "Frank Herbert"]
+        + ["De strijd der koningen George R.R. Martin", "Zonder naam "]
+    )
+    assert hardcover.MATCH_RULES == 4  # a book that waited under the rules before is looked up once more (M2)
+
+
+def test_a_waiting_book_is_looked_up_again_after_a_week(tmp_path, monkeypatch):
+    """Hardcover grows. "Vrees niet" waited from the day it was looked up; nine
+    days after Hardcover listed that title for the book it still waited."""
+
+    def ago(days):
+        return (datetime.now(UTC) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def looked(cid, days):
+        st.execute("update book set hc_looked_at = ? where content_id = ?", (ago(days), cid))
+        st.commit()
+
+    eye = ("eye", "Het Oog van de Wereld", "Robert Jordan", "9789000000001", 30, 1, "2026-09-29T10:00:00Z", 900)
+    st = setup(tmp_path, [eye, READING])
+    fake = Counting()  # Hardcover knows neither yet
+    assert run(tmp_path, fake, live=False)["uncertain"] == 2
+    assert row(st, "eye")["hc_how"] == "none" and row(st, "eye")["hc_looked_at"] >= ago(1)
+    # Within the week: not asked again.
+    fake.calls.clear()
+    looked("eye", 6)
+    assert run(tmp_path, fake, live=False)["uncertain"] == 0 and fake.calls == []
+    # After it: asked again, and the book Hardcover has by now is matched.
+    looked("eye", 8)
+    fake.search_res = {"Het": [JORDAN]}
+    r = run(tmp_path, fake, live=False)
+    assert (r["matched"], r["uncertain"]) == (1, 0) and row(st, "eye")["hc_book_id"] == 1
+    assert [c[1] for c in fake.calls] == ["Het Oog van de Wereld Robert Jordan"]  # the other book's week is not over
+    # A book that still waits after its second look is no news: not counted, and its week starts again.
+    fake.calls.clear()
+    looked("rd", 30)
+    r = run(tmp_path, fake, live=False)
+    assert (r["matched"], r["uncertain"]) == (0, 0) and len(fake.calls) == 2
+    assert row(st, "rd")["hc_how"] == "none" and row(st, "rd")["hc_looked_at"] >= ago(1)
+    # A long list of waiting books is not searched for in one run: the longest-waiting first.
+    st.execute("update book set hc_how = 'none', hc_book_id = null where content_id = 'eye'")
+    looked("eye", 9)
+    looked("rd", 12)
+    monkeypatch.setattr(job, "LOOK_AGAIN_AT_ONCE", 1)
+    fake.calls.clear()
+    fake.search_res = {}
+    run(tmp_path, fake, live=False)
+    assert [c[1] for c in fake.calls] == ["Blindness José Saramago", "José Saramago"]
+    fake.calls.clear()
+    run(tmp_path, fake, live=False)
+    assert [c[1] for c in fake.calls] == ["Het Oog van de Wereld Robert Jordan", "Robert Jordan"]
+    # A match the reader chose is never looked up again (M3).
+    st.execute("update book set hc_how = 'manual', hc_book_id = 99 where content_id = 'rd'")
+    looked("rd", 400)
+    fake.calls.clear()
+    run(tmp_path, fake, live=False)
+    assert fake.calls == [] and row(st, "rd")["hc_book_id"] == 99

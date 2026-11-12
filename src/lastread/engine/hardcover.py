@@ -393,7 +393,7 @@ def _shelf_rows(data: dict) -> list[dict]:
 # MATCH_RULES numbers these rules. A book that waits for a match was looked
 # up by some version of them; when the number here is higher it is looked
 # up once more (job.run), and then waits again.
-MATCH_RULES = 3  # 3: letters of any script are compared, where only a to z were; a hit that agrees in nothing is not offered
+MATCH_RULES = 4  # 4: a book the search does not find is looked for among its author's books
 EXACT, PART, PREFIX = 3, 2, 1
 ARTICLES = {"de", "het", "een", "the", "a", "an"}  # Dutch and English: the two languages this was tried on
 PARTS = re.compile(r"[:;]|\s[-\u2013\u2014]\s")
@@ -460,9 +460,11 @@ def related(title: str, attribution: str, cand: dict) -> bool:
     return bool(theirs) and (ours.startswith(theirs + " ") or theirs.startswith(ours + " "))
 
 
-def choose(title: str, attribution: str, cands: list[dict]) -> dict | None:
-    """The hit that is this book, or None when the reader has to say."""
-    scored = [(agreement(title, attribution, c, first=i == 0), c) for i, c in enumerate(cands)]
+def choose(title: str, attribution: str, cands: list[dict], leading: bool = True) -> dict | None:
+    """The hit that is this book, or None when the reader has to say.
+    leading: the search was for this title, so its first hit may be
+    believed on less (a title that only starts the same)."""
+    scored = [(agreement(title, attribution, c, first=leading and i == 0), c) for i, c in enumerate(cands)]
     best = max((score for score, _ in scored), default=0)
     if not best:
         return None
@@ -498,6 +500,14 @@ def match_books(client: Client, rows) -> dict[str, dict]:
             continue
         cands = client.search(f"{r['title']} {first_author(r['author'])}")
         c = choose(r["title"], r["author"], cands)
+        offered = [] if c else [x for x in cands if related(r["title"], r["author"], x)]
+        if not c and not offered and first_author(r["author"]):
+            # The words of a title can crowd the author out of the search: "Op zee" got five books with
+            # those words by others, while its author's books were there, the same novel in French among
+            # them. Asked for the author alone, the book is taken only on its title; the rest is offered.
+            cands = client.search(first_author(r["author"]))
+            c = choose(r["title"], r["author"], cands, leading=False)
+            offered = [] if c else [x for x in cands if related(r["title"], r["author"], x)]
         if c:
             out[r["content_id"]] = {
                 "how": "search",
@@ -508,7 +518,6 @@ def match_books(client: Client, rows) -> dict[str, dict]:
                 "candidates": [],
             }
         else:
-            offered = [c for c in cands if related(r["title"], r["author"], c)]
             out[r["content_id"]] = {
                 "how": "uncertain" if offered else "none",
                 "book_id": None,

@@ -111,11 +111,16 @@ Three sources of truth, each for its own part:
   `tests/test_epub.py::test_an_isbn_the_kobo_keeps_with_hyphens_or_as_ten_digits_is_the_isbn_hardcover_knows`,
   `tests/test_matching.py::test_an_author_has_to_agree_and_may_be_any_name_the_kobo_lists`,
   `tests/test_hardcover.py::test_dry_run_matches_but_writes_nothing`
-- **M2** A book without a match is never sent. It is looked up once and
-  then waits for you. When a newer version of the tool has other rules for
-  matching, it is looked up once more.
+- **M2** A book without a match is never sent. It is looked up and then
+  waits for you. Hardcover grows, so a book that waits is looked up again
+  after a week, counted from its last look or from your own search for it:
+  at most 25 such books per sync, the longest-waiting first. A book that
+  still waits after that is not reported again. When a newer version of the
+  tool has other rules for matching, every waiting book is looked up once
+  more at the next sync.
   Tests: `tests/test_rules.py::test_an_unmatched_book_is_never_sent`,
-  `tests/test_matching.py::test_a_waiting_book_gets_one_more_look_when_the_rules_have_changed`
+  `tests/test_matching.py::test_a_waiting_book_gets_one_more_look_when_the_rules_have_changed`,
+  `tests/test_matching.py::test_a_waiting_book_is_looked_up_again_after_a_week`
 - **M3** A match you chose is kept: not looked up again, not replaced.
   Tests: `tests/test_rules.py::test_a_match_the_reader_chose_is_kept`
 - **M4** The edition: the one with the Kobo's ISBN if it is an ebook, else
@@ -165,10 +170,18 @@ Three sources of truth, each for its own part:
   `tests/test_epub.py::test_a_waiting_book_is_looked_up_again_when_its_isbn_arrives`,
   `tests/test_local.py::test_a_book_put_on_the_kobo_by_hand_is_found_by_the_isbn_in_its_file`
 - **M11** A hit of the search that agrees with the Kobo's book in neither
-  title nor author is not put to you. When none is left, the book counts
-  as not found: Hardcover may not have it yet. What you search for
-  yourself is shown as Hardcover answers it.
+  title nor author is not put to you. When none is left, also after the
+  second search (M12), the book counts as not found: Hardcover may not
+  have it yet. What you search for yourself is shown as Hardcover answers
+  it.
   Tests: `tests/test_matching.py::test_a_hit_that_agrees_in_nothing_is_not_put_to_the_reader`
+- **M12** When the search on title and author finds nothing that agrees
+  in either, Hardcover is asked once more for the author alone: the words
+  of a title can crowd the author out. A book among those that has the
+  Kobo's title, or lists it among its other titles, is taken. The author's
+  other books are put to you, since one of them may be this book in another
+  language (M7); a title that only starts the same is not believed here.
+  Tests: `tests/test_matching.py::test_a_book_the_search_does_not_find_is_looked_for_among_its_authors_books`
 
 ## Several Kobo books that are one book on Hardcover
 

@@ -7,7 +7,24 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- **A book that waits for a match is looked up again after a week.** It
+  was looked up once and then waited for you, however much Hardcover
+  learned in the meantime: a Dutch title added there nine days earlier was
+  only found because a new version looked again. At most 25 waiting books
+  are looked up again per sync, the longest-waiting first; a book that
+  still waits is not reported again, and what you searched for yourself
+  stands for a week. A book found this way is matched and sent as any
+  other.
+- **A book the search does not find is looked for among its author's
+  books.** The words of a title can crowd the author out of Hardcover's
+  search: "Op zee" got five books with those words by other authors. The
+  author's books are now asked for as well. One that has the Kobo's title,
+  or lists it as another title, is taken; the others are offered to choose
+  from, since one may be the book in another language. "Hardcover found
+  nothing" is said when the author has nothing there either. Every waiting
+  book is looked up once more at the first sync with this version.
 
 ## 0.27.0 - 2026-11-12
 

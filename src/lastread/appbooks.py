@@ -111,8 +111,8 @@ def change(con, reader: str, cid: str, client, *, search="", pick="", sync="", s
             raise Refused("this book has its match already.")
         found = hardcover.shown(client(tries=1).search(search))
         con.execute(
-            "update book set hc_how=?, hc_candidates=? where reader=? and content_id=? and hc_book_id is null",
-            ("uncertain" if found else "none", json.dumps(found), reader, cid),
+            "update book set hc_how=?, hc_candidates=?, hc_looked_at=? where reader=? and content_id=? and hc_book_id is null",
+            ("uncertain" if found else "none", json.dumps(found), state.now(), reader, cid),  # the reader's own search stands a week (M2)
         )
         con.commit()
     if pick:

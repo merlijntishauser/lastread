@@ -435,6 +435,8 @@ def test_dialog_forms_answer_with_refreshed_details_and_row(tmp_path, monkeypatc
     assert r.status_code == 200
     d = r.json()
     assert '<option value="77|120|Mine Now"' in d["details"] and "Needs a Hardcover match" in d["hc"]
+    # What the reader searched for stands a week: the search's time is kept as the book's last look (M2).
+    assert st.execute("select hc_looked_at from book where content_id='mine'").fetchone()[0] >= state.now()[:10]
     # A search that finds nothing: the dialog says so and keeps the search box.
     monkeypatch.setattr(Stub, "search", lambda self, q, n=3: [])
     r = c.post("/research", data={"id": "mine", "q": "nothing like it", "back": "f=all"}, headers=h)

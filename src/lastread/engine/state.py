@@ -82,6 +82,7 @@ PER_BOOK = (
     "hc_title",
     "hc_candidates",
     "hc_looked",
+    "hc_looked_at",
     "hc_error",
     "hc_edition_by",
     "hc_format_id",
@@ -182,6 +183,8 @@ def _migrate(con: sqlite3.Connection) -> None:
         ("state_changed", "text"),
         # The version of the matching rules (hardcover.MATCH_RULES) that last looked this book up.
         ("hc_looked", "integer"),
+        # When it was last looked up, or searched for by the reader: a waiting book gets another look after a while.
+        ("hc_looked_at", "text"),
     ):
         if col not in have:  # state.db from before 2026-09-30 12:xx
             _add_column(con, "book", col, decl)

@@ -1434,8 +1434,8 @@ def research(request: Request, id: str = Form(...), q: str = Form(""), back: str
         return PlainTextResponse(str(ex), status_code=502)
     con = db()
     con.execute(
-        "update book set hc_how=?, hc_candidates=? where reader=? and content_id=? and hc_book_id is null",
-        ("uncertain" if cands else "none", json.dumps(cands), reader, id),
+        "update book set hc_how=?, hc_candidates=?, hc_looked_at=? where reader=? and content_id=? and hc_book_id is null",
+        ("uncertain" if cands else "none", json.dumps(cands), state.now(), reader, id),  # the reader's own search stands a week (M2)
     )
     con.commit()
     return answer(request, con, reader, id, back)
