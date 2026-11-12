@@ -200,10 +200,13 @@ started in three ways:
   first when switched on, as *Go live* does. *Open in Browser* (in server
   mode *Open on* and the server's name) opens the page at the book with its details
   (`open --book`), on the server in server mode. Above the list, as one
-  quieter line under *Needs you*, sits the tip (`tip` in
+  quieter line under *Needs you*, sits the tip (`tips` in
   `books --json`, from `tip.py`): one book from your own shelf, with the
   blue circled query because it asks you something; *Open* shows it in
-  Details, *Not now* puts it aside for a month (`book ID --not-now`).
+  Details, *Not now* puts it aside for a month (`book ID --not-now`). It
+  is one of the books that *Show* has chosen, here and on *Covers*, each
+  with its own *Show*; a selection without a book to suggest has no tip.
+  The widget, which has no *Show*, gets the tip of the whole shelf (`tip`).
   *Covers* is the library as a press run
   (`docs/plans/2026-10-26-mac-app-server-books-and-covers-design.md`):
   three rows drifting left, by `opened` (from `books --json`: a Kobo

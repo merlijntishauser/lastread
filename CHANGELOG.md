@@ -7,7 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- **Mac app: the tip is one of the books that Show has chosen.** It was
+  chosen from the whole shelf, so with Show on the books being read the
+  line above the list could be about a book that was never opened and was
+  not in the list. Books and Covers each get the tip of their own Show; a
+  selection without a book to suggest shows none. The widget keeps the tip
+  of the whole shelf. `books --json` and `book ID --json` carry `tips`, one
+  for each selection, beside `tip`.
 
 ## 0.28.0 - 2026-11-12
 

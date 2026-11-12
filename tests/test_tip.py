@@ -87,3 +87,45 @@ def test_books_carries_the_tip_and_not_now_puts_it_aside(home, capsys):
     after = answer(capsys, "book", shown["id"], "--not-now", "--json", computer=computer)
     assert after["tip"]["id"] != shown["id"] and after["tip"]["rule"] == "never_opened"  # the answer has the next one
     assert answer(capsys, "books", "--json", computer=computer)["tip"] == after["tip"]
+
+
+def test_the_tip_is_a_book_of_the_selection_chosen_at_show(home, capsys):
+    """Looking at the books being read, the reader was told about one that was
+    never opened: a book the list below did not hold."""
+    computer, con = shelf(home)
+    unopened(con, BOOKS[6], BOOKS[7])
+    con.execute("update book set last_read='2025-03-11T21:14:00Z' where content_id=?", (BOOKS[3],))  # left off at 30%
+    con.execute("update book set mode='off' where content_id=?", (BOOKS[6],))
+    con.commit()
+    whole = tip.pick(con, "me", TODAY)
+    assert (whole["id"], whole["rule"]) == (BOOKS[3], "left_off")
+    by_show = {
+        t["show"]: t
+        for t in tip.picks(con, "me", {"all": set(BOOKS), "unread": {BOOKS[6], BOOKS[7]}, "off": {BOOKS[6]}, "none": set()}, TODAY)
+    }
+    assert by_show["all"] == {"show": "all", **whole}  # every book shown: the tip of the whole shelf
+    assert (by_show["unread"]["rule"], by_show["off"]) == (
+        "never_opened",
+        {"show": "off", "id": BOOKS[6], "rule": "never_opened", "text": "On your Kobo, never opened."},
+    )
+    assert by_show["unread"]["id"] in (BOOKS[6], BOOKS[7]) and "none" not in by_show  # a selection without such a book has no tip
+    # Not now for the one of a selection: the next book of that selection, or none.
+    tip.put_aside(con, "me", BOOKS[6], TODAY)
+    again = {t["show"]: t["id"] for t in tip.picks(con, "me", {"unread": {BOOKS[6], BOOKS[7]}, "off": {BOOKS[6]}}, TODAY)}
+    assert again == {"unread": BOOKS[7]}
+    con.execute("delete from tip_aside")
+    con.commit()
+    con.close()
+    # The app gets one for each selection of Show, and the whole shelf's beside it for the widget.
+    got = answer(capsys, "books", "--json", computer=computer)
+    books = {b["id"]: b for b in got["books"]}
+    assert got["tip"]["id"] == BOOKS[3] and {t["show"] for t in got["tips"]} >= {"all", "reading", "unread", "off"}
+    for t in got["tips"]:
+        assert t["show"] in books[t["id"]]["filters"], t
+    assert "finished" not in {t["show"] for t in got["tips"]}  # a finished book is never the tip
+    reading = next(t for t in got["tips"] if t["show"] == "reading")
+    assert reading["id"] == BOOKS[3]
+    # A change answers with them as well: Not now gives the selection its next one.
+    after = answer(capsys, "book", BOOKS[3], "--not-now", "--json", computer=computer)
+    assert "reading" not in {t["show"] for t in after["tips"]} and after["tip"]["rule"] == "never_opened"
+    assert {t["show"]: t["rule"] for t in after["tips"]}["all"] == "never_opened"

@@ -66,7 +66,8 @@ def listing(con, reader: str, cover_of, connected, mode: str = "local") -> dict:
         "live": live,
         "user": summary["user"],
         **_start(con, reader, live, connected, mode),
-        "tip": tip.pick(con, reader) if con else None,
+        "tip": tip.pick(con, reader) if con else None,  # of the whole shelf: the widget's, and an app from before 0.29.0
+        "tips": tip.picks(con, reader, member) if con else [],  # of each selection of Show that has one
         "books": books,
         "sorts": sorts,
         "words": {  # the page's words, so that the app says the same
@@ -95,6 +96,7 @@ def one(con, reader: str, cid: str, cover_of, connected=lambda: False, mode: str
         "book": booklist.entry(row, summary["live"], _quiet(con, reader), booklist.filters_of(con, reader, cid), cover_of(row)),
         "books": summary,
         "tip": tip.pick(con, reader),
+        "tips": tip.picks(con, reader, {f: set(booklist.ids(con, reader, "", f)) for f in booklist.FILTERS}),
         **_start(con, reader, summary["live"], connected, mode),
     }
 

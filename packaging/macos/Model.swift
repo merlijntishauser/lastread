@@ -142,6 +142,7 @@ struct BooksAnswer: Codable, Equatable {
         let id: String
         let rule: String  // "left_off", "wanted", "never_opened"
         let text: String
+        var show: String? = nil  // in tips: the selection of Show it is the tip of
     }
 
     struct Sort: Codable, Equatable {
@@ -168,10 +169,21 @@ struct BooksAnswer: Codable, Equatable {
     let user: String
     var start: Start?  // nil once live; nil also from a server before 0.18.0
     var needsYou: NeedsYou?
-    var tip: Tip?
+    var tip: Tip?  // of the whole shelf: the widget's
+    var tips: [Tip]?  // of each selection of Show that has one; nil from a server before 0.29.0
     var books: [Book]
     let sorts: [Sort]
     let words: Words
+
+    /// The tip where a selection of Show is chosen: a book of that selection, so that the line above
+    /// the books is about one of them. A server from before 0.29.0 has the whole shelf's tip alone:
+    /// shown where its book is in the selection.
+    func tip(among show: String) -> (Tip, Book)? {
+        let found: Tip?
+        if let tips { found = tips.first { $0.show == show } } else { found = tip }
+        guard let found, let book = books.first(where: { $0.id == found.id }), book.filters.contains(show) else { return nil }
+        return (found, book)
+    }
 }
 
 /// `book ID ... --json`: the book after a change, and the counts the overview shows.
@@ -180,6 +192,7 @@ struct BookAnswer: Codable {
     let book: BooksAnswer.Book
     let books: StatusAnswer.Books
     let tip: BooksAnswer.Tip?  // a change can make another book the tip
+    let tips: [BooksAnswer.Tip]?
     let start: BooksAnswer.Start?  // and move Getting started on
     let needsYou: BooksAnswer.NeedsYou?
     let large: String?  // with --large-cover: the cover large, "" when there is none

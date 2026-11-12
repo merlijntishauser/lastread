@@ -48,6 +48,32 @@
     "rule": "left_off",
     "text": "You stopped at 37% in March 2025. Pick it up again?"
   },
+  "tips": [
+    {
+      "show": "all",
+      "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+      "rule": "left_off",
+      "text": "You stopped at 37% in March 2025. Pick it up again?"
+    },
+    {
+      "show": "reading",
+      "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+      "rule": "left_off",
+      "text": "You stopped at 37% in March 2025. Pick it up again?"
+    },
+    {
+      "show": "new",
+      "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+      "rule": "left_off",
+      "text": "You stopped at 37% in March 2025. Pick it up again?"
+    },
+    {
+      "show": "on",
+      "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",
+      "rule": "left_off",
+      "text": "You stopped at 37% in March 2025. Pick it up again?"
+    }
+  ],
   "books": [
     {
       "id": "file:///mnt/onboard/Saramago/Blindness.kepub.epub",

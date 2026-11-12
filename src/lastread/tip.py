@@ -2,7 +2,8 @@
 (docs/plans/2026-10-26-mac-app-server-books-and-covers-design.md). Chosen
 from what the tool already knows; nothing is asked of Hardcover or anyone
 else. The first rule that finds a book gives it, the same one all day,
-until the reader puts it aside."""
+until the reader puts it aside. Where the reader has chosen which books
+to show, the tip is one of those."""
 
 from __future__ import annotations
 
@@ -35,13 +36,35 @@ RULES = (("left_off", _left_off), ("wanted", _wanted), ("never_opened", _never_o
 
 def pick(con, reader: str, today: date | None = None) -> dict | None:
     """{"id", "rule", "text"} of today's tip, or None when no rule finds a book."""
-    today = today or date.fromisoformat(state.local_day())
+    return _pick(_rows(con, reader, _today(today)), _today(today))
+
+
+def picks(con, reader: str, selections: dict[str, set[str]], today: date | None = None) -> list[dict]:
+    """Today's tip for each selection of Show that has one: a book of that
+    selection, as {"show", "id", "rule", "text"}. The reader who looks at the
+    books being read is not told about one that was never opened.
+    selections: the ids of the books in each."""
+    today = _today(today)
+    rows = _rows(con, reader, today)
+    found = ((show, _pick([r for r in rows if r["content_id"] in ids], today)) for show, ids in selections.items())
+    return [{"show": show, **tip} for show, tip in found if tip]
+
+
+def _today(today: date | None) -> date:
+    return today or date.fromisoformat(state.local_day())
+
+
+def _rows(con, reader: str, today: date) -> list:
+    """The books a tip may be: not put aside, not finished or given up."""
     aside = {r[0] for r in con.execute("select content_id from tip_aside where reader=? and until>?", (reader, today.isoformat()))}
-    rows = [
+    return [
         r
         for r in con.execute("select * from reader_book where reader=? order by content_id", (reader,))
         if r["content_id"] not in aside and r["state"] not in ("finished", "dnf")
     ]
+
+
+def _pick(rows: list, today: date) -> dict | None:
     for rule, fits in RULES:
         found = []
         for r in rows:

@@ -57,6 +57,7 @@ extension WindowModel {
                     if let n = self.books?.books.firstIndex(where: { $0.id == id }) { self.books?.books[n] = changed.book }
                     self.status?.books = changed.books
                     self.books?.tip = changed.tip
+                    self.books?.tips = changed.tips
                     self.books?.start = changed.start
                     self.books?.needsYou = changed.needsYou
                 case .failure(let why):
@@ -159,7 +160,7 @@ struct BooksPane: View {
 /// The notes under the toolbar: what asks the reader something, each with
 /// the blue circled query. Needs you leads, once live: the books switched
 /// on that wait, with the way to them. The tip is one quieter line under
-/// it: one book from your own shelf with a question, a nudge; Open shows it
+/// it: one book of those Show has chosen, with a question, a nudge; Open shows it
 /// in Details, Not now puts it aside for a month and the tool gives the next.
 /// The marks stand in one column, the buttons end on one edge.
 struct HeadNotes: View {
@@ -167,7 +168,7 @@ struct HeadNotes: View {
     let books: BooksAnswer
 
     var body: some View {
-        let tipped = books.tip.flatMap { tip in books.books.first { $0.id == tip.id }.map { (tip, $0) } }
+        let tipped = books.tip(among: model.filter)  // a book of the selection chosen at Show
         if books.needsYou != nil || tipped != nil {
             VStack(alignment: .leading, spacing: 6) {
                 if let needs = books.needsYou {

@@ -109,7 +109,7 @@ struct CoversPane: View {
                             .padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
                         }
                         .zIndex(1)
-                    Pile(model: model, books: books, coverWidth: RunRow.front.height * scale(runHeight, present) / 1.5)
+                    Pile(model: model, books: books, show: selection(books), coverWidth: RunRow.front.height * scale(runHeight, present) / 1.5)
                         .frame(height: box.size.height - runHeight - 3)
                 }
             }
@@ -505,6 +505,7 @@ struct DoubleRule: View {
 struct Pile: View {
     @ObservedObject var model: WindowModel
     let books: BooksAnswer
+    let show: String  // the selection the run holds: the tip is one of its books
     let coverWidth: CGFloat  // as wide as the front row's covers
 
     private var reading: BooksAnswer.Book? { readingNow(books.books) }
@@ -528,7 +529,7 @@ struct Pile: View {
                             .frame(maxWidth: 360, alignment: .leading)
                         }
                     }
-                    if let tip = books.tip, let book = books.books.first(where: { $0.id == tip.id }) {
+                    if let (tip, book) = books.tip(among: show) {
                         HStack(alignment: .top, spacing: 16) {
                             lying(book, width: coverWidth)
                             VStack(alignment: .leading, spacing: 6) {
