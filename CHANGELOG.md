@@ -5,6 +5,10 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
+## Unreleased
+
+Nothing yet.
+
 ## 0.29.0 - 2026-11-12
 
 ### Changed
