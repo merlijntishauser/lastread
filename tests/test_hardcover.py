@@ -5,7 +5,7 @@ import sqlite3
 import pytest
 
 from lastread.engine import hardcover, job, kobo_db, state
-from lastread.engine.plan import action
+from lastread.engine.plan import action, desired
 from tests.test_core import OLD, make_kobo
 
 
@@ -105,6 +105,47 @@ class FakeHC:
         self.books[ub].update(kw)
         if read:
             self.books[ub]["user_book_reads"][-1].update(read)
+
+
+class Bookkeeping(FakeHC):
+    """Hardcover as its guide "Updating a Book's Progress and Dates Read"
+    (2026-10-23) has it, and as a real shelf showed: it keeps the
+    read-throughs in step itself. Currently Reading starts one when none is
+    going on, Read finishes the one going on, and progress at the edition's
+    last page finishes it and marks the book Read."""
+
+    TODAY = "2026-11-12"
+
+    def _going(self, ub):
+        return hardcover.read_in_progress(self.books[ub]["user_book_reads"])
+
+    def _status(self, ub, was):
+        now = self.books[ub]["status_id"]
+        if now == 2 and was != 2 and not self._going(ub):
+            self.books[ub]["user_book_reads"].append(
+                {"id": self._id(), "started_at": self.TODAY, "finished_at": None, "progress_pages": None, "edition_id": None}
+            )
+        if now == 3 and was != 3 and self._going(ub):
+            self._going(ub)["finished_at"] = self.TODAY
+
+    def update_user_book(self, i, obj):
+        was = self.books[i]["status_id"]
+        super().update_user_book(i, obj)
+        self._status(i, was)
+
+    def update_read(self, i, r):
+        super().update_read(i, r)
+        for u in self.books.values():
+            pages = next((e["pages"] for e in self.isbn.values() if e["id"] == u["edition_id"]), None)
+            for x in u["user_book_reads"]:
+                if x["id"] == i and pages and not x.get("finished_at") and (x.get("progress_pages") or 0) >= pages:
+                    x["finished_at"] = self.TODAY
+                    u["status_id"] = 3
+
+    def reader_sets(self, ub, **kw):
+        was = self.books[ub]["status_id"]
+        super().reader_sets(ub, **kw)
+        self._status(ub, was)
 
 
 def test_pages_from_a_percentage():
@@ -280,6 +321,84 @@ def test_finished_book_set_to_reading_on_hardcover_is_a_reread(tmp_path):
     run(tmp_path, fake)
     got = row(st, "old")
     assert got["state"] == "rereading" and got["state_date"] == "2026-10-03" and fake.books[ub]["status_id"] == 2
+
+
+def opened_again(st, cid, percent):
+    """The Kobo after a finished book was opened again: reading, at a new percentage, its old finish date kept."""
+    st.execute("update book set status=1, percent=? where content_id=?", (percent, cid))
+    st.commit()
+
+
+def test_a_reread_declared_here_is_the_read_through_hardcover_starts(tmp_path):
+    """On a real shelf one declared re-read left two new read-throughs, their
+    ids one apart: the one Hardcover starts when the book goes back to
+    Currently Reading, and the one this tool added beside it."""
+    st = setup(tmp_path, [OLD])
+    fake = Bookkeeping(isbn=OLD_ED)
+    run(tmp_path, fake)
+    ub = sent(st, "old")["user_book_id"]
+    first = dict(fake.books[ub]["user_book_reads"][0])
+    assert first["finished_at"] == "2021-05-01"
+    fake.calls.clear()
+    state.set_state(st, "alice", "old", "rereading", "2026-10-01")
+    run(tmp_path, fake)
+    reads = fake.books[ub]["user_book_reads"]
+    assert [c[0] for c in fake.calls] == ["update_ub", "update_read"] and len(reads) == 2  # one new read-through, Hardcover's
+    assert reads[0] == first and sent(st, "old")["read_id"] == reads[1]["id"]
+    # The Kobo still says 100%: that is the read-through before, not the last page of this one.
+    assert (reads[1]["started_at"], reads[1]["finished_at"], reads[1]["progress_pages"]) == ("2026-10-01", None, 0)
+    fake.calls.clear()
+    run(tmp_path, fake)
+    assert fake.calls == [] and fake.books[ub]["status_id"] == 2 and row(st, "old")["state"] == "rereading"  # not ended the moment it began
+    # Opened again on the Kobo: its percentage is the re-read's, and goes to the re-read's read.
+    opened_again(st, "old", 30)
+    run(tmp_path, fake)
+    assert reads[1]["progress_pages"] == 120 and reads[0] == first and len(reads) == 2
+    assert desired(row(st, "old"))["progress"] == 30
+
+
+def test_a_reread_begun_on_hardcover_goes_on_in_its_own_read(tmp_path):
+    st = setup(tmp_path, [OLD])
+    fake = Bookkeeping(isbn=OLD_ED)
+    run(tmp_path, fake)
+    ub = sent(st, "old")["user_book_id"]
+    first = dict(fake.books[ub]["user_book_reads"][0])
+    fake.reader_sets(ub, status_id=2)  # Currently Reading on Hardcover: it starts a read-through of its own
+    reads = fake.books[ub]["user_book_reads"]
+    assert len(reads) == 2
+    run(tmp_path, fake)
+    got = row(st, "old")
+    assert (got["state"], got["state_date"]) == ("rereading", Bookkeeping.TODAY)  # the new read's start, not the old one's
+    assert sent(st, "old")["read_id"] == reads[1]["id"] and reads[0] == first
+    opened_again(st, "old", 30)
+    run(tmp_path, fake)
+    assert reads[1]["progress_pages"] == 120 and reads[0] == first and len(reads) == 2  # the finished read keeps what it had
+    assert fake.books[ub]["status_id"] == 2 and row(st, "old")["state"] == "rereading"
+
+
+def test_progress_is_never_written_into_a_read_that_has_its_finish_date(tmp_path):
+    """Where Hardcover starts no read-through of its own, the tool adds one:
+    the finished read is the reader's record of that time."""
+    st = setup(tmp_path, [OLD])
+    fake = FakeHC(isbn=OLD_ED)
+    run(tmp_path, fake)
+    ub = sent(st, "old")["user_book_id"]
+    first = dict(fake.books[ub]["user_book_reads"][0])
+    fake.reader_sets(ub, status_id=2)  # set back to Currently Reading, and no new read beside the finished one
+    run(tmp_path, fake)
+    opened_again(st, "old", 30)
+    run(tmp_path, fake)
+    reads = fake.books[ub]["user_book_reads"]
+    assert len(reads) == 2 and reads[0] == first
+    assert (reads[1]["finished_at"], reads[1]["progress_pages"]) == (None, 120) and sent(st, "old")["read_id"] == reads[1]["id"]
+
+
+def test_a_reread_finished_on_the_kobo_after_it_was_declared_is_its_own_100_percent(tmp_path):
+    st = setup(tmp_path, [OLD])
+    state.set_state(st, "alice", "old", "rereading", "2026-10-01")
+    assert desired(row(st, "old"))["progress"] == 0  # finished in 2021, declared now: not begun yet
+    st.execute("update book set finished_at='2999-01-01T10:00:00Z' where content_id='old'")  # finished again, after the declaration
+    assert desired(row(st, "old"))["progress"] == 100
 
 
 def test_removed_on_hardcover_switches_sync_off_and_is_not_added_again(tmp_path):

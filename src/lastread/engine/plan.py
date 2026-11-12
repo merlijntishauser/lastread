@@ -28,7 +28,10 @@ def desired(row) -> dict | None:
     if st == "finished":
         return {"status": "read", "finished": (row["state_date"] or finished or (row["last_read"] or ""))[:10]}
     if st == "rereading":
-        d = {"status": "reading", "progress": int(row["percent"] or 0), "reread": True}
+        # Until the book is opened again the Kobo's 100% is the read-through before. Sent as the re-read's,
+        # it is the edition's last page, and Hardcover then ends the re-read the moment it began.
+        before = row["status"] == 2 and not (row["state_changed"] and (row["finished_at"] or "") > row["state_changed"])
+        d = {"status": "reading", "progress": 0 if before else int(row["percent"] or 0), "reread": True}
         if row["state_date"]:
             d["started"] = row["state_date"]
         return d

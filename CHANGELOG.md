@@ -7,7 +7,23 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **A re-read is one new read-through on Hardcover, not two.** Hardcover
+  starts a read-through itself when a finished book goes back to Currently
+  Reading, and the tool added its own beside it: a re-read declared on the
+  page showed up as two. Progress now goes to the read-through that is
+  going on, and one is added only where Hardcover started none. A re-read
+  from before this version keeps the extra one: remove it on Hardcover.
+- **A re-read begun on Hardcover no longer writes into the finished
+  read.** Its progress and start date went to the read-through you had
+  finished, and the one Hardcover started stayed empty. Progress is never
+  written into a read-through that has its finish date.
+- **A re-read declared while the Kobo still says 100% is not ended at
+  once.** The 100% of the read-through before was sent as the re-read's
+  last page; Hardcover then marked the book Read, and the next sync took
+  that for your own edit and pinned it as finished today. The re-read now
+  stands at its beginning until the book is opened again on the Kobo.
 
 ## 0.29.0 - 2026-11-12
 

@@ -84,9 +84,17 @@ Three sources of truth, each for its own part:
   Tests: `tests/test_hardcover.py::test_live_sends_one_read_entry_per_book_and_is_idempotent`,
   `tests/test_core.py::test_modes_and_dry_run_actions`
 - **H8** A book gets one read-through on Hardcover (the one Hardcover
-  makes when a book lands on the shelf is used). Only a re-read you
-  declared adds a second one.
-  Tests: `tests/test_hardcover.py::test_reread_of_a_shelf_book_adds_a_read_but_a_new_book_never_gets_two`
+  makes when a book lands on the shelf is used). A re-read gets one more:
+  the one Hardcover starts itself when a finished book goes back to
+  *Currently reading*, or one that is added when it starts none. Progress
+  goes to the read-through that is going on, the newest without a finish
+  date, and is never written into one that has its finish date. Until you
+  open the book again, the Kobo's 100% is the read-through before and a
+  re-read stands at its beginning.
+  Tests: `tests/test_hardcover.py::test_reread_of_a_shelf_book_adds_a_read_but_a_new_book_never_gets_two`,
+  `tests/test_hardcover.py::test_a_reread_declared_here_is_the_read_through_hardcover_starts`,
+  `tests/test_hardcover.py::test_progress_is_never_written_into_a_read_that_has_its_finish_date`,
+  `tests/test_hardcover.py::test_a_reread_finished_on_the_kobo_after_it_was_declared_is_its_own_100_percent`
 - **H9** Per book you can overrule the Kobo on the page: *Finished* (with a
   date), *Rereading*, *Want to read*, *Did not finish*. *Want to read* and
   *Did not finish* are left alone on Hardcover, with no progress, until
@@ -233,7 +241,10 @@ or found there.
   it.
   Tests: `tests/test_hardcover.py::test_read_on_hardcover_becomes_a_pinned_finished_state`
 - **E2** A finished book set back to *Currently reading* there: a re-read.
-  Tests: `tests/test_hardcover.py::test_finished_book_set_to_reading_on_hardcover_is_a_reread`
+  It goes on in the read-through Hardcover started for it, from that
+  one's start date; the finished one keeps its dates.
+  Tests: `tests/test_hardcover.py::test_finished_book_set_to_reading_on_hardcover_is_a_reread`,
+  `tests/test_hardcover.py::test_a_reread_begun_on_hardcover_goes_on_in_its_own_read`
 - **E3** *Want to read* or *Did not finish* there: left alone.
   Tests: `tests/test_hardcover.py::test_want_to_read_and_dnf_are_left_alone_until_follow_kobo`
 - **E4** Taken off the shelf there: sync goes off for that book, for every

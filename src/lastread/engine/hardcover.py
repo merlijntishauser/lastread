@@ -576,6 +576,13 @@ def pages_for(percent: int, pages) -> int | None:
     return max(0, min(int(pages), round(int(percent or 0) / 100 * int(pages))))
 
 
+def read_in_progress(reads: list[dict]) -> dict | None:
+    """The read-through that is going on, of a book's reads oldest first: the
+    newest without a finish date. Hardcover's own rule for where progress
+    belongs."""
+    return next((r for r in reversed(reads) if not r.get("finished_at")), None)
+
+
 def apply(client: Client, row, want: dict, sent: dict, existing: dict | None) -> dict:
     """Bring Hardcover to `want` for one book. Returns the new last_sent
     (hardcover ids, and "hc": Hardcover's state as left behind, the baseline
@@ -615,18 +622,18 @@ def apply(client: Client, row, want: dict, sent: dict, existing: dict | None) ->
             p = pages_for(want.get("progress", 0), row["hc_pages"])
             if p is not None:
                 read["progress_pages"] = p
-        if want.get("reread") and not sent.get("reread") and was_on_shelf:
-            # A re-read of a book already on the shelf is a new read-through. One this sent before
-            # whose answer was lost, or whose record a crash kept from being written, is there
-            # already: the same start, not finished, not the read-through before. That one is used.
-            read_id = next(
-                (
-                    r["id"]
-                    for r in client.reads(ub_id)
-                    if r["id"] != sent.get("read_id") and not r.get("finished_at") and r.get("started_at") == read.get("started_at")
-                ),
-                None,
-            )
+        if want["status"] == "reading" and was_on_shelf:
+            # Hardcover keeps the read-throughs in step itself (its guide "Updating a Book's Progress and
+            # Dates Read", 2026-10-23): a book set to Currently Reading gets a new one when the last is
+            # finished. A re-read declared here used to add a second beside it (seen on a real shelf:
+            # two new reads, ids one apart). So progress goes to the read in progress, which is also the
+            # one this sent before whose answer was lost; never into a read that has its finish date.
+            # Asked for only when the read on record cannot be it: every other book costs no question.
+            known = {r["id"]: r for r in (existing or {}).get("user_book_reads") or []}
+            declared = want.get("reread") and not sent.get("reread")
+            if declared or not read_id or (known.get(read_id) or {}).get("finished_at"):
+                going = read_in_progress(client.reads(ub_id))
+                read_id = going["id"] if going else None
         elif read and not read_id:
             # Hardcover creates a read entry by itself when a book lands on the
             # shelf (dated that day). Use that one; inserting another made every

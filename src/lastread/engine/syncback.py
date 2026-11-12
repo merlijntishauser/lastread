@@ -75,6 +75,12 @@ def pull(con, reader: str, shelf: list[dict]) -> dict:
             continue  # another copy speaks for this Hardcover book, and its record is copied to this one below
         reads = ub.get("user_book_reads") or []
         read = next((x for x in reads if x["id"] == sent.get("read_id")), reads[-1] if reads else {})
+        going = hardcover.read_in_progress(reads)
+        if ub["status_id"] == 2 and read.get("finished_at") and going:
+            # Begun again on Hardcover: it started a read-through of its own beside the finished one.
+            # That one is the read from here on, with its start date; the finished one keeps its dates.
+            read = going
+            sent["read_id"] = going["id"]
         cur = {
             "status_id": ub["status_id"],
             "edition_id": ub.get("edition_id"),
