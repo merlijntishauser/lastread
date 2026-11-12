@@ -259,6 +259,14 @@ def test_the_chain_is_built_from_doctors_groups_and_the_steps_of_a_sync():
         assert f'"{step}"' in steps and f'"{step}"' in chain, step
 
 
+def test_the_app_stops_a_process_only_through_the_way_that_asks_whether_it_runs():
+    """Foundation raises, and the app goes down, when a process that never
+    started is terminated: a sign-in whose tool could not be started, then
+    Cancel. Process.stop() asks first; nothing else calls terminate()."""
+    lines = [(p.name, line.strip()) for p in sorted(MACOS.glob("*.swift")) for line in p.read_text().splitlines() if "terminate()" in line]
+    assert [line for _, line in lines if not line.startswith("///")] == ["if isRunning { terminate() }"], lines
+
+
 def test_the_wrapper_and_the_tool_use_the_same_names():
     swift = "".join(p.read_text() for p in sorted(MACOS.glob("*.swift")))
     with open(MACOS / "Info.plist", "rb") as fh:

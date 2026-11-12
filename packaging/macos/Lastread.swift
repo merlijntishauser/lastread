@@ -73,6 +73,13 @@ func toolProcess(_ args: [String], input: String? = nil) -> (Process, Pipe) {
     return (p, out)
 }
 
+extension Process {
+    /// terminate(), for a process that may not have started or has ended already: Foundation raises on one that never ran.
+    func stop() {
+        if isRunning { terminate() }
+    }
+}
+
 /// Runs the tool and returns whether it ended well, and everything it printed.
 /// Notifications come back as NOTIFY|title|message lines, so that a click on
 /// one lands on this app.
@@ -608,7 +615,7 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        model?.signInProcess?.terminate()  // a quit with the sign-in sheet open: its tool goes too
+        model?.signInProcess?.stop()  // a quit with the sign-in sheet open: its tool goes too
     }
 
     func windowWillClose(_ notification: Notification) {

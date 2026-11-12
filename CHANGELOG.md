@@ -89,6 +89,11 @@ minor version may change behaviour; the notes will say so.
   notification now says "Kobo read, Hardcover not reached", the app and the
   history show it as failed, and `lastread sync` ends with status 1. What
   the Kobo said is kept as before, and the next sync sends it.
+- Mac app: scrolling in Help, Release Notes and Settings is no longer
+  swallowed while Covers is showing behind them. In server mode, a Sync or
+  State you just set is no longer put back by a list of books that was
+  asked for before it. And Cancel on a sign-in whose tool could not be
+  started no longer takes the app down.
 
 ### Security
 

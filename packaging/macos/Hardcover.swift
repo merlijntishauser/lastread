@@ -29,7 +29,7 @@ extension WindowModel {
             problem = previewLeavesHardcover
             return
         }
-        signInProcess?.terminate()
+        signInProcess?.stop()
         signIn = SignIn()
         let (p, out) = toolProcess(["token", "--json"] + (code ? ["--code"] : []))
         signInProcess = p
@@ -38,7 +38,10 @@ extension WindowModel {
             do {
                 try p.run()
             } catch {
-                DispatchQueue.main.async { self.signIn?.problem = "\(name) could not start its tool: \(error.localizedDescription)" }
+                DispatchQueue.main.async {
+                    if self.signInProcess === p { self.signInProcess = nil }  // it never ran: there is nothing to stop
+                    self.signIn?.problem = "\(name) could not start its tool: \(error.localizedDescription)"
+                }
                 return
             }
             var rest = Data()
@@ -80,13 +83,13 @@ extension WindowModel {
     func cancelSignIn() {
         let p = signInProcess
         signInProcess = nil
-        p?.terminate()
+        p?.stop()
         signIn = nil
     }
 
     /// The second way: a token made on Hardcover, given on standard input, never as an argument.
     func paste(_ token: String) {
-        signInProcess?.terminate()
+        signInProcess?.stop()
         signInProcess = nil
         DispatchQueue.global(qos: .userInitiated).async {
             let (_, output) = tool(["token", "--paste", "--json"], input: token)
@@ -173,7 +176,7 @@ struct ConnectSheet: View {
                 }
                 HStack {
                     Button("Paste a token instead…") {
-                        model.signInProcess?.terminate()
+                        model.signInProcess?.stop()
                         model.signInProcess = nil
                         model.signIn?.pasting = true
                     }

@@ -381,7 +381,10 @@ struct CoversPane: View {
         focused = true
         model.chosenBook = nil  // Details chosen on Books does not open here as a sheet
         watcher = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-            guard let window = event.window, window.isKeyWindow, let content = window.contentView else { return event }
+            // Its own window only: Help, Release Notes and Settings scroll as they are, also where the run would be.
+            guard let window = event.window, window === (NSApp.delegate as? App)?.window, window.isKeyWindow,
+                let content = window.contentView
+            else { return event }
             let at = CGPoint(x: event.locationInWindow.x, y: content.bounds.height - event.locationInWindow.y)
             guard runFrame.contains(at) else { return event }
             let dx = abs(event.scrollingDeltaX) >= abs(event.scrollingDeltaY) ? event.scrollingDeltaX : event.scrollingDeltaY

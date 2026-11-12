@@ -69,6 +69,7 @@ final class WindowModel: ObservableObject {
     @Published var signIn: SignIn?  // connecting to Hardcover, while the sheet is open
     var signInProcess: Process?
     private var coversFetched = false  // once per window: the covers this Mac does not have yet
+    private var booksAsked = 0  // counts the questions for the list: only the last one's answer is shown
 
     let register: () -> String?  // the launch agent, before setup: nil when it is in place
     @Published var settingUp = false  // the galley shows setup (Setup.swift): the first time, or asked for from a check
@@ -165,9 +166,17 @@ final class WindowModel: ObservableObject {
             books = nil
             return
         }
+        booksAsked += 1
+        let asked = booksAsked
         DispatchQueue.global(qos: .userInitiated).async {
             let found = answer(BooksAnswer.self, covers ? ["books", "--covers", "--json"] : ["books", "--json"])
             DispatchQueue.main.async {
+                // Asked again since: this answer is from before a Sync or State that was set meanwhile (the one
+                // with the covers takes long in server mode). The covers are asked for again, from what is there now.
+                guard asked == self.booksAsked else {
+                    if covers { self.loadBooks(covers: true) }
+                    return
+                }
                 switch found {
                 case .success(let list):
                     self.booksBroken = nil
