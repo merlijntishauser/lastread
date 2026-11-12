@@ -66,6 +66,11 @@ minor version may change behaviour; the notes will say so.
   A title typed with a curly apostrophe now also agrees with the same title
   with a straight one. Books that waited under the old rules are looked up
   once more at the next sync.
+- **Local mode: `lastread open` no longer opens a page that is not there.**
+  A page that was killed, or a computer that lost power while it ran, left
+  its note behind, and when another program had its process number by then
+  the link went to a port nothing listened on. The port is now tried, and
+  the page started again when nobody answers.
 
 ### Security
 

@@ -27,6 +27,7 @@ import hmac
 import json
 import os
 import secrets
+import socket
 import subprocess
 import sys
 import threading
@@ -141,14 +142,19 @@ class Local:
 
 # ---------- starting and finding it ----------
 def running() -> dict | None:
-    """{"port", "pid"} of the page that is up, or None."""
+    """{"port", "pid"} of the page that is up, or None. The file alone does
+    not say: a page that was killed, or a computer that lost power, leaves
+    it behind, and by then its process number may be another program's. So
+    the port is tried as well."""
     try:
         with open(_info_path()) as fh:
             info = json.load(fh)
-        os.kill(int(info["pid"]), 0)
-        return {"port": int(info["port"]), "pid": int(info["pid"])}
-    except (OSError, ValueError, KeyError):
+        port, pid = int(info["port"]), int(info["pid"])
+        os.kill(pid, 0)
+        socket.create_connection((HOST, port), timeout=2).close()
+    except (OSError, ValueError, KeyError, TypeError):
         return None
+    return {"port": port, "pid": pid}
 
 
 def start(timeout: float = 15.0) -> dict:
@@ -187,8 +193,6 @@ def link() -> str:
 def serve() -> None:
     """Run the page (the `page` command). Listens on the loopback address
     only; there is no option to change that."""
-    import socket
-    import threading
 
     import uvicorn
 

@@ -7,6 +7,7 @@ import importlib
 import json
 import os
 import shutil
+import socket
 import sqlite3
 import subprocess
 import sys
@@ -528,6 +529,23 @@ def test_the_real_page_process(home):
     assert page.running() is None and not os.path.exists(home / "state" / "page.json")
 
 
+def test_a_page_file_left_behind_is_not_a_page_that_runs(home):
+    """A page that was killed, or a computer that lost power, leaves page.json;
+    by the next time its process number can be a program that lives."""
+    os.makedirs(home / "state")
+    held = socket.socket()
+    held.bind(("127.0.0.1", 0))
+    port = held.getsockname()[1]
+    (home / "state" / "page.json").write_text(json.dumps({"port": port, "pid": os.getpid()}))
+    try:
+        assert page.running() is None  # the process is there, nothing listens on the port
+        held.listen()
+        assert page.running() == {"port": port, "pid": os.getpid()}
+    finally:
+        held.close()
+    assert page.running() is None
+
+
 def test_the_page_stops_by_itself_when_nobody_uses_it(home):
     env = {**os.environ, "KHS_HOME": str(home / "state"), "KHS_PAGE_IDLE_SECONDS": "1"}
     os.makedirs(home / "state")
@@ -553,9 +571,13 @@ def test_open_reuses_the_running_page_or_starts_one(home, monkeypatch):
     assert page.running() is None
     first = page.link()
     assert first.startswith("http://127.0.0.1:4000/?k=") and started == [1]
-    with open(home / "state" / "page.json", "w") as fh:
-        fh.write(f'{{"port": 4001, "pid": {os.getpid()}}}')
-    assert page.link().startswith("http://127.0.0.1:4001/?k=") and started == [1]  # found it, did not start another
+    with socket.socket() as up:  # a page that answers on its port
+        up.bind(("127.0.0.1", 0))
+        up.listen()
+        port = up.getsockname()[1]
+        with open(home / "state" / "page.json", "w") as fh:
+            fh.write(f'{{"port": {port}, "pid": {os.getpid()}}}')
+        assert page.link().startswith(f"http://127.0.0.1:{port}/?k=") and started == [1]  # found it, did not start another
     with open(home / "state" / "page.json", "w") as fh:
         fh.write('{"port": 4002, "pid": 999999999}')  # a page that is gone
     assert page.running() is None and page.link().startswith("http://127.0.0.1:4000/") and started == [1, 1]
