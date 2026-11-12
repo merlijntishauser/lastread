@@ -1406,12 +1406,14 @@ def pick(request: Request, id: str = Form(...), choice: str = Form(...), back: s
 
 
 @app.post("/research")
-def research(request: Request, id: str = Form(...), q: str = Form(...), back: str = Form("")):
+def research(request: Request, id: str = Form(...), q: str = Form(""), back: str = Form("")):
     if bad := check_origin(request):
         return bad
     reader = reader_for(request)
     if reader is None:
         return PlainTextResponse(T["unknown_user"], status_code=403)
+    if not q.strip():  # Search with nothing typed: the dialog as it was, and nothing asked of Hardcover
+        return answer(request, db(), reader, id, back)
     try:
         cands = hardcover.shown(hardcover.Client(accounts.token_for(db(), reader), tries=1).search(q))
     except hardcover.HardcoverError as ex:

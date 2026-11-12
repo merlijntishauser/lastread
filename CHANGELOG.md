@@ -74,6 +74,10 @@ minor version may change behaviour; the notes will say so.
 - **Linux: `lastread open` and `lastread token` no longer hang until you
   quit the browser.** With no browser running yet, the command that opens
   the page becomes the browser, and the tool waited for it.
+- **Searching Hardcover with nothing typed no longer throws away the books
+  it found before.** In a book's Details, Search with an empty box asked
+  Hardcover for nothing and replaced the books to choose from with that
+  answer. Now nothing is asked and the list stays.
 
 ### Security
 

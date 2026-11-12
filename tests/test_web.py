@@ -445,6 +445,13 @@ def test_dialog_forms_answer_with_refreshed_details_and_row(tmp_path, monkeypatc
         Stub, "search", lambda self, q, n=3: [{"book_id": 77, "title": "Mine Now", "authors": ["C"], "pages": 120, "slug": "m"}]
     )
     c.post("/research", data={"id": "mine", "q": "Mine Now", "back": "f=all"}, headers=h)
+    # Search with nothing typed: Hardcover is not asked, and the books it found before stay to choose from.
+    asked = []
+    monkeypatch.setattr(Stub, "search", lambda self, q, n=3: asked.append(q) or [])
+    for typed in ({"q": ""}, {"q": "   "}, {}):
+        r = c.post("/research", data={"id": "mine", "back": "f=all", **typed}, headers=h)
+        assert r.status_code == 200 and '<option value="77|120|Mine Now"' in r.json()["details"], typed
+    assert asked == []
     # Use the candidate: the row's status moves on, the dialog shows the match.
     r = c.post("/pick", data={"id": "mine", "choice": "77|120|Mine Now", "back": "f=all"}, headers=h)
     d = r.json()
