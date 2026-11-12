@@ -131,8 +131,11 @@ Three sources of truth, each for its own part:
   without its subtitle or without a series name in front. A leading article
   (the, a, de, het, een) does not count. A title that only starts the same
   is believed of the search's first hit alone: further down it may as well
-  be the next book of a series.
-  Tests: `tests/test_matching.py::test_a_title_agrees_exactly_as_a_part_or_as_a_start`
+  be the next book of a series. Titles and names are compared letter by
+  letter in whatever script they are written; capitals, accents and
+  punctuation do not count.
+  Tests: `tests/test_matching.py::test_a_title_agrees_exactly_as_a_part_or_as_a_start`,
+  `tests/test_matching.py::test_a_title_and_an_author_in_another_script_agree_as_any_other`
 - **M7** A translation is taken when Hardcover itself lists the Kobo's
   title among the other titles of the book, and an author agrees. A
   translation Hardcover does not list waits for you; it is never guessed

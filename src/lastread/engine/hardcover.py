@@ -393,15 +393,23 @@ def _shelf_rows(data: dict) -> list[dict]:
 # MATCH_RULES numbers these rules. A book that waits for a match was looked
 # up by some version of them; when the number here is higher it is looked
 # up once more (job.run), and then waits again.
-MATCH_RULES = 2
+MATCH_RULES = 3  # 3: letters of any script are compared, where only a to z were
 EXACT, PART, PREFIX = 3, 2, 1
 ARTICLES = {"de", "het", "een", "the", "a", "an"}  # Dutch and English: the two languages this was tried on
 PARTS = re.compile(r"[:;]|\s[-\u2013\u2014]\s")
 
 
 def norm(s: str) -> str:
-    s = unicodedata.normalize("NFKD", (s or "").lower()).encode("ascii", "ignore").decode()
-    return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", s)).strip()
+    """Text to compare: lower case, without accents, letters and digits of
+    any script, everything else a space."""
+    out = []
+    for ch in unicodedata.normalize("NFKD", (s or "").casefold()):
+        kind = unicodedata.category(ch)[0]
+        if kind in "LN" or (kind == "M" and not unicodedata.combining(ch)):
+            out.append(ch)  # a mark that is part of the letter, as a vowel sign in Devanagari or Thai
+        elif kind != "M":  # an accent goes; the rest separates words
+            out.append(" ")
+    return " ".join("".join(out).split())
 
 
 def first_author(attribution: str) -> str:

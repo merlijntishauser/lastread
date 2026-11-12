@@ -60,6 +60,12 @@ minor version may change behaviour; the notes will say so.
 - **An ISBN the Kobo keeps with hyphens, with spaces or as ten digits is
   now taken for the ISBN it is.** Such a book was looked up by title and
   author instead, and its edition was not found by its number.
+- **Books in Cyrillic, Greek, Chinese, Japanese and other scripts are now
+  matched by title and author.** Only the letters a to z were compared, so
+  such a title was empty to the tool and the book waited for you for ever.
+  A title typed with a curly apostrophe now also agrees with the same title
+  with a straight one. Books that waited under the old rules are looked up
+  once more at the next sync.
 
 ### Security
 

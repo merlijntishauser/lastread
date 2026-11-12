@@ -117,3 +117,21 @@ def test_a_waiting_book_gets_one_more_look_when_the_rules_have_changed(tmp_path)
     st.commit()
     run(tmp_path, fake, live=False)
     assert fake.calls == [] and row(st, "rd")["hc_book_id"] == 99
+
+
+def test_a_title_and_an_author_in_another_script_agree_as_any_other():
+    master = hit(30, "Мастер и Маргарита", ["Михаил Булгаков"])
+    assert agreement("МАСТЕР И МАРГАРИТА", "Михаил Булгаков", master) == EXACT
+    assert agreement("Мастер и Маргарита", "Булгаков", master) == EXACT  # the last name is what has to agree
+    assert agreement("Собачье сердце", "Михаил Булгаков", master) == 0  # the same author, another book
+    assert agreement("Мастер и Маргарита", "Лев Толстой", master) == 0
+    assert agreement("ΖΟΡΜΠΑΣ", "Νίκος Καζαντζάκης", hit(31, "Ζορμπάς", ["Νίκος Καζαντζάκης"])) == EXACT  # accents and the last sigma
+    wood = hit(32, "ノルウェイの森", ["村上 春樹"])
+    assert agreement("ノルウェイの森", "村上 春樹", wood) == EXACT and agreement("海辺のカフカ", "村上 春樹", wood) == 0
+    assert choose("Мастер и Маргарита", "Михаил Булгаков", [hit(33, "Белая гвардия", ["Михаил Булгаков"]), master]) is master
+    # A book whose title is in two scripts is not the book with the Latin half alone.
+    assert agreement("1984 (Русское издание)", "George Orwell", hit(34, "1984", ["George Orwell"])) == 0
+    # Latin is compared as before: accents do not count, and neither does which apostrophe was typed.
+    assert hardcover.norm("  L'Œil du Monde: Brontë, Straße_1  ") == "l œil du monde bronte strasse 1"
+    assert agreement("Ender\u2019s Game", "Orson Scott Card", hit(35, "Ender's Game", ["Orson Scott Card"])) == EXACT
+    assert hardcover.MATCH_RULES == 3  # a book that waited under the rules before is looked up once more (M2)
