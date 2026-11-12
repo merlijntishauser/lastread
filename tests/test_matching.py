@@ -135,3 +135,27 @@ def test_a_title_and_an_author_in_another_script_agree_as_any_other():
     assert hardcover.norm("  L'Œil du Monde: Brontë, Straße_1  ") == "l œil du monde bronte strasse 1"
     assert agreement("Ender\u2019s Game", "Orson Scott Card", hit(35, "Ender's Game", ["Orson Scott Card"])) == EXACT
     assert hardcover.MATCH_RULES == 3  # a book that waited under the rules before is looked up once more (M2)
+
+
+def test_a_hit_that_agrees_in_nothing_is_not_put_to_the_reader(tmp_path):
+    """Hardcover's search answers with something for nearly any words. Asked for
+    a book it does not have, it gave three that share neither title nor author."""
+    eyes = ("eyes", "Vierkante ogen", "Felienne Hermans", "9789044553277", 3, 1, "2026-11-05T19:48:44Z", 360)
+    kings = ("kings", "De strijd der koningen", "George R.R. Martin", "9789000000002", 10, 1, "2026-09-29T10:00:00Z", 900)
+    unrelated = [
+        hit(1200299, "Het vierkant van de wraak", ["Pieter Aspe"]),
+        hit(724899, "Health Communism: A Surplus Manifesto", ["Beatrice Adler-Bolton", "Artie Vierkant"]),
+    ]
+    clash = hit(7, "A Clash of Kings", ["George R.R. Martin"])  # the author agrees: a translation Hardcover does not list
+    same_title = hit(8, "De strijd der koningen", ["Iemand Anders"])  # the title agrees: perhaps another author's name on it
+    st = setup(tmp_path, [eyes, kings])
+    r = run(tmp_path, FakeHC(search={"Vierkante": unrelated, "De": [unrelated[0], clash, same_title]}), live=False)
+    assert (r["matched"], r["uncertain"]) == (0, 2)  # both still wait for the reader
+    assert (row(st, "eyes")["hc_how"], json.loads(row(st, "eyes")["hc_candidates"])) == ("none", [])
+    assert row(st, "kings")["hc_how"] == "uncertain"
+    assert [c["book_id"] for c in json.loads(row(st, "kings")["hc_candidates"])] == [7, 8]
+    related = hardcover.related
+    assert related("Helgoland", "Carlo Rovelli", hit(4, "Helgoland: Making Sense of the Quantum Revolution", ["Someone Else"]))  # a part
+    assert related("Dune", "Frank Herbert", hit(21, "Dune Messiah", ["Someone Else"]))  # a start, wherever it stands
+    assert related("Het Oog van de Wereld", "", JORDAN) and not related("", "", JORDAN)  # a title Hardcover lists for it
+    assert not related("Vierkante ogen", "Felienne Hermans", unrelated[1])

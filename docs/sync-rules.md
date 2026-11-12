@@ -164,6 +164,11 @@ Three sources of truth, each for its own part:
   `tests/test_epub.py::test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names`,
   `tests/test_epub.py::test_a_waiting_book_is_looked_up_again_when_its_isbn_arrives`,
   `tests/test_local.py::test_a_book_put_on_the_kobo_by_hand_is_found_by_the_isbn_in_its_file`
+- **M11** A hit of the search that agrees with the Kobo's book in neither
+  title nor author is not put to you. When none is left, the book counts
+  as not found: Hardcover may not have it yet. What you search for
+  yourself is shown as Hardcover answers it.
+  Tests: `tests/test_matching.py::test_a_hit_that_agrees_in_nothing_is_not_put_to_the_reader`
 
 ## Several Kobo books that are one book on Hardcover
 

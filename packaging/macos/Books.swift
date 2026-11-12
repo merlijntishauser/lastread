@@ -587,7 +587,8 @@ struct DetailsPane: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Which book is it?").font(.headline).accessibilityAddTraits(.isHeader)
             if book.details.candidates.isEmpty {
-                Text("Hardcover found nothing for it. Look for it by another title.").font(.callout).foregroundStyle(Pencil.graphite)
+                Text("Hardcover found nothing for it. Look for it by another title. A book Hardcover does not have yet has to be added there first.")
+                    .font(.callout).foregroundStyle(Pencil.graphite)
             }
             ForEach(book.details.candidates, id: \.id) { c in
                 HStack(alignment: .firstTextBaseline) {

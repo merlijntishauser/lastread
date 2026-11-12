@@ -103,6 +103,12 @@ minor version may change behaviour; the notes will say so.
   trigger away from the copy in Applications (after the image was ejected,
   plugging in started nothing). And Settings, when open, shows Connected
   and Go Live as soon as you connect or go live in the window.
+- **A book that Hardcover does not have is no longer offered three books
+  that have nothing to do with it.** Hardcover's search answers with
+  something for nearly any words. A hit that shares neither a title nor an
+  author with your book is left out, and when none is left the book says
+  that Hardcover found nothing, and that a book it does not have yet has to
+  be added there first. What you search for yourself is shown as before.
 
 ### Security
 

@@ -393,7 +393,7 @@ def _shelf_rows(data: dict) -> list[dict]:
 # MATCH_RULES numbers these rules. A book that waits for a match was looked
 # up by some version of them; when the number here is higher it is looked
 # up once more (job.run), and then waits again.
-MATCH_RULES = 3  # 3: letters of any script are compared, where only a to z were
+MATCH_RULES = 3  # 3: letters of any script are compared, where only a to z were; a hit that agrees in nothing is not offered
 EXACT, PART, PREFIX = 3, 2, 1
 ARTICLES = {"de", "het", "een", "the", "a", "an"}  # Dutch and English: the two languages this was tried on
 PARTS = re.compile(r"[:;]|\s[-\u2013\u2014]\s")
@@ -444,6 +444,22 @@ def agreement(title: str, attribution: str, cand: dict, first: bool = False) -> 
     return 0
 
 
+def related(title: str, attribution: str, cand: dict) -> bool:
+    """Whether a search hit is worth putting to the reader: an author agrees,
+    or a title does (as in agreement, wherever the hit stands). Hardcover's
+    search answers with something for nearly any words; a hit that shares
+    neither says only that the book was not found."""
+    if _last_names((attribution or "").split(",")) & _last_names(cand.get("authors") or []):
+        return True
+    ours, own = title_key(title), cand.get("title") or ""
+    theirs = title_key(own)
+    if not ours:
+        return False
+    if ours in {theirs, *(title_key(t) for t in cand.get("also") or []), *(title_key(part) for part in PARTS.split(own))}:
+        return True
+    return bool(theirs) and (ours.startswith(theirs + " ") or theirs.startswith(ours + " "))
+
+
 def choose(title: str, attribution: str, cands: list[dict]) -> dict | None:
     """The hit that is this book, or None when the reader has to say."""
     scored = [(agreement(title, attribution, c, first=i == 0), c) for i, c in enumerate(cands)]
@@ -492,13 +508,14 @@ def match_books(client: Client, rows) -> dict[str, dict]:
                 "candidates": [],
             }
         else:
+            offered = [c for c in cands if related(r["title"], r["author"], c)]
             out[r["content_id"]] = {
-                "how": "uncertain" if cands else "none",
+                "how": "uncertain" if offered else "none",
                 "book_id": None,
                 "edition_id": None,
                 "pages": None,
                 "title": None,
-                "candidates": shown(cands),
+                "candidates": shown(offered),
             }
     return out
 
