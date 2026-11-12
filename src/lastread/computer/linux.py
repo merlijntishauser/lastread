@@ -35,8 +35,9 @@ KEYRING = ("service", "kobo-hardcover-sync")  # the keyring entry keeps its name
 class Linux(Computer):
     name = "this computer"
 
-    def __init__(self, run=subprocess.run, home: str | None = None, user: str | None = None, which=shutil.which):
+    def __init__(self, run=subprocess.run, home: str | None = None, user: str | None = None, which=shutil.which, start=subprocess.Popen):
         self.run = run
+        self.start = start
         self.which = which
         self.home = home or os.path.expanduser("~")
         self.user = user or getpass.getuser()
@@ -138,7 +139,14 @@ class Linux(Computer):
         if not self.which("xdg-open"):
             print(url)  # no desktop to open it on: at least say where it is
             return
-        self._call("xdg-open", url)
+        # Started, not waited for: with no browser running yet xdg-open becomes the browser, and a
+        # command that waited for it (or for its output) would end when the reader quits the browser.
+        try:
+            self.start(
+                ["xdg-open", url], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True
+            )
+        except OSError:
+            print(url)
 
     # --- the trigger: a user service the Kobo's mount wants
     @property

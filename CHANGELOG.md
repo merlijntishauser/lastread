@@ -71,6 +71,9 @@ minor version may change behaviour; the notes will say so.
   its note behind, and when another program had its process number by then
   the link went to a port nothing listened on. The port is now tried, and
   the page started again when nobody answers.
+- **Linux: `lastread open` and `lastread token` no longer hang until you
+  quit the browser.** With no browser running yet, the command that opens
+  the page becomes the browser, and the tool waited for it.
 
 ### Security
 

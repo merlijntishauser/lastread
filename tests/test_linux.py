@@ -32,7 +32,7 @@ class Desk:
     def __init__(self, tools=(), keyring_works=True, keyring_keeps=True, systemd_works=True):
         self.tools, self.keyring_works, self.systemd_works = set(tools), keyring_works, systemd_works
         self.keyring_keeps = keyring_keeps
-        self.calls, self.keyring = [], {}
+        self.calls, self.keyring, self.started = [], {}, []
 
     def which(self, name):
         return "/usr/bin/" + name if name in self.tools else None
@@ -59,13 +59,17 @@ class Desk:
             out = "sdb\n"
         return SimpleNamespace(returncode=rc, stdout=out, stderr=err)
 
+    def start(self, args, **kw):  # subprocess.Popen: started, not waited for
+        self.calls.append((args, None))
+        self.started.append((args, kw))
+
     def ran(self, tool):
         return [a for a, _ in self.calls if a[0] == tool]
 
 
 def desk_computer(home, **kw):
     d = Desk(**kw)
-    return linux.Linux(run=d, which=d.which, home=str(home), user="sam"), d
+    return linux.Linux(run=d, which=d.which, home=str(home), user="sam", start=d.start), d
 
 
 def test_this_platform_is_one_of_the_two():
@@ -225,6 +229,7 @@ def test_notify_eject_and_open(home, capsys):
     assert desk.ran("udisksctl") == [["udisksctl", "unmount", "-b", "/dev/sdb1"], ["udisksctl", "power-off", "-b", "/dev/sdb"]]
     pc.open_page("http://127.0.0.1:4000/?k=abc")
     assert desk.ran("xdg-open") == [["xdg-open", "http://127.0.0.1:4000/?k=abc"]]
+    assert desk.started[0][1]["stdout"] == subprocess.DEVNULL and desk.started[0][1]["start_new_session"] is True
     # A desktop without these: nothing breaks; the link is at least printed.
     bare, quiet = desk_computer(home)
     bare.notify("t", "m")
@@ -282,3 +287,21 @@ def test_the_whole_tool_on_this_machine(home, monkeypatch, capsys):
             time.sleep(0.05)
     assert page.running() is None
     pc.delete_secret(HARDCOVER)
+
+
+def test_opening_the_page_does_not_wait_for_the_browser(home, tmp_path, monkeypatch):
+    """With no browser running yet, xdg-open becomes the browser and ends when
+    the reader quits it: `open` and `token` are done long before."""
+    tool = tmp_path / "bin" / "xdg-open"
+    tool.parent.mkdir()
+    tool.write_text(f'#!/bin/sh\necho "$1" > "{tmp_path}/opened"\nsleep 4\n')
+    tool.chmod(0o755)
+    monkeypatch.setenv("PATH", f"{tool.parent}{os.pathsep}{os.environ['PATH']}")
+    began = time.monotonic()
+    linux.Linux(home=str(home), user="sam").open_page("http://127.0.0.1:4000/?k=abc")
+    assert time.monotonic() - began < 2
+    for _ in range(60):
+        if (tmp_path / "opened").exists() and (tmp_path / "opened").read_text():
+            break
+        time.sleep(0.05)
+    assert (tmp_path / "opened").read_text() == "http://127.0.0.1:4000/?k=abc\n"
