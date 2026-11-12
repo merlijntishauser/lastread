@@ -1314,8 +1314,13 @@ def _to_kobo(a, computer) -> None:
             cfg.to_kobo, saved = folder, True
             config.save(cfg)
     if a.json:  # for the Mac app: the folder as it is now, and what this call did
+        found = tokobo.summary(cfg.to_kobo, config.state_dir())
+        if found["list"]:  # their covers, for the list of books: from the files this look has just read
+            from .computer import runner
+
+            runner.keep_folder_covers(cfg.to_kobo, config.state_dir(), found["list"])
         return _json(
-            tokobo.summary(cfg.to_kobo, config.state_dir())
+            found
             | {
                 "saved": saved,
                 "too_many": too_many,

@@ -109,6 +109,12 @@ minor version may change behaviour; the notes will say so.
   author with your book is left out, and when none is left the book says
   that Hardcover found nothing, and that a book it does not have yet has to
   be added there first. What you search for yourself is shown as before.
+- **A book from your EPUB folder has its cover in the list without the
+  Kobo being plugged in again.** The cover was read from the book's file
+  on the Kobo, at the first sync after the Kobo had taken the book in. It
+  is now also read from the file in the folder: when the book goes on the
+  Kobo, and for books that went earlier the next time the app looks at
+  the folder.
 
 ### Security
 

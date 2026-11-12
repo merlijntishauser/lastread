@@ -524,6 +524,29 @@ def _keep_covers(copy: str, mount: str, state_dir: str) -> None:
         log.info("cover read from the book's own file: %d", kept)
 
 
+def keep_folder_covers(folder: str, state_dir: str, books: list[dict] | None = None) -> int:
+    """The cover of each book of the EPUB folder that is on a Kobo, from its
+    file in the folder, kept here under the id the Kobo knows it by: the list
+    shows it without the Kobo being plugged in again. books: tokobo.books of
+    the folder, when the caller has it. A picture for the list: trouble here
+    never stops what asked for it. Returns how many were kept."""
+    from ..web import covers
+
+    kept = 0
+    try:
+        for b in tokobo.books(folder, state_dir) if books is None else books:
+            without = [i for i in b["ids"] if not covers.own_path(state_dir, i)]
+            if without and (data := epub.cover(os.path.join(folder, b["name"]))):
+                for i in without:
+                    covers.keep_own(state_dir, i, data)
+                kept += len(without)
+    except OSError as ex:
+        log.warning("covers from the folder's own files: %s", ex)
+    if kept:
+        log.info("cover read from the folder's own file: %d", kept)
+    return kept
+
+
 def finished_books(books: list[dict], state_dir: str) -> list[dict]:
     """The books a sync marked Read on Hardcover, each with its cover's file ("" without one):
     a notification each, with the picture. Only what was sent: a dry run marks nothing."""
@@ -563,6 +586,7 @@ def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -
         step(Row(WARN, "To Kobo", f"Not done: {ex.strerror or ex}"))
         return False
     log.info("to the Kobo: %d put, %d refused, %d left (%s)", len(r.put), len(r.refused), r.left, r.why_left or "-")
+    keep_folder_covers(folder, state_dir)  # of what just went, and of what went before this was done
     told = []
     if r.put:
         told.append(f"{plural(len(r.put), 'book')} put on the Kobo.")

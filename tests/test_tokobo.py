@@ -398,6 +398,34 @@ def test_the_books_are_matched_after_the_next_plug_in(plugged, home, capsys):
     assert one["ids"] == [f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub"] and set(one["ids"]) <= ids
 
 
+def test_a_book_of_the_folder_has_its_cover_here_without_waiting_for_the_kobo(plugged, home, capsys):
+    """A book put on the Kobo has its cover from its own file. The folder holds
+    that file too: the cover is kept when the book goes, and for a book that
+    went before this was done at the next look at the folder, not only once
+    the Kobo is plugged in again."""
+    mac, books, cfg, _ = plugged
+    a_covered_epub(books / "Covered.epub", '<item id="c" href="i/c.jpg" properties="cover-image"/>', files={"OEBPS/i/c.jpg": JPEG})
+    a_book(books / "Plain.epub", "Plain")  # names no cover: none is made up
+    runner.sync(mac, cfg)
+    assert on_kobo(home) == ["Covered.epub", "Plain.epub"]
+    state_dir = config.state_dir()
+    cid = f"file:///mnt/onboard/{tokobo.FOLDER}/Covered.epub"
+    kept = covers.own_path(state_dir, cid)
+    assert kept and open(kept, "rb").read() == JPEG
+    assert covers.own_path(state_dir, f"file:///mnt/onboard/{tokobo.FOLDER}/Plain.epub") is None
+    # One that went before: at the next look at the folder, as the app's EPUB Folder asks for it.
+    os.unlink(kept)
+    config.save(cfg)
+    cli.main(["to-kobo", "--json"], computer=mac)
+    assert json.loads(capsys.readouterr().out)["books"] == 2 and covers.own_path(state_dir, cid) == kept
+    # Asked again, nothing is written: the app refreshes when its folder is written to.
+    written = os.stat(kept).st_mtime_ns
+    cli.main(["to-kobo", "--json"], computer=mac)
+    assert os.stat(kept).st_mtime_ns == written and runner.keep_folder_covers(str(books), state_dir) == 0
+    # A folder that is gone, or a file that cannot be read, is no reason to fail.
+    assert runner.keep_folder_covers(str(home / "nowhere"), state_dir) == 0
+
+
 def test_the_folders_list_has_the_isbn_of_the_name_also_for_a_book_read_before(plugged, home):
     _, books, _, _ = plugged
     an_epub(books / f"{ISBN}.epub", "<dc:identifier>urn:uuid:417afaa5</dc:identifier>")  # the book itself names none
