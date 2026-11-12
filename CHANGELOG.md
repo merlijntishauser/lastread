@@ -83,6 +83,12 @@ minor version may change behaviour; the notes will say so.
   the Kobo alone at every sync ("gave an answer that is not from
   lastread"). The server now says in a header that the answer is its own.
   Both sides need this version.
+- **Local mode: a sync that read the Kobo but did not get through to
+  Hardcover is a sync that failed.** It was called "Kobo synced", in green,
+  with the trouble in the small print, and a script saw it end well. Its
+  notification now says "Kobo read, Hardcover not reached", the app and the
+  history show it as failed, and `lastread sync` ends with status 1. What
+  the Kobo said is kept as before, and the next sync sends it.
 
 ### Security
 

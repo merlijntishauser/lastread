@@ -631,7 +631,8 @@ def test_a_local_sync_renews_and_one_whose_connection_ended_says_so(home, hc):
         mac.set_secret(HARDCOVER, oauth.Tokens("hc_at_2", "hc_rt_2", int(time.time()) + 60).pack())
         steps = []
         out = runner.sync(mac, LOCAL, on_step=steps.append)
-        assert out.ok and "Hardcover no longer accepts this connection. Connect again under Settings." in out.message
+        assert "Hardcover no longer accepts this connection. Connect again under Settings." in out.message
+        assert (out.ok, out.title) == (False, "Kobo read, Hardcover not reached")
         assert [(s.state, s.what) for s in steps if s.what == "Hardcover"] == [("fail", "Hardcover")] and len(seen) == 1
         failed = st(home).execute("select detail from job where status = 'failed'").fetchall()
         assert len(failed) == 1 and "Connect again" in failed[0]["detail"]

@@ -238,9 +238,12 @@ or found there.
   again at the next sync.
   Tests: `tests/test_rules.py::test_one_failing_book_does_not_stop_the_others_and_is_tried_again`
 - **F2** Hardcover out of reach: the run fails and says so, what the Kobo
-  said is kept, and the next sync sends what was waiting.
+  said is kept, and the next sync sends what was waiting. On your own
+  computer such a sync counts as one that failed, also when the Kobo was
+  read: its notification says "Kobo read, Hardcover not reached".
   Tests: `tests/test_rules.py::test_hardcover_out_of_reach_fails_the_run_and_loses_nothing`,
-  `tests/test_local.py::test_hardcover_trouble_is_said_and_the_books_are_still_imported`
+  `tests/test_local.py::test_hardcover_trouble_is_said_and_the_books_are_still_imported`,
+  `tests/test_local.py::test_a_sync_that_did_not_reach_hardcover_is_a_sync_that_failed`
 - **F8** Trouble that is the same for every book stops the run at the
   first book: no connection, too many requests, a token Hardcover does not
   accept or that lacks a permission. What was sent before it stays sent.

@@ -18,7 +18,7 @@ import httpx
 import pytest
 
 from lastread import cli
-from lastread.computer import config, macos, page, runner
+from lastread.computer import config, history, macos, page, runner
 from lastread.computer.platform import HARDCOVER, UPLOAD
 from lastread.engine import hardcover, job, kobo_db, state
 from lastread.server import accounts
@@ -273,8 +273,58 @@ def test_hardcover_trouble_is_said_and_the_books_are_still_imported(home):
     assert runner.sync(mac, LOCAL, hardcover_client=FakeHC()).message == "9 books updated."
     st(home).execute("update book set mode = 'on' where reader = 'me'").connection.commit()
     out = runner.sync(mac, LOCAL, hardcover_client=Down())
-    assert out.ok and out.message == "Hardcover could not be reached (timed out). Nothing is lost: the next sync carries on."
+    assert out.message == "Hardcover could not be reached (timed out). Nothing is lost: the next sync carries on."
+    assert (out.ok, out.title) == (False, "Kobo read, Hardcover not reached")
     assert st(home).execute("select count(*) from book where reader = 'me'").fetchone()[0] == 9
+
+
+def test_a_sync_that_did_not_reach_hardcover_is_a_sync_that_failed(home, capsys, monkeypatch):
+    """What the Kobo said is kept, but the sync did not do what it is for: the
+    notification, the history, the app's window and the exit code say so."""
+    kobo(home)
+    mac = FakeComputer(home / "Volumes")
+    mac.set_secret(HARDCOVER, TOKEN)
+    why = "Hardcover could not be reached (timed out). Nothing is lost: the next sync carries on"
+
+    class Down(FakeHC):
+        def __init__(self, token="", **kw):
+            super().__init__(isbn=catalogue())
+
+        def editions_by_isbn(self, isbns):
+            raise hardcover.HardcoverError(why, "unreachable")
+
+    runner.sync(mac, LOCAL, hardcover_client=FakeHC())
+    st(home).execute("update book set mode = 'on' where reader = 'me'").connection.commit()
+    config.save(LOCAL)
+    monkeypatch.setattr(hardcover, "Client", Down)
+    # By hand: the step said why, once; the command still ends as one that failed.
+    with pytest.raises(SystemExit) as ended:
+        cli.main(["sync"], computer=mac)
+    out = said(capsys)
+    assert ended.value.code == 1 and out.count("Hardcover could not be reached") == 1 and "ok Kobo" in out
+    # By the trigger: the notification's title says which half did not happen.
+    with pytest.raises(SystemExit):
+        cli.main(["sync", "--trigger", "mount"], computer=mac)
+    assert mac.told[-1] == ("Kobo read, Hardcover not reached", why + ".")
+    last = history._lines()[-1]
+    assert (last["ok"], last["title"], last["trigger"]) == (False, "Kobo read, Hardcover not reached", "mount")
+    # In the app's window: the same, on the sync's last line.
+    with pytest.raises(SystemExit):
+        cli.main(["sync", "--trigger", "app", "--steps"], computer=mac)
+    done = json.loads(capsys.readouterr().out.splitlines()[-1])["done"]
+    assert (done["ok"], done["title"], done["message"]) == (False, "Kobo read, Hardcover not reached", why + ".")
+    # A connection that cannot be used is the same failure; no Kobo plugged in, and the title does not name one.
+    monkeypatch.setattr(
+        page.KeptToken, "usable", lambda self: (_ for _ in ()).throw(hardcover.HardcoverError("Connect again under Settings", "token"))
+    )
+    out = runner.sync(mac, LOCAL)
+    assert (out.ok, out.title, out.message) == (False, "Kobo read, Hardcover not reached", "Connect again under Settings.")
+    os.rename(home / "Volumes" / "KOBOeReader", home / "unplugged")
+    assert runner.sync(mac, LOCAL).title == "Hardcover not reached"
+    # Not connected yet is not a failure: there is nothing to reach.
+    monkeypatch.undo()
+    mac.delete_secret(HARDCOVER)
+    assert runner.sync(mac, LOCAL).ok
 
 
 # ---------- the page, in local mode ----------

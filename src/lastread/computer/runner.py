@@ -29,6 +29,7 @@ from .platform import KOBO_DB, UPLOAD, WEBHOOK, Computer
 
 NAME = "Lastread"
 FAILED = "Kobo sync failed"
+NOT_REACHED = "Hardcover not reached"  # the Kobo was read, the sync to Hardcover did not run to its end
 CLICKED = "app"  # the trigger of Sync now in the Mac app: someone is waiting for an answer
 LOG_FILE = "agent.log"
 LOCK = "sync.lock"
@@ -56,6 +57,7 @@ class Outcome:
     live: bool = False
     closing: str = ""  # the last word: eject, or safe to unplug
     finished: list = field(default_factory=list)  # books this sync marked Read on Hardcover, each {"title", "cover"}
+    shown: bool = False  # a failure that was told as a step already: someone watching has seen it
 
 
 def unreadable(computer: Computer, ex: OSError, by_hand: bool) -> str:
@@ -233,13 +235,23 @@ def _model(mount: str) -> str:
     return kobo_db.device(mount).model or "Kobo"
 
 
-def _finish(computer: Computer, cfg: config.Config, mount: str | None, said: list[str], wrote: bool) -> Outcome:
+def _finish(
+    computer: Computer, cfg: config.Config, mount: str | None, said: list[str], wrote: bool, hardcover_failed: bool = False
+) -> Outcome:
+    """hardcover_failed: the Kobo's half is done and kept, the sync to Hardcover
+    could not start or stopped (F2, F8). That is a sync that failed, for the
+    notification, the history and whoever runs this from a script."""
     closing = ""
     if mount and (said or wrote) and cfg.eject_after_sync:
         closing = "Ejected: safe to unplug." if computer.eject(mount) else "Could not eject; eject before unplugging."
     elif wrote:
         closing = "Eject before unplugging."
-    return Outcome(True, "Kobo synced", " ".join([*said, closing] if closing else said), closing=closing)
+    message = " ".join([*said, closing] if closing else said)
+    if hardcover_failed:
+        return Outcome(
+            False, f"Kobo read, {NOT_REACHED}" if mount else NOT_REACHED, message, about="Hardcover", closing=closing, shown=True
+        )
+    return Outcome(True, "Kobo synced", message, closing=closing)
 
 
 def _collection_step(step, name: str, told: list[str], what: str = "Collection") -> None:
@@ -370,11 +382,11 @@ def _sync_here(
                 step(Row(OK, "Kobo", f"{_model(mount)}: {plural(n, 'book')} updated" if n else f"{_model(mount)}: read, nothing changed"))
 
         # Hardcover: the same run as on the server. Dry run until the reader goes live.
-        ended = False
+        ended = failed = False
         try:
             token = page.KeptToken(computer).usable()  # an OAuth connection is renewed here when it is about to run out
         except hardcover.HardcoverError as ex:
-            token, ended = "", True
+            token, ended, failed = "", True, True
             job.could_not_start(db_path, reader["name"], bool(reader["hardcover_live"]), str(ex))
             said.append(f"{ex}.")
             step(Row(FAIL, "Hardcover", said[-1]))
@@ -385,6 +397,7 @@ def _sync_here(
             r = job.run(db_path, reader["name"], live, client=client, token=token)
             books = r.get("books", [])
             if r.get("status") == "failed":
+                failed = True
                 said.append(f"{r.get('fatal', 'The sync to Hardcover failed')}.")
                 step(Row(FAIL, "Hardcover", said[-1]))
             elif live:
@@ -434,7 +447,7 @@ def _sync_here(
     if cfg.webhook_url and imported:  # only a sync that read something new from the Kobo
         _post_webhook(computer, con, reader["name"], device, earlier, cfg.webhook_url, said, step)
     con.close()
-    out = _finish(computer, cfg, mount, said, wrote)
+    out = _finish(computer, cfg, mount, said, wrote, hardcover_failed=failed)
     out.books, out.live = books, live
     out.finished = finished_books(books, state_dir)
     return out

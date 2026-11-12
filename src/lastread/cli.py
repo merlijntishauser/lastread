@@ -694,13 +694,15 @@ def _sync(a, computer) -> None:
 
     screen.line()
     out = runner.sync(computer, verbose=a.verbose, on_step=step)
-    if not out.ok:
+    if not out.ok and not out.shown:
         step(Row(FAIL, out.about, out.message))
         sys.exit(1)
     _books(screen, out.books, out.live)
     if out.closing:
         screen.line()
         screen.say(out.closing)
+    if not out.ok:  # its step said why; the Kobo's half is done, so what to do with the Kobo is still said
+        sys.exit(1)
 
 
 def _books(screen: term.Screen, books: list[dict], live: bool) -> None:
