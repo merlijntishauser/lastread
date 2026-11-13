@@ -51,8 +51,14 @@ class FakeHC:
             u["edition"] = self._edition(u["edition_id"])
         return out
 
-    def editions_for_books(self, book_ids, isbns):
-        return {b: self.catalog[b] for b in book_ids if b in self.catalog}
+    def editions_for_books(self, book_ids, isbns, audio=False):
+        self.asked_audio = audio
+        formats = (4, 2) if audio else (4,)  # as the real one: by ISBN, or of a form the rule can choose
+        return {
+            b: [e for e in self.catalog[b] if e.get("isbn_13") in isbns or e.get("reading_format_id") in formats]
+            for b in book_ids
+            if b in self.catalog
+        }
 
     def reads(self, ub_id):
         return copy.deepcopy(self.books[ub_id]["user_book_reads"])

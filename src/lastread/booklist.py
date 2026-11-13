@@ -20,17 +20,27 @@ FILTERS = {
     "unread": "(status=0 and coalesce(percent,0)=0)",
     "history": "history=1",
     "new": "history=0",
+    "audio": "coalesce(audio,0)=1",
     "on": "(mode='on' or (mode='auto' and history=0))",
     "off": "not (mode='on' or (mode='auto' and history=0))",
     "needs_match": "(mode='on' or (mode='auto' and history=0)) and hc_book_id is null and hc_how in ('uncertain','none')",
-    # On the Hardcover shelf with an edition that is not marked Ebook: to fix there.
-    "not_ebook": "(mode='on' or (mode='auto' and history=0)) and last_sent is not null and coalesce(hc_format_id,0)!=4",
+    # On the Hardcover shelf with an edition that is not marked Ebook (for an audiobook: Audiobook): to fix there.
+    "not_ebook": "(mode='on' or (mode='auto' and history=0)) and last_sent is not null"
+    " and coalesce(hc_format_id,0) != case when coalesce(audio,0)=1 then 2 else 4 end",
 }
 FILTER_GROUPS = [
     ("progress", ["all", "reading", "finished", "unread"]),
-    ("kobo", ["history", "new"]),
+    ("kobo", ["history", "new", "audio"]),
     ("hardcover", ["on", "off", "needs_match", "not_ebook"]),
 ]
+
+
+def groups(con, reader: str) -> list[tuple[str, list[str]]]:
+    """The filters in their groups, as the page and the app offer them:
+    Audiobooks only to a reader whose Kobo has one."""
+    has = con is not None and con.execute("select 1 from book where reader=? and audio=1 limit 1", (reader,)).fetchone()
+    return [(g, [k for k in keys if k != "audio" or has]) for g, keys in FILTER_GROUPS]
+
 
 # Each way round. A book never opened has no last-read date: it comes last either way. content_id ends
 # every order, so that the list is the same list from one "Show more" to the next.
@@ -177,6 +187,7 @@ def details(r) -> dict:
         (T["d_finished_on"], fmt_date(r["finished_at"])),
         (T["d_last_read"], fmt_date(r["last_read"])),
         (T["d_read_time"], fmt_dur(r["seconds_read"]) if r["seconds_read"] else ""),
+        (T["d_format"], T["audio_tag"] if r["audio"] else ""),
         (T["d_language"], r["language"] or ""),
         ("ISBN", r["isbn"] or ""),
     ]
@@ -232,6 +243,7 @@ def entry(r, live: bool, quiet: dict, filters: list[str], cover: str = "") -> di
         "author": r["author"] or "",
         "cover": cover,
         "new": not r["history"],
+        "audio": bool(r["audio"]),
         "percent": pct,
         "finished": done,
         "opened": done or opened(r),

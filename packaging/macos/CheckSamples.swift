@@ -27,7 +27,7 @@ struct CheckSamples {
         check("status.json", decode(StatusAnswer.self, try text("status.json"))) { $0.lastSync?.date != nil && $0.kobo != nil }
         check("status-local.json", decode(StatusAnswer.self, try text("status-local.json"))) { $0.books?.needsMatch == 2 && $0.kobo == nil }
         check("books.json", decode(BooksAnswer.self, try text("books.json"))) {
-            $0.books.first?.details.onShelf == true && $0.sorts.allSatisfy { $0.order == [0] } && $0.words.legend.count == 7
+            $0.books.first?.details.onShelf == true && $0.books.first?.audio == false && $0.sorts.allSatisfy { $0.order == [0] } && $0.words.legend.count == 7
                 && $0.start?.steps.map(\.state) == ["done", "done", "done", "now"] && $0.needsYou == nil && $0.tip?.rule == "left_off"
                 && $0.tips?.map(\.show) == ["all", "reading", "new", "on"] && $0.tip(among: "reading")?.0.rule == "left_off" && $0.tip(among: "finished") == nil
         }

@@ -429,6 +429,11 @@ struct BookCell: View {
                                 .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(pencil(Pencil.blue, selected), lineWidth: 0.75))
                                 .help("First opened on this Kobo after this tool started: syncs by itself unless switched off.")
                         }
+                        if book.audio == true {
+                            Text("Audiobook").font(.caption2.weight(.semibold)).foregroundStyle(quiet(selected))
+                                .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(quiet(selected), lineWidth: 0.75))
+                                .help("An audiobook: off until you switch it on. Hardcover then gets its status and dates on an audiobook edition, and no progress.")
+                        }
                     }
                     Text(book.author).font(.callout).foregroundStyle(quiet(selected)).lineLimit(1)
                     Gauge(percent: book.percent, finished: book.finished)

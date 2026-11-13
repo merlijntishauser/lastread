@@ -315,6 +315,8 @@ def list_size(me) -> int:
 def book_cell(r) -> str:
     pct, done, meta = booklist.progress(r)
     tag = "" if r["history"] else f'<span class="tag" title="{e(T["new_tip"])}">{T["new_tag"]}</span>'
+    if r["audio"]:
+        tag += f'<span class="tag" title="{e(T["audio_tip"])}">{T["audio_tag"]}</span>'
     spans = [f"<span>{e(m)}</span>" for m in meta]
     if r["seconds_read"]:  # the time read comes last, with what it counts
         spans[-1] = f'<span title="{T["account_time_help"]}">{e(meta[-1])}</span>'
@@ -568,6 +570,7 @@ def details_fragment(r, status: tuple[str, str], back: str) -> str:
         (T["d_finished_on"], e(fmt_date(r["finished_at"]))),
         (T["d_last_read"], e(fmt_date(r["last_read"]))),
         (T["d_read_time"], e(fmt_dur(r["seconds_read"])) if r["seconds_read"] else ""),
+        (T["d_format"], e(T["audio_tag"]) if r["audio"] else ""),
         (T["d_language"], e(r["language"] or "")),
         ("ISBN", e(r["isbn"] or "")),
     ]
@@ -926,7 +929,7 @@ def books_page(request: Request, q: str = "", f: str = "all", sort: str = "last_
     # choice: by progress, by origin on this Kobo, by Hardcover state.
     chips = "".join(
         f'<div class="fgroup"><span class="gname">{T["g_" + g]}</span>{"".join(chip(k) for k in keys)}</div>'
-        for g, keys in booklist.FILTER_GROUPS
+        for g, keys in booklist.groups(con, reader)
     )
     sort_opts = "".join(f'<option value="{k}"{" selected" if k == sort else ""}>{T["sort_" + k]}</option>' for k in booklist.SORTS)
     mode_opts = "".join(f'<option value="{m}">{T[m]}</option>' for m in state.MODES)

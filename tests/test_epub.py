@@ -113,7 +113,7 @@ def test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names(tmp_pat
     not_read = ["file:///mnt/onboard/A Paper.pdf", "file:///mnt/onboard/../outside.epub", "file:///mnt/sd/On The Card.epub"]
     con = sqlite3.connect(db)
     for cid in not_read:
-        con.execute("insert into content values (?, '6', 'application/epub+zip', 'x', 'y', '', 5, 1, '', 60, '', '', 'en')", (cid,))
+        con.execute("insert into content values (?, '6', 'application/epub+zip', 'x', 'y', '', 5, 1, '', 60, '', '', 'en', 0, '')", (cid,))
     con.commit()
     con.close()
     (mount / "A Paper.pdf").write_bytes(b"%PDF-1.4")
@@ -132,7 +132,7 @@ def test_a_book_put_on_the_kobo_by_hand_gets_the_isbn_its_own_file_names(tmp_pat
     named = f"file:///mnt/onboard/Lastread/{ISBN}.kepub.epub"
     an_epub(mount / "Lastread" / f"{ISBN}.kepub.epub", "<dc:identifier>urn:uuid:417afaa5</dc:identifier>")
     con = sqlite3.connect(copy)
-    con.execute("insert into content values (?, '6', 'application/epub+zip', 'x', 'y', '', 5, 1, '', 60, '', '', 'en')", (named,))
+    con.execute("insert into content values (?, '6', 'application/epub+zip', 'x', 'y', '', 5, 1, '', 60, '', '', 'en', 0, '')", (named,))
     con.commit()
     con.close()
     assert kobo_db.fill_isbns(copy, str(mount)) == 1

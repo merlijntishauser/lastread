@@ -47,6 +47,7 @@ def _book(r: sqlite3.Row) -> dict:
         "author": _text(r["author"]),
         "isbn": _text(r["isbn"]),
         "language": _text(r["language"]),
+        "audiobook": bool(r["audio"]),
         "status": KOBO_STATUS.get(r["status"], "unread"),
         "percent": r["percent"] or 0,
         "last_read": _text(r["last_read"]),

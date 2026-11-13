@@ -13,7 +13,9 @@ def matched(st, *cids):
     st.commit()
 
 
-def make_kobo(path, books, events, with_user=False):
+def make_kobo(path, books, events, with_user=False, audio=()):
+    """audio: the ids of the books that are audiobooks. Given, the database has the two columns that
+    say so; without it, it is one from a computer on a version that did not upload them."""
     c = sqlite3.connect(path)
     c.execute("""create table content (ContentID text, ContentType int, Title text, Attribution text, ISBN text,
                  ___PercentRead int, ReadStatus int, DateLastRead text, TimeSpentReading int,
@@ -24,6 +26,11 @@ def make_kobo(path, books, events, with_user=False):
     for b in books:
         c.execute("insert into content values (?,6,?,?,?,?,?,?,?,?)", (tuple(b) + ("",))[:9])
     c.execute("insert into content values ('chapter-1',9,'ch','','',0,0,'',0,'')")  # not a book
+    if audio:
+        c.execute("alter table content add column MimeType text default 'application/x-kobo-epub+zip'")
+        c.execute("alter table content add column Duration int default 0")
+        for cid in audio:
+            c.execute("update content set MimeType='application/octet-stream', Duration=36000 where ContentID=?", (cid,))
     for cid, first in events:
         c.execute("insert into Event values (3,?,?,1,?)", (first, first, cid))
     c.commit()

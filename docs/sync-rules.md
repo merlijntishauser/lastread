@@ -51,6 +51,15 @@ Three sources of truth, each for its own part:
 - **B8** Books are kept per reader and per Kobo: the same book on two
   Kobos is listed for each.
   Tests: `tests/test_rules.py::test_the_same_book_on_two_kobos_is_two_rows`
+- **B9** An audiobook from the Kobo store is listed and marked as one. It
+  is never new by itself (B3): sync is Off until you switch it on. The
+  Kobo marks one by its file's kind together with a playing time. A
+  computer on an older version of the tool does not upload those: what
+  it tells of for the first time is taken for a book until it is
+  updated, and what is known as an audiobook stays one.
+  Tests: `tests/test_audiobooks.py::test_the_kobo_says_which_book_is_an_audiobook`,
+  `tests/test_audiobooks.py::test_an_audiobook_is_off_until_the_reader_switches_it_on`,
+  `tests/test_audiobooks.py::test_audiobooks_are_marked_and_have_a_selection_of_their_own`
 
 ## What Hardcover gets
 
@@ -108,6 +117,12 @@ Three sources of truth, each for its own part:
 - **H11** The finish date is the date in the Kobo's own clock, which is
   UTC: a book finished shortly after midnight can carry the day before.
   Tests: `tests/test_rules.py::test_the_finish_date_is_the_kobos_utc_date`
+- **H12** An audiobook gets its status and its dates, and no progress:
+  how far you listened is not a page of an edition (H6). Nothing is sent
+  when only that moved. Also not for an audiobook edition that has a page
+  count on Hardcover.
+  Tests: `tests/test_audiobooks.py::test_an_audiobook_gets_its_status_and_dates_and_no_progress`,
+  `tests/test_audiobooks.py::test_a_reread_of_an_audiobook_has_no_progress_either`
 
 ## Matching a Kobo book to a Hardcover book
 
@@ -190,6 +205,15 @@ Three sources of truth, each for its own part:
   other books are put to you, since one of them may be this book in another
   language (M7); a title that only starts the same is not believed here.
   Tests: `tests/test_matching.py::test_a_book_the_search_does_not_find_is_looked_for_among_its_authors_books`
+
+- **M13** An audiobook gets an audiobook edition, by the order of M4 with
+  Audiobook where that says ebook. It is never given an ebook edition for
+  want of an audiobook one: Hardcover's default stays then. A book that
+  synced before the tool told audiobooks apart has its edition chosen
+  again at the next sync, unless you chose it on Hardcover (M5).
+  Tests: `tests/test_audiobooks.py::test_an_audiobook_gets_an_audiobook_edition_and_never_an_ebook_one`,
+  `tests/test_audiobooks.py::test_the_sync_chooses_the_audiobook_edition_and_the_ebook_for_the_book_beside_it`,
+  `tests/test_audiobooks.py::test_a_book_that_turns_out_to_be_an_audiobook_gets_its_edition_chosen_again`
 
 ## Several Kobo books that are one book on Hardcover
 
@@ -482,8 +506,11 @@ any other you put on it yourself (M10).
   Tests: `tests/test_core.py::test_refuses_tokens_and_non_kobo`
 - **U2** In server mode the upload holds the book rows and the reading
   events, nothing else, and the server refuses an upload that holds more.
+  Of a book row only what the server reads: what the book is, how far it
+  is read and when, and the two marks of an audiobook (B9).
   Tests: `tests/test_computer.py::test_the_upload_holds_only_what_the_server_reads`,
-  `tests/test_upload.py::test_an_upload_with_more_than_the_server_reads_is_refused`
+  `tests/test_upload.py::test_an_upload_with_more_than_the_server_reads_is_refused`,
+  `tests/test_audiobooks.py::test_an_audiobook_is_still_one_after_the_upload`
 
 ## Known limits
 
@@ -505,6 +532,9 @@ Not bugs, but worth knowing. Each follows from a rule above.
 - **Edits on Hardcover are seen at the next sync**, not at once: at the
   next plug-in in local mode, within the hour on a server.
 - **Progress typed in on Hardcover is not kept** (E6).
+- **How far you are in an audiobook is not sent** (H12): its status and
+  dates are. An audiobook that synced as a book before keeps, on
+  Hardcover, the last page that was sent for it until it is finished.
 - **Emptying your Hardcover shelf by hand** (F13): when every book that
   syncs is gone from the shelf at once, the tool does not believe it and
   stops. Switch those books off on the page and it carries on.

@@ -57,7 +57,10 @@ the collection) is the same code in both.
 
 - **Books:** rows of `content` with `ContentType = 6`: title, author, ISBN,
   `___PercentRead`, `ReadStatus` (0 unread, 1 reading, 2 finished),
-  `DateLastRead`, `TimeSpentReading`, `LastTimeFinishedReading`.
+  `DateLastRead`, `TimeSpentReading`, `LastTimeFinishedReading`, the
+  cover number and the language. And `MimeType` with `Duration`: a row
+  whose file is `application/octet-stream` and that has a playing time is
+  an audiobook from the Kobo store, listed among the books.
 - **Events:** the `Event` table, for the first time a book was opened on
   this device.
 - **A sideloaded book's own file**, only when the Kobo keeps no ISBN for

@@ -72,6 +72,7 @@ struct BooksAnswer: Codable, Equatable {
         let author: String
         let cover: String  // the cached thumbnail, "" while there is none
         let new: Bool  // first opened after this tool first saw the Kobo: the Auto tag
+        let audio: Bool?  // an audiobook: the Audiobook tag; nil from a tool or server that does not tell them apart
         let percent: Int
         let finished: Bool
         let opened: Bool  // ever opened on the Kobo (not its last read date: the Kobo sets that on unopened books too)

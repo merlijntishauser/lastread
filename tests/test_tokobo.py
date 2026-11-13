@@ -379,7 +379,7 @@ def test_the_books_are_matched_after_the_next_plug_in(plugged, home, capsys):
     # The Kobo, after the eject, lists it as a sideloaded book with no ISBN; then it is read.
     con = sqlite3.connect(db)
     con.execute(
-        "insert into content values (?, '6', 'application/epub+zip', 'One', 'Someone', '', 20, 1, '2026-11-01T10:00:00Z', 900, '', '', 'en')",
+        "insert into content values (?, '6', 'application/epub+zip', 'One', 'Someone', '', 20, 1, '2026-11-01T10:00:00Z', 900, '', '', 'en', 0, '')",
         (f"file:///mnt/onboard/{tokobo.FOLDER}/One.epub",),
     )
     con.commit()
@@ -644,7 +644,7 @@ def sideload(db, path, title):
     """The Kobo, after an eject, lists a file it found on its storage as a book."""
     con = sqlite3.connect(db)
     con.execute(
-        "insert into content values (?, '6', 'application/epub+zip', ?, 'Someone', '', 20, 1, '2026-11-01T10:00:00Z', 900, '', '', 'en')",
+        "insert into content values (?, '6', 'application/epub+zip', ?, 'Someone', '', 20, 1, '2026-11-01T10:00:00Z', 900, '', '', 'en', 0, '')",
         (f"file:///mnt/onboard/{path}", title),
     )
     con.commit()

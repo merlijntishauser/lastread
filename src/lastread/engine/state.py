@@ -8,6 +8,9 @@ Selection rule (design, 2026-09-30):
   device events is *history*: mode "off" until the reader picks it.
 - A book whose first device-local Event comes after that first import is
   *new*: mode "auto", which counts as on and can be switched off.
+- An audiobook is never new by itself (2026-11-13): it is listed, marked as
+  one, and off until the reader switches it on. Hardcover then gets its
+  status and dates on an audiobook edition, and no pages (plan.desired).
 
 The same book on two Kobos of one reader is two rows, one per Kobo, for
 what each Kobo says (progress, status, dates). What is set for the book
@@ -185,6 +188,9 @@ def _migrate(con: sqlite3.Connection) -> None:
         ("hc_looked", "integer"),
         # When it was last looked up, or searched for by the reader: a waiting book gets another look after a while.
         ("hc_looked_at", "text"),
+        # 1 for an audiobook (kobo_db.Book.audio); null while no import said (an upload from an older version does
+        # not), and such an import leaves what is known as it is.
+        ("audio", "integer"),
     ):
         if col not in have:  # state.db from before 2026-09-30 12:xx
             _add_column(con, "book", col, decl)
@@ -231,7 +237,8 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 )
             continue
         row = con.execute(
-            """select mode, history, state, first_event, first_seen_reading, percent, status, finished_at, seconds_read, isbn, hc_book_id
+            """select mode, history, state, first_event, first_seen_reading, percent, status, finished_at, seconds_read, isbn, hc_book_id,
+                      audio
                from book where reader=? and device=? and content_id=?""",
             (reader, device, b.content_id),
         ).fetchone()
@@ -243,7 +250,8 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 f"select {', '.join(PER_BOOK)} from book where reader=? and content_id=? order by {READ_LAST} limit 1",
                 (reader, b.content_id),
             ).fetchone()
-            is_new = elsewhere is None and (not is_first) and bool(b.first_event) and b.first_event >= first_import[:19]
+            # An audiobook is not new by itself: it starts off, like history, until the reader says otherwise.
+            is_new = elsewhere is None and (not is_first) and bool(b.first_event) and b.first_event >= first_import[:19] and not b.audio
             mode = "auto" if is_new else "off"
             new_auto += is_new
             added += 1
@@ -253,8 +261,8 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 read_seconds += b.seconds_read
             con.execute(
                 """insert into book (reader, device, content_id, title, author, isbn, percent, status,
-                   last_read, seconds_read, first_event, first_seen_reading, history, mode, finished_at, image_id, language)
-                   values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   last_read, seconds_read, first_event, first_seen_reading, history, mode, finished_at, image_id, language, audio)
+                   values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     reader,
                     device,
@@ -273,6 +281,7 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                     b.finished_at,
                     b.image_id,
                     b.language,
+                    None if b.audio is None else int(b.audio),
                 ),
             )
             if elsewhere:
@@ -298,12 +307,20 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                 con.execute("update book set mode='auto', history=0 where reader=? and content_id=?", (reader, b.content_id))
                 first_seen = row["first_seen_reading"] or (at if reading_now else "")
                 new_auto += 1
+            if b.audio and not row["audio"]:
+                # Known as a book until now (a version that did not tell them apart): the edition chosen for it
+                # was an ebook's. One the reader chose on Hardcover stays; the rest is chosen again at the next sync.
+                con.execute(
+                    "update book set hc_edition_checked=null where reader=? and content_id=? and coalesce(hc_edition_by, '')!='hardcover'",
+                    (reader, b.content_id),
+                )
             if b.isbn and b.isbn != (row["isbn"] or "") and not row["hc_book_id"]:
                 # An ISBN it did not have when it was looked up (one from the book's own file, M10): one more look.
                 con.execute("update book set hc_how = null where reader=? and device=? and content_id=?", (reader, device, b.content_id))
             con.execute(
                 """update book set title=?, author=?, isbn=?, percent=?, status=?, last_read=?,
-                   seconds_read=?, first_event=?, first_seen_reading=?, finished_at=?, image_id=?, language=?
+                   seconds_read=?, first_event=?, first_seen_reading=?, finished_at=?, image_id=?, language=?,
+                   audio=coalesce(?, audio)
                    where reader=? and device=? and content_id=?""",
                 (
                     b.title,
@@ -318,6 +335,7 @@ def import_books(con: sqlite3.Connection, reader: str, device: str, books: list[
                     b.finished_at,
                     b.image_id,
                     b.language,
+                    None if b.audio is None else int(b.audio),
                     reader,
                     device,
                     b.content_id,
@@ -351,7 +369,7 @@ def _opened_here_since(con: sqlite3.Connection, reader: str, device: str, b: Boo
     something for, not one that was finished already when it got here (nothing
     from before goes to Hardcover by itself, B2), and not one opened on
     another of the reader's Kobos: that Kobo decided what it is."""
-    if is_first or row["first_event"] or not b.first_event or b.first_event < first_import[:19]:
+    if is_first or row["first_event"] or not b.first_event or b.first_event < first_import[:19] or b.audio:
         return False
     if not row["history"] or row["mode"] != "off" or (row["state"] or "kobo") != "kobo":
         return False

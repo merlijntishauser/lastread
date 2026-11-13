@@ -376,7 +376,8 @@ is plugged into, and stays there, also in server mode.
 
 **In server mode, from the computer to your own server**: for every book
 on the Kobo, the title, author, ISBN, progress, dates, cover number and
-language, and the times books were opened on that Kobo. On a shared Kobo
+language, its file's kind and playing time (by which an audiobook is
+known), and the times books were opened on that Kobo. On a shared Kobo
 account that includes the books of the others on the account; each reader
 decides which are theirs. The server keeps what was uploaded for 90 days.
 
@@ -417,6 +418,9 @@ command line. Disconnecting, or connecting again, ends it at Hardcover too.
   the copy you read last speaks for the book on Hardcover.
 - Books you put on the Kobo yourself can sync to Hardcover, but are not put
   in the collection.
+- An audiobook from the Kobo store is off until you switch it on. It then
+  gets its status and dates on an audiobook edition; how far you listened
+  is not sent.
 - A very large first sync can take more than a day: Hardcover allows 5000
   requests a day. It carries on at the next sync.
 

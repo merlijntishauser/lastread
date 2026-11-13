@@ -7,6 +7,20 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- **Audiobooks are known for what they are.** The Kobo lists an audiobook
+  from its store among the books, and the tool read it as one: switched
+  on, it got an ebook edition on Hardcover and its listening sent as
+  pages. An audiobook now carries an *Audiobook* mark on the page and in
+  the Mac app, and has a selection of its own under Show. It is off until
+  you switch it on, also when you open it after the tool first saw your
+  Kobo. Switched on, it gets an audiobook edition, its status and its
+  dates; how far you listened is not sent, since Hardcover takes progress
+  as a page. One that synced as a book before gets its edition chosen
+  again at the next sync. In server mode the computer has to be on this
+  version too: the upload now says which books are audiobooks.
+
 ### Fixed
 
 - **A re-read is one new read-through on Hardcover, not two.** Hardcover

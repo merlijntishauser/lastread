@@ -11,6 +11,10 @@ Rules (design section 2, plus the 2026-09-30 finish rule):
   and the start date when lastread saw it start (first_seen_reading).
 - A progress update only when it moved by at least 1 point since the last
   send.
+- An audiobook (2026-11-13) has its status and dates and no progress:
+  Hardcover takes progress as a page of the edition, and an audiobook has
+  none. "progress" is None in what it wants, and nothing is sent for a
+  percentage that moved.
 """
 
 from __future__ import annotations
@@ -23,6 +27,7 @@ from .state import being_read, syncs
 def desired(row) -> dict | None:
     st = row["state"] or "kobo"
     finished = (row["finished_at"] or "")[:10]
+    percent = None if row["audio"] else int(row["percent"] or 0)  # an audiobook: listened to, no page to send
     if st in ("want", "dnf"):  # set aside: Hardcover keeps that status, no progress is sent
         return {"status": st}
     if st == "finished":
@@ -31,14 +36,14 @@ def desired(row) -> dict | None:
         # Until the book is opened again the Kobo's 100% is the read-through before. Sent as the re-read's,
         # it is the edition's last page, and Hardcover then ends the re-read the moment it began.
         before = row["status"] == 2 and not (row["state_changed"] and (row["finished_at"] or "") > row["state_changed"])
-        d = {"status": "reading", "progress": 0 if before else int(row["percent"] or 0), "reread": True}
+        d = {"status": "reading", "progress": 0 if before and percent is not None else percent, "reread": True}
         if row["state_date"]:
             d["started"] = row["state_date"]
         return d
     if row["status"] == 2 or finished:
         return {"status": "read", "finished": finished or (row["last_read"] or "")[:10]}
     if being_read(row["status"], row["percent"]):
-        d = {"status": "reading", "progress": int(row["percent"] or 0)}
+        d = {"status": "reading", "progress": percent}
         if row["first_seen_reading"]:
             d["started"] = row["first_seen_reading"][:10]
         return d
@@ -101,12 +106,13 @@ def action(row) -> str:
         if want["finished"] and sent.get("finished") and sent["finished"] != want["finished"]:
             return f"set the finish date to {want['finished']}"
         return edition
+    far = "" if want["progress"] is None else f", {want['progress']}%"
     if want.get("reread") and not sent.get("reread"):
-        s = f"start a re-read, {want['progress']}%"
+        s = f"start a re-read{far}"
         return s + (f", started {want['started']}" if "started" in want else "")
     if sent.get("status") != "reading":
-        s = f"mark Currently reading, {want['progress']}%"
+        s = f"mark Currently reading{far}"
         return s + (f", started {want['started']}" if "started" in want else "")
-    if abs(want["progress"] - int(sent.get("progress") or 0)) >= 1:
+    if want["progress"] is not None and abs(want["progress"] - int(sent.get("progress") or 0)) >= 1:
         return f"progress {sent.get('progress') or 0}% to {want['progress']}%"
     return edition

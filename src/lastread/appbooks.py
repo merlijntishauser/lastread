@@ -71,7 +71,7 @@ def listing(con, reader: str, cover_of, connected, mode: str = "local") -> dict:
         "books": books,
         "sorts": sorts,
         "words": {  # the page's words, so that the app says the same
-            "filters": [{"group": T["g_" + g], "keys": [[k, T["f_" + k]] for k in keys]} for g, keys in booklist.FILTER_GROUPS],
+            "filters": [{"group": T["g_" + g], "keys": [[k, T["f_" + k]] for k in keys]} for g, keys in booklist.groups(con, reader)],
             "sections": [T["d_section_kobo"], T["d_section_hardcover"]],
             "syncs": [[m, T[m]] for m in state.MODES],
             "states": [[s, T[booklist.STATE_LABEL[s]]] for s in state.STATES],

@@ -10,6 +10,11 @@ Findings on a real database (2026-09-30, firmware 6.0) that shape this:
 - The `user` table holds the account's AuthToken/RefreshToken. Uploads must
   not contain it; `open_db` refuses a database that still has it unless the
   caller explicitly allows it (a local import of a raw copy).
+- An audiobook from the Kobo store is a ContentType 6 row too (2026-11-12,
+  one Kobo, 719 book rows): each of its 27 audiobooks has MimeType
+  `application/octet-stream` and a `Duration` in seconds (1.5 to 40 hours);
+  each of the 692 ebooks has `application/x-kobo-epub+zip` and Duration 0.
+  `___PercentRead` is how far the listening is; `TimeSpentReading` stays 0.
 """
 
 from __future__ import annotations
@@ -45,6 +50,10 @@ class Book:
     finished_at: str = ""  # LastTimeFinishedReading: survives reopening a finished book
     image_id: str = ""  # cover id on Kobo's CDN
     language: str = ""  # "nl", "en", ... as the Kobo records it
+    audio: bool | None = False  # an audiobook: listened to, so it has a playing time and no pages; None: the database does not say
+
+
+AUDIO_MIME = "application/octet-stream"  # what the Kobo calls an audiobook's file; an ebook's is a kind of EPUB or PDF
 
 
 def open_db(path: str, allow_user_table: bool = False) -> sqlite3.Connection:
@@ -71,13 +80,16 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
     cols = {r[1] for r in con.execute("pragma table_info(content)")}
     image_col = "ImageId" if "ImageId" in cols else "''"
     lang_col = "Language" if "Language" in cols else "''"
+    # Both marks, so that an ebook is not taken for an audiobook on one of them alone. A database
+    # without the columns (an upload from a computer on an older version) does not say: null.
+    audio_col = f"(MimeType = '{AUDIO_MIME}' and coalesce(Duration, 0) > 0)" if {"MimeType", "Duration"} <= cols else "null"
     books = []
     for row in con.execute(
         f"""select ContentID, Title, Attribution, ISBN, ___PercentRead, ReadStatus,
-                       DateLastRead, TimeSpentReading, LastTimeFinishedReading, {image_col}, {lang_col}
+                       DateLastRead, TimeSpentReading, LastTimeFinishedReading, {image_col}, {lang_col}, {audio_col}
                 from content where ContentType = 6"""
     ):
-        cid, title, author, isbn, pct, status, last_read, secs, finished, image_id, language = row
+        cid, title, author, isbn, pct, status, last_read, secs, finished, image_id, language, audio = row
         books.append(
             Book(
                 content_id=cid,
@@ -92,6 +104,7 @@ def read_books(con: sqlite3.Connection) -> list[Book]:
                 finished_at=finished or "",
                 image_id=image_id or "",
                 language=(language or "").lower()[:2],
+                audio=None if audio is None else bool(audio),
             )
         )
     return books
@@ -222,6 +235,8 @@ UPLOAD_CONTENT = (
     ("LastTimeFinishedReading", "TEXT"),
     ("ImageId", "TEXT"),
     ("Language", "TEXT"),
+    ("MimeType", "TEXT"),  # with Duration: whether the book is an audiobook
+    ("Duration", "INT"),
 )
 UPLOAD_EVENT = ("ContentID", "FirstOccurrence", "LastOccurrence")
 UPLOAD_TABLES = {"content", "Event"}

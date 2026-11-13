@@ -44,7 +44,7 @@ CONTENT = """
 CREATE TABLE content (
 	ContentID TEXT NOT NULL, ContentType TEXT NOT NULL, MimeType TEXT NOT NULL, Title TEXT, Attribution TEXT,
 	ISBN TEXT, ___PercentRead INT, ReadStatus INT, DateLastRead TEXT, TimeSpentReading INT,
-	LastTimeFinishedReading TEXT, ImageId TEXT, Language TEXT,
+	LastTimeFinishedReading TEXT, ImageId TEXT, Language TEXT, Duration INT, ChapterIDBookmarked TEXT,
 	PRIMARY KEY(ContentID)
 );
 CREATE TABLE Event (EventType INT, FirstOccurrence TEXT, LastOccurrence TEXT, EventCount INT, ContentID TEXT);
@@ -68,15 +68,15 @@ def make(path: str, version: int | None = DB_VERSION, wal: bool = True) -> None:
         con.execute("insert into DbVersion values (?)", (version,))
     for n, cid in enumerate(BOOKS):
         con.execute(
-            "insert into content values (?, '6', 'application/x-kobo-epub+zip', ?, 'An Author', ?, ?, 1, ?, ?, '', '', 'en')",
+            "insert into content values (?, '6', 'application/x-kobo-epub+zip', ?, 'An Author', ?, ?, 1, ?, ?, '', '', 'en', 0, '')",
             (cid, f"Made-up Book {n}", f"97800000000{n:02d}", 10 * n, f"2026-09-{20 - n:02d}T10:00:00Z", 600 * (n + 1)),
         )
     con.execute(
-        "insert into content values (?, '6', 'application/epub+zip', 'A Sideloaded Book', 'Someone', '', 5, 1, '', 60, '', '', 'en')",
+        "insert into content values (?, '6', 'application/epub+zip', 'A Sideloaded Book', 'Someone', '', 5, 1, '', 60, '', '', 'en', 0, '')",
         (SIDELOADED,),
     )
     con.execute(
-        "insert into content values (?, '9', 'application/xhtml+xml', 'a chapter', '', '', 0, 0, '', 0, '', '', '')",
+        "insert into content values (?, '9', 'application/xhtml+xml', 'a chapter', '', '', 0, 0, '', 0, '', '', '', 0, '')",
         (BOOKS[0] + "!chapter1",),
     )
     # Collections the tool must never touch: the Kobo's own, two of the reader's, one the reader deleted.

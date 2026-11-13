@@ -13,6 +13,8 @@ API facts (docs.hardcover.app as of 2026-09-24, and the live API on
 - Reading dates and progress live in "reads" (DatesReadInput): started_at,
   finished_at, and progress only as **progress_pages** (or seconds for
   audiobooks). The Kobo percentage is converted with the edition's pages.
+  An audiobook gets no progress (plan.desired): it has no pages, and the
+  one audiobook edition looked at on the live API had no length either.
 
 Matching: ISBN first; else a search on "title first-author", and a hit is
 taken only when a title of the book and an author both agree (see "matching"
@@ -52,6 +54,7 @@ NEW_TOKEN_URL = "https://hardcover.app/account/api/keys/new?scope=" + "+".join(S
 STATUS_IDS = {"want": 1, "reading": 2, "read": 3, "dnf": 5}
 STATUS_NAMES = {v: k for k, v in STATUS_IDS.items()}
 FORMAT_EBOOK = 4
+FORMAT_AUDIO = 2
 FORMATS = {1: "Physical", 2: "Audiobook", 3: "Physical + audio", 4: "Ebook"}
 
 try:
@@ -286,16 +289,18 @@ class Client:
             raise not_understood(f"{len(books)} of the {total} books on the shelf")
         return list(books.values())
 
-    def editions_for_books(self, book_ids: list[int], isbns: list[str]) -> dict[int, list[dict]]:
+    def editions_for_books(self, book_ids: list[int], isbns: list[str], audio: bool = False) -> dict[int, list[dict]]:
         """Per book: its editions that carry one of `isbns` or are ebooks
-        (the only ones the edition rule can choose)."""
+        (the only ones the edition rule can choose); audio: the audiobook
+        editions too, for the audiobooks among them."""
         out: dict[int, list[dict]] = {}
+        formats = [FORMAT_EBOOK, FORMAT_AUDIO] if audio else [FORMAT_EBOOK]
         for i in range(0, len(book_ids), 50):
             d = self.gql(
-                "query($i:[Int!],$n:[String!]){ editions(where:{book_id:{_in:$i},"
-                " _or:[{isbn_13:{_in:$n}},{reading_format_id:{_eq:4}}]}){ id book_id isbn_13 pages"
+                "query($i:[Int!],$n:[String!],$f:[Int!]){ editions(where:{book_id:{_in:$i},"
+                " _or:[{isbn_13:{_in:$n}},{reading_format_id:{_in:$f}}]}){ id book_id isbn_13 pages"
                 " reading_format_id edition_format users_count language { code2 } } }",
-                {"i": book_ids[i : i + 50], "n": isbns},
+                {"i": book_ids[i : i + 50], "n": isbns, "f": formats},
             )
             for e in _rows(d, "editions"):
                 out.setdefault(e["book_id"], []).append(e)
@@ -539,7 +544,7 @@ def format_name(reading_format_id, edition_format="") -> str:
     return base or extra
 
 
-def choose_edition(isbn: str, language: str, editions: list[dict]) -> dict | None:
+def choose_edition(isbn: str, language: str, editions: list[dict], audio: bool = False) -> dict | None:
     """lastread's own choice (an ebook edition in any language beats
     a physical one: it is the form that was read), best first:
     1. the edition with the Kobo's ISBN, if marked Ebook;
@@ -547,11 +552,14 @@ def choose_edition(isbn: str, language: str, editions: list[dict]) -> dict | Non
     3. any Ebook edition (most readers first);
     4. the edition with the Kobo's ISBN, whatever its label;
     5. none: Hardcover's default stays.
+    audio: the same for an audiobook, with Audiobook where it says Ebook; it
+    is never given an ebook edition for want of an audiobook one.
     An edition chosen on Hardcover by the reader never comes through here."""
     by_isbn = [e for e in editions if isbn and e.get("isbn_13") == isbn]
+    form = FORMAT_AUDIO if audio else FORMAT_EBOOK
 
-    def ebook(e):
-        return e.get("reading_format_id") == FORMAT_EBOOK
+    def ebook(e):  # the form that was read: an ebook, or for an audiobook an audiobook
+        return e.get("reading_format_id") == form
 
     for e in by_isbn:
         if ebook(e):
@@ -619,7 +627,8 @@ def apply(client: Client, row, want: dict, sent: dict, existing: dict | None) ->
         else:
             if want.get("started"):
                 read["started_at"] = want["started"]
-            p = pages_for(want.get("progress", 0), row["hc_pages"])
+            # No progress in the plan: an audiobook, which has no pages (plan.desired).
+            p = pages_for(want["progress"], row["hc_pages"]) if want.get("progress") is not None else None
             if p is not None:
                 read["progress_pages"] = p
         if want["status"] == "reading" and was_on_shelf:

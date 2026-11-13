@@ -65,6 +65,7 @@ The rules it keeps:
     "author": "An Author",
     "isbn": "9780000000000",
     "language": "en",
+    "audiobook": false,
     "status": "reading",
     "percent": 55,
     "last_read": "2026-10-06T08:00:00Z",
@@ -106,7 +107,9 @@ Per book, `status` is the Kobo's own (`unread`, `reading`, `finished`).
 not), and `hardcover` is the match when there is one. `started` is the
 date the tool first saw the book being read; the Kobo keeps no start date
 of its own. On a Kobo account shared with others, their books can change
-too: `opened_on_this_kobo` is `false` for those.
+too: `opened_on_this_kobo` is `false` for those. `audiobook` is `true`
+for an audiobook from the Kobo store: its `percent` is how far the
+listening is, and the Kobo keeps no reading time for it.
 
 `lastread export` gives the same per-book fields for the whole
 shelf, when your side wants to start from everything.

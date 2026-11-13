@@ -183,7 +183,7 @@ def test_the_upload_holds_only_what_the_server_reads(tmp_path):
         b"DRM-CONTENT-KEY-SECRET",
         b"A PRIVATE REVIEW",
         b"Holiday",
-        b"MimeType",
+        b"ChapterIDBookmarked",  # a column the server does not read: where in the book the reader is
     ):
         assert private not in raw, private
     # And the server reads exactly the same books from it as from the Kobo's own file.

@@ -249,10 +249,12 @@ def choose_editions(con, reader: str, client) -> int:
     ]
     if not rows:
         return 0
-    editions = client.editions_for_books(sorted({r["hc_book_id"] for r in rows}), sorted({r["isbn"] for r in rows if r["isbn"]}))
+    editions = client.editions_for_books(
+        sorted({r["hc_book_id"] for r in rows}), sorted({r["isbn"] for r in rows if r["isbn"]}), audio=any(r["audio"] for r in rows)
+    )
     changed = 0
     for r in rows:
-        e = hardcover.choose_edition(r["isbn"] or "", r["language"] or "", editions.get(r["hc_book_id"], []))
+        e = hardcover.choose_edition(r["isbn"] or "", r["language"] or "", editions.get(r["hc_book_id"], []), audio=bool(r["audio"]))
         if e and e["id"] != r["hc_edition_id"]:
             con.execute(
                 """update book set hc_edition_id=?, hc_edition_by='auto', hc_pages=?, hc_format_id=?, hc_format=?
