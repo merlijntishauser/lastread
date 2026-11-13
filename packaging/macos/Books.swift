@@ -98,11 +98,11 @@ extension WindowModel {
             })
     }
 
-    /// The State, keeping its date where a date belongs to it.
+    /// The State, without the date of the State before: the day a book was
+    /// finished is not the day its re-read began. The tool's answer brings the
+    /// book back without a date, and Since offers to add one.
     func stateBinding(_ book: BooksAnswer.Book) -> Binding<String> {
-        binding(book.id, \.state) { new in
-            ["finished", "rereading"].contains(new) && !book.stateDate.isEmpty ? ["--state", new, "--date", book.stateDate] : ["--state", new]
-        }
+        binding(book.id, \.state) { ["--state", $0] }
     }
 
     func word(_ list: [[String]]?, _ key: String) -> String {

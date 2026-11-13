@@ -223,6 +223,11 @@ def test_book_changes_what_the_page_changes_and_answers_the_book(home, capsys, m
 
     changed = answer(capsys, "book", one, "--state", "finished", "--date", "2026-10-01", "--json", computer=computer)["book"]
     assert (changed["state"], changed["state_date"]) == ("finished", "2026-10-01")
+    # An app from before 0.31.0 sends the finish date along when the State becomes Rereading: not taken as its start.
+    again = answer(capsys, "book", one, "--state", "rereading", "--date", "2026-10-01", "--json", computer=computer)["book"]
+    assert (again["state"], again["state_date"]) == ("rereading", "")
+    changed = answer(capsys, "book", one, "--state", "finished", "--date", "2026-10-02", "--json", computer=computer)["book"]
+    assert (changed["state"], changed["state_date"]) == ("finished", "2026-10-02")
     with pytest.raises(SystemExit, match="date must be YYYY-MM-DD"):
         cli.main(["book", one, "--state", "finished", "--date", "1 Oct"], computer=computer)
     assert answer(capsys, "book", one, "--state", "want", "--date", "2026-10-01", "--json", computer=computer)["book"]["state_date"] == ""

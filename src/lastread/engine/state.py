@@ -394,11 +394,22 @@ def set_mode(con: sqlite3.Connection, reader: str, content_ids: list[str], mode:
 
 
 def set_state(con: sqlite3.Connection, reader: str, content_id: str, st: str, date: str = "") -> int:
-    """The State of this book, on every Kobo it is on (PER_BOOK)."""
+    """The State of this book, on every Kobo it is on (PER_BOOK).
+
+    A date belongs to the State it was given for: Finished has the day the
+    book was finished, Rereading the day the re-read began. The date of the
+    State before is therefore not taken for another State. The page's date
+    field still holds it while the State changes, and a form without
+    script, or an app from before this, sends it along: seen on a real
+    shelf, a re-read that began on the day the book was finished, years
+    before. Given again for the State as it is now, the same day is taken."""
     if st not in STATES:
         raise ValueError(f"state must be one of {STATES}")
     if date and not (len(date) == 10 and date[4] == "-" and date[7] == "-"):
         raise ValueError("date must be YYYY-MM-DD")
+    was = con.execute("select state, state_date from book where reader=? and content_id=? limit 1", (reader, content_id)).fetchone()
+    if date and was and (was["state"] or "kobo") != st and date == was["state_date"]:
+        date = ""
     # state_changed: a State set here since the last sync wins over an edit
     # made on Hardcover in the same period.
     n = con.execute(

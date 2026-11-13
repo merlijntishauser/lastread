@@ -132,6 +132,36 @@ def test_finished_rule_and_state_override(tmp_path):
         state.set_state(st, "robin", "mine", "done")
 
 
+def test_the_date_of_one_state_is_not_taken_for_another(tmp_path):
+    k = tmp_path / "k.sqlite"
+    make_kobo(k, [REOPENED], [])
+    st = state.connect(str(tmp_path / "state.db"))
+    state.import_books(st, "robin", "kobo1", kobo_db.read_books(kobo_db.open_db(str(k))))
+    state.set_mode(st, "robin", ["reo"], "on")
+    matched(st, "reo")
+
+    def get():
+        return st.execute("select * from book where content_id='reo'").fetchone()
+
+    # Pinned as finished on a day, years ago. Set to Rereading, the page's date field still holds that day
+    # and sends it along: it is the day the book was finished, not the day the re-read began.
+    state.set_state(st, "robin", "reo", "finished", "2007-09-13")
+    state.set_state(st, "robin", "reo", "rereading", "2007-09-13")
+    assert (get()["state"], get()["state_date"]) == ("rereading", None)
+    assert action(get()) == "start a re-read, 46%"
+    # A day given for the State as it is now is taken, also that same day.
+    state.set_state(st, "robin", "reo", "rereading", "2007-09-13")
+    assert get()["state_date"] == "2007-09-13"
+    state.set_state(st, "robin", "reo", "rereading", "2026-10-01")
+    assert action(get()) == "start a re-read, 46%, started 2026-10-01"
+    # The other way round: the day a re-read began is not the day the book was finished. The Kobo's own day stands.
+    state.set_state(st, "robin", "reo", "finished", "2026-10-01")
+    assert (get()["state"], get()["state_date"]) == ("finished", None) and action(get()) == "mark Read, finished 2024-07-30"
+    # Another day than the one before is the reader's own, at once.
+    state.set_state(st, "robin", "reo", "rereading", "2026-11-01")
+    assert get()["state_date"] == "2026-11-01"
+
+
 def test_old_state_db_gets_new_columns(tmp_path):
     p = str(tmp_path / "state.db")
     c = sqlite3.connect(p)

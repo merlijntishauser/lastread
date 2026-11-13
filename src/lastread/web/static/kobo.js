@@ -52,7 +52,9 @@ function bindRows(root) {
       if (!r.ok) { alert(await r.text()); return; }
       redraw(f.closest('tr'), await r.json());
     };
-    f.querySelector('.rowstate').addEventListener('change', save);
+    // Another State: the date in the field was the old State's (the day a book was finished is not
+    // the day its re-read began), so the field starts empty.
+    f.querySelector('.rowstate').addEventListener('change', () => { f.querySelector('.rowdate').value = ''; save(); });
     f.querySelector('.rowdate').addEventListener('change', save);
   });
 }

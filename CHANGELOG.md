@@ -7,7 +7,15 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **A re-read no longer starts on the day the book was finished.** A book
+  pinned as *Finished* with a date and then set to *Rereading* kept that
+  date, on the page and in the Mac app, and Hardcover got it as the day
+  the re-read began: a re-read that started years ago. The date now goes
+  with the state it was given for. After a change between *Finished* and
+  *Rereading* the date is empty until you give one. A re-read that
+  already carries the wrong day keeps it: set the date on its row.
 
 ## 0.30.0 - 2026-11-13
 

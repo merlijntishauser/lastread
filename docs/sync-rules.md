@@ -107,8 +107,12 @@ Three sources of truth, each for its own part:
 - **H9** Per book you can overrule the Kobo on the page: *Finished* (with a
   date), *Rereading*, *Want to read*, *Did not finish*. *Want to read* and
   *Did not finish* are left alone on Hardcover, with no progress, until
-  you set the book back to *Follow Kobo*.
+  you set the book back to *Follow Kobo*. A date belongs to the state it
+  was given for: the day a book was finished is not taken as the day its
+  re-read began, nor the other way round. After such a change the date is
+  empty until you give one.
   Tests: `tests/test_core.py::test_finished_rule_and_state_override`,
+  `tests/test_core.py::test_the_date_of_one_state_is_not_taken_for_another`,
   `tests/test_hardcover.py::test_want_to_read_and_dnf_are_left_alone_until_follow_kobo`,
   `tests/test_hardcover.py::test_changed_finish_date_on_the_page_is_sent`
 - **H10** *Remove from Hardcover* on the page takes the book off your

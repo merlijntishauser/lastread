@@ -236,6 +236,27 @@ def test_state_finished_shows_date_and_full_reading_line(browser, base_url):
     ctx.close()
 
 
+def test_the_date_of_finished_is_not_the_start_of_a_reread(browser, base_url):
+    ctx, page = new_page(browser, base_url)
+    row = page.locator("tr#b-b05")
+    was = row.locator("select.rowstate").input_value()
+    row.locator("select.rowstate").select_option("finished")
+    row.locator(".bar.done").wait_for()
+    row.locator(".rowdate").fill("2007-09-13")
+    row.locator(".rowdate").dispatch_event("change")
+    page.wait_for_function("document.querySelector('tr#b-b05 td.book').textContent.includes('Finished 13 Sep 2007')")
+    # Rereading: the field is there for the day the re-read began, and starts empty.
+    row.locator("select.rowstate").select_option("rereading")
+    page.wait_for_function("!document.querySelector('tr#b-b05 .bar.done')")
+    assert row.locator(".rowdate").is_visible() and row.locator(".rowdate").input_value() == ""
+    page.reload()  # and that is what was saved
+    row = page.locator("tr#b-b05")
+    assert row.locator("select.rowstate").input_value() == "rereading" and row.locator(".rowdate").input_value() == ""
+    row.locator("select.rowstate").select_option(was)  # as it was, for the tests after this one
+    page.wait_for_function("document.querySelector('tr#b-b05 .rowdate').hidden")
+    ctx.close()
+
+
 def test_phone_layout_does_not_scroll_sideways(browser, base_url):
     ctx, page = new_page(browser, base_url, width=390)
     assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
