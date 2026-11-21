@@ -336,6 +336,14 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             self.model?.onKobo = putSample
         }
         steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-guest.png")) } }
+        steps.append { self.model?.putSaid = "Put on the Kobo: The Curious Incident.kepub.epub. Eject before unplugging." }  // after a drop
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-guest-put.png")) } }
+        steps.append {  // and the Kobo gone again: the pane as it was
+            self.model?.onKobo = nil
+            self.model?.putSaid = ""
+        }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-guest-gone.png")) } }
+        steps.append { self.model?.onKobo = putSample }
         steps.append { self.model?.whoseKobo = putSample.kobo }
         steps.append { (self.window?.attachedSheet ?? self.window).map { picture($0, folder.appendingPathComponent("window-whose.png")) } }
         steps.append {

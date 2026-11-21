@@ -7,7 +7,13 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **The Mac app's window no longer breaks after a book is put on a Kobo.**
+  In 0.32.0, dropping a book on the plugged-in Kobo's bar under *EPUB
+  Folder* pushed the whole window's content up under the title bar: the
+  sidebar, the top line and the folder's own bar were gone until the app
+  was opened again. The line that says what was put no longer does that.
 
 ## 0.32.0 - 2026-11-21
 

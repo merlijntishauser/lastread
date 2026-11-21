@@ -351,3 +351,15 @@ def test_the_icon_and_the_disk_window_are_packed():
     if b"Kobo Hardcover Sync.app" in layout and b"Lastread.app" not in layout:
         pytest.xfail("dmg.DS_Store still places Kobo Hardcover Sync.app: run packaging/macos/dmg-layout.sh on a Mac")
     assert b"Lastread.app" in layout
+
+
+def test_no_line_beside_the_folders_table_sizes_itself_to_its_height():
+    """A Text with fixedSize(vertical:) in a bar of the EPUB Folder pane, above or
+    below its table, pushes the whole window's content up under the title bar on
+    macOS 27: the folder's bar did it in 0.23.1, the plugged-in Kobo's in 0.32.0.
+    It cannot be seen from here, so the source is held to it."""
+    source = (MACOS / "Folder.swift").read_text()
+    for bar in ("FolderBar", "FolderCollection", "PluggedKobo"):
+        body = source.split(f"struct {bar}: View")[1].split("\nstruct ")[0]
+        code = "\n".join(line.split("//")[0] for line in body.splitlines())
+        assert "vertical: true" not in code, f"{bar} has a line that sizes itself to its height"

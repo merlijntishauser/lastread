@@ -250,7 +250,9 @@ struct PluggedKobo: View {
                 .frame(height: CGFloat(min(found.books.count, 4)) * 22)  // four in sight, the rest by scrolling
             }
             if !model.putSaid.isEmpty {
-                Text(model.putSaid).font(.callout).padding(.leading, 48).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                // No fixedSize, as in the folder's bar: a line that sizes itself to its height beside the
+                // table pushed the whole window's content up under the title bar (macOS 27, 0.32.0).
+                Text(model.putSaid).font(.callout).lineLimit(3).padding(.leading, 48).textSelection(.enabled)
             }
         }
         .padding(.horizontal, 14)
