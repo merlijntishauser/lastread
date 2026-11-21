@@ -32,10 +32,12 @@ their progress among yours, and on your Hardcover shelf.
   window, or with `lastread kobo mine` or `lastread kobo not-mine`.
   Tests: `tests/test_whose_kobo.py::test_another_kobo_is_not_read_until_the_reader_says_whose_it_is`,
   `tests/test_whose_kobo.py::test_in_local_mode_another_kobo_is_not_imported_either`
-- **W3** A Kobo you said is not yours is left alone whenever it is
-  plugged in: not read, no collection, not ejected, and nothing is said
-  about it. `lastread status` and `lastread doctor` read nothing from it
-  either. The answer can be changed (`lastread kobo`).
+- **W3** A Kobo you said is not yours is a guest: left alone whenever it
+  is plugged in. It is not read, gets no collection and none of your
+  folder's books, is not ejected, and nothing is said about it.
+  `lastread status` and `lastread doctor` read nothing from it either. A
+  book you hand it yourself is the one thing done with it (G1). The answer
+  can be changed (`lastread kobo`).
   Tests: `tests/test_whose_kobo.py::test_a_kobo_that_is_someone_elses_is_left_alone`,
   `tests/test_whose_kobo.py::test_the_answer_for_a_kobo_is_given_and_changed_with_the_kobo_command`,
   `tests/test_whose_kobo.py::test_the_doctor_reads_nothing_from_a_kobo_that_is_not_the_readers`
@@ -508,6 +510,11 @@ any other you put on it yourself (M10).
   `tests/test_tokobo.py::test_a_kobo_that_refuses_every_copy_keeps_the_books_for_next_time`,
   `tests/test_tokobo.py::test_a_file_this_computer_cannot_read_does_not_stop_the_other_books`,
   `tests/test_tokobo.py::test_a_file_gone_from_the_folder_halfway_is_not_the_kobo_unplugged`
+- **P9** A file this computer cannot open is not taken for a broken book
+  or one with DRM. It is said, with why, and tried again at the next
+  plug-in: on a Mac that is a file macOS keeps in iCloud and not on the
+  disk, which a sync the Kobo started is not let in to.
+  Tests: `tests/test_put.py::test_a_file_this_computer_cannot_open_is_not_taken_for_a_broken_book`
 - **P6** Only files are written: the Kobo's database is never touched for
   this. In server mode the computer does it, and no book goes to the
   server.
@@ -539,6 +546,26 @@ any other you put on it yourself (M10).
   Tests: `tests/test_tokobo.py::test_the_folders_books_in_no_collection_with_the_synced_books_or_in_their_own`,
   `tests/test_tokobo.py::test_server_mode_keeps_the_folders_own_collection_on_this_computer`,
   `tests/test_tokobo.py::test_choosing_where_the_folders_books_go`
+
+## Books put on a Kobo by hand
+
+`lastread put FILE...`, or a file dropped on the Kobo's bar in the Mac
+app: for a book someone needs on their Kobo now. It works on any Kobo that
+is plugged in, also one that is not yours (W3).
+
+- **G1** The EPUBs and PDFs you name go into the Kobo's `Lastread` folder,
+  now, as the folder's books do: never over another file (P4), whole or
+  not at all (P5), an EPUB as kepub when kepubify is there (P7), and not
+  one with DRM (P2). A PDF goes as it is. Only files are written; the
+  Kobo's database is not opened, nothing is synced, and nothing is
+  remembered about it. What cannot go is said, and the rest still goes.
+  Tests: `tests/test_put.py::test_a_book_is_put_on_a_kobo_that_is_not_the_readers_and_nothing_else_is_done_with_it`,
+  `tests/test_put.py::test_a_book_put_by_hand_never_goes_over_another_and_a_pdf_goes_as_it_is`,
+  `tests/test_put.py::test_what_cannot_go_by_hand_is_said_and_the_rest_still_goes`,
+  `tests/test_put.py::test_a_kobo_without_room_gets_nothing_half_by_hand`
+- **G2** A book can be taken off the Kobo again, but only one in its
+  `Lastread` folder: nothing else on the Kobo can be reached from here.
+  Tests: `tests/test_put.py::test_only_a_book_in_the_kobos_lastread_folder_can_be_taken_off`
 
 ## What leaves your computer
 

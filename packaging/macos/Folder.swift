@@ -41,6 +41,40 @@ extension WindowModel {
         }
     }
 
+    /// The Kobo that is plugged in and the books in its Lastread folder (`put --json`). With files, a
+    /// removal or an eject: that first, and what it did is said in the Kobo's bar.
+    func loadKobo(put files: [String] = [], remove: [String] = [], eject: Bool = false) {
+        let change = !files.isEmpty || !remove.isEmpty || eject
+        if isPreview {
+            if change { problem = "The preview changes nothing on a Kobo. The app would now put these books on it, or take one off." }
+            return
+        }
+        guard status?.kobo != nil else {
+            onKobo = nil
+            putSaid = ""
+            return
+        }
+        if change {
+            guard !putting else { return }
+            putting = true
+            putSaid = ""
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let args = ["put"] + remove.flatMap { ["--remove", $0] } + (eject ? ["--eject"] : []) + ["--json", "--"] + files
+            let found = answer(PutAnswer.self, args)
+            DispatchQueue.main.async {
+                if change { self.putting = false }
+                switch found {
+                case .success(let a):
+                    self.onKobo = a.ejected ? nil : a
+                    if change { self.putSaid = putLine(a) }
+                case .failure(let why):
+                    if change { self.problem = why.said } else { self.onKobo = nil }  // unplugged between the look and the question
+                }
+            }
+        }
+    }
+
     /// The book of Books this one of the folder is, once a sync has read it from the Kobo.
     func book(_ b: ToKoboAnswer.Book) -> BooksAnswer.Book? {
         b.ids.isEmpty ? nil : books?.books.first { b.ids.contains($0.id) }
@@ -98,7 +132,19 @@ struct FolderPane: View {
                 }
             }
         }
-        .onAppear { model.loadFolder() }
+        .safeAreaInset(edge: .bottom, spacing: 0) {  // the Kobo that is plugged in, under whatever the folder shows
+            if let kobo = model.onKobo {
+                VStack(spacing: 0) {
+                    Divider()
+                    PluggedKobo(model: model, found: kobo)
+                }
+                .background(.background)
+            }
+        }
+        .onAppear {
+            model.loadFolder()
+            model.loadKobo()
+        }
         .confirmationDialog(
             "\(tooMany?.n ?? 0) books at once",
             isPresented: Binding(get: { tooMany != nil }, set: { if !$0 { tooMany = nil } })
@@ -136,6 +182,153 @@ struct FolderPane: View {
             model.loadFolder([folder]) { a in
                 if a.tooMany > 0 { tooMany = (folder, a.tooMany) }
             }
+        }
+        if let window = NSApp.keyWindow {
+            panel.beginSheetModal(for: window, completionHandler: chosen)
+        } else {
+            chosen(panel.runModal())
+        }
+    }
+}
+
+/// What a put, a removal or an eject did, for the Kobo's bar (`put --json`).
+func putLine(_ a: PutAnswer) -> String {
+    var parts: [String] = []
+    if !a.put.isEmpty { parts.append("Put on the Kobo: \(a.put.joined(separator: ", ")).") }
+    if !a.removed.isEmpty { parts.append("Taken off the Kobo: \(a.removed.joined(separator: ", ")).") }
+    for r in a.refused { parts.append("\(r.name) not put on the Kobo: \(r.why).") }
+    if a.left > 0 {
+        let why = ["full": "the Kobo is full", "unplugged": "the Kobo was unplugged"][a.whyLeft] ?? a.whyLeft
+        parts.append("\(a.left == 1 ? "1 book" : "\(a.left) books") not put on the Kobo: \(why).")
+    }
+    if a.ejected {
+        parts.append("Ejected: safe to unplug.")
+    } else if !a.put.isEmpty || !a.removed.isEmpty {
+        parts.append("Eject before unplugging.")
+    }
+    return parts.joined(separator: " ")
+}
+
+/// The Kobo that is plugged in: an EPUB or a PDF dropped here goes on it now (`put`, rules G1, G2),
+/// apart from the folder above. Also on a Kobo that is not the reader's: a guest never syncs and gets
+/// no collection, and a book handed over by hand is the one thing done with it.
+struct PluggedKobo: View {
+    @ObservedObject var model: WindowModel
+    let found: PutAnswer
+    @State private var over = false  // a file is held over the bar
+    @State private var removing: PutAnswer.OnKobo?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "arrow.down.doc").font(.system(size: 24, weight: .light)).frame(width: 36).foregroundStyle(Pencil.graphite).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.headline)
+                    Text(line).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(2)
+                }
+                Spacer(minLength: 12)
+                if model.putting { ProgressView().controlSize(.small) }
+                Button("Choose Files…", action: choose).disabled(model.putting)
+                Button("Eject") { model.loadKobo(eject: true) }.disabled(model.putting).help("Eject this Kobo, so that it can be unplugged")
+            }
+            if !found.books.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(found.books) { book in
+                            HStack(spacing: 8) {
+                                Mark(state: "ok", size: 14)
+                                Text(book.name).font(.callout).lineLimit(1).truncationMode(.middle)
+                                Text(kind(book)).font(.caption).foregroundStyle(Pencil.graphite)
+                                Spacer(minLength: 8)
+                                Button("Remove…") { removing = book }.buttonStyle(.link).disabled(model.putting)
+                                    .accessibilityLabel("Remove \(book.name) from the Kobo")
+                            }
+                        }
+                    }
+                    .padding(.leading, 48)
+                }
+                .frame(height: CGFloat(min(found.books.count, 4)) * 22)  // four in sight, the rest by scrolling
+            }
+            if !model.putSaid.isEmpty {
+                Text(model.putSaid).font(.callout).padding(.leading, 48).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(over ? Pencil.greenWash : Color.clear)
+        .onDrop(of: [.fileURL], isTargeted: $over, perform: drop)
+        .accessibilityElement(children: .contain)
+        .confirmationDialog(
+            "Remove \(removing?.name ?? "") from this Kobo?",
+            isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
+            presenting: removing
+        ) { book in
+            Button("Remove", role: .destructive) { model.loadKobo(remove: [book.name]) }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("The file is deleted from the Kobo's Lastread folder. The Kobo forgets the book, with its bookmarks, when it is unplugged.")
+        }
+    }
+
+    private var title: String {
+        let model = found.kobo?.model ?? ""
+        let what: String
+        switch found.kobo?.whose {
+        case "other": what = "Guest Kobo"
+        case "mine": what = "Your Kobo"
+        default: what = "A Kobo this Mac has not synced"
+        }
+        return model.isEmpty ? what : "\(what) · \(model)"
+    }
+
+    private var line: String {
+        let drop = "Drop an EPUB or a PDF here to put it on this Kobo now."
+        switch found.kobo?.whose {
+        case "other": return "Not yours: it does not sync and gets no collection. \(drop)"
+        case "mine": return "\(drop) The folder above goes by itself at every plug-in."
+        default: return "Nothing is read from it until you say whose it is. \(drop)"
+        }
+    }
+
+    private func kind(_ book: PutAnswer.OnKobo) -> String {
+        let size = ByteCountFormatter.string(fromByteCount: Int64(book.size), countStyle: .file)
+        return "\(book.format == "kepub" ? "kepub" : book.format.uppercased()), \(size)"
+    }
+
+    private func drop(_ providers: [NSItemProvider]) -> Bool {
+        let all = DispatchGroup()
+        let lock = NSLock()
+        var files: [String] = []
+        for provider in providers where provider.canLoadObject(ofClass: URL.self) {
+            all.enter()
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                if let url, url.isFileURL {
+                    lock.lock()
+                    files.append(url.path)
+                    lock.unlock()
+                }
+                all.leave()
+            }
+        }
+        all.notify(queue: .main) { if !files.isEmpty { model.loadKobo(put: files.sorted()) } }
+        return true
+    }
+
+    private func choose() {
+        guard !isPreview else {
+            model.problem = "The preview changes nothing on a Kobo. The app would now ask for the books to put on it."
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.epub, .pdf]
+        panel.prompt = "Put on the Kobo"
+        panel.message = "These EPUBs and PDFs go on the Kobo that is plugged in, now."
+        let chosen = { (response: NSApplication.ModalResponse) in
+            guard response == .OK, !panel.urls.isEmpty else { return }
+            model.loadKobo(put: panel.urls.map(\.path))
         }
         if let window = NSApp.keyWindow {
             panel.beginSheetModal(for: window, completionHandler: chosen)

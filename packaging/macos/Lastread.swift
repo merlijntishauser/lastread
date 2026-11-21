@@ -331,6 +331,18 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
             steps.append { self.model?.pane = pane }
             steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased()).png")) } }
         }
+        steps.append {  // someone else's Kobo plugged in: its bar under the folder, then the question that came first
+            self.model?.pane = .folder
+            self.model?.onKobo = putSample
+        }
+        steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-guest.png")) } }
+        steps.append { self.model?.whoseKobo = putSample.kobo }
+        steps.append { (self.window?.attachedSheet ?? self.window).map { picture($0, folder.appendingPathComponent("window-whose.png")) } }
+        steps.append {
+            if let sheet = self.window?.attachedSheet { self.window?.endSheet(sheet) }
+            self.model?.whoseKobo = nil
+            self.model?.onKobo = nil
+        }
         steps.append {  // Covers showing one selection: the books that sync
             self.model?.pane = .covers
             UserDefaults.standard.set("on", forKey: "CoversShow")

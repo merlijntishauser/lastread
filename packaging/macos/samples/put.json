@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "kobo": {"id": "kobo-5e6f7a8b", "model": "Kobo Libra Colour", "whose": "other"},
+  "put": ["The Curious Incident.kepub.epub"],
+  "refused": [{"name": "Locked.epub", "why": "it has Adobe DRM; open it with Adobe Digital Editions"}],
+  "left": 0,
+  "why_left": "",
+  "removed": ["Old notes.pdf"],
+  "books": [
+    {"name": "Reader for class.pdf", "size": 2411724, "format": "pdf"},
+    {"name": "The Curious Incident.kepub.epub", "size": 611203, "format": "kepub"}
+  ],
+  "ejected": false
+}

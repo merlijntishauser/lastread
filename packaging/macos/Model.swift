@@ -233,6 +233,39 @@ struct SettingsAnswer: Codable {
     let settings: Values
 }
 
+/// `put --json`: the Kobo that is plugged in, the books in its Lastread folder, and what the call did.
+/// Also for a Kobo that is not the reader's: a book handed over by hand is the one thing done with it.
+struct PutAnswer: Codable {
+    /// A book in the Kobo's Lastread folder (tokobo.in_folder).
+    struct OnKobo: Codable, Identifiable, Equatable {
+        let name: String
+        let size: Int
+        let format: String  // "kepub", "epub" or "pdf"
+
+        var id: String { name }
+    }
+
+    let schema: Int
+    let kobo: StatusAnswer.Plugged?
+    let put: [String]  // the names the books got on the Kobo
+    let refused: [ToKoboAnswer.Refused]
+    let left: Int  // not put: the Kobo is full, or went away
+    let whyLeft: String
+    let removed: [String]
+    let books: [OnKobo]
+    let ejected: Bool
+}
+
+/// What the preview's pictures show: someone else's Kobo, with two books put on it from here.
+let putSample = PutAnswer(
+    schema: schema, kobo: StatusAnswer.Plugged(id: "kobo-5e6f7a8b", model: "Kobo Libra Colour", whose: "other"), put: [], refused: [], left: 0,
+    whyLeft: "", removed: [],
+    books: [
+        PutAnswer.OnKobo(name: "Reader for class.pdf", size: 2_411_724, format: "pdf"),
+        PutAnswer.OnKobo(name: "The Curious Incident.kepub.epub", size: 611_203, format: "kepub"),
+    ],
+    ejected: false)
+
 /// `to-kobo --json`: the folder whose books go on the Kobo at plug-in, and what the call did.
 struct ToKoboAnswer: Codable {
     struct Refused: Codable {

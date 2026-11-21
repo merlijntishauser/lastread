@@ -160,6 +160,7 @@ COMMANDS = (
             ("export", "Your reading as JSON, for a database of your own"),
             ("webhook", "POST each sync to an address of your own"),
             ("to-kobo", "Put the books from a folder of yours on the Kobo"),
+            ("put", "Put a book on the Kobo that is plugged in, now; also on one that is not yours"),
             ("kobo", "Which Kobos are yours; one that is not is left alone"),
             ("uninstall", "Remove the trigger"),
         ),
@@ -206,7 +207,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sub = p.add_subparsers(
         dest="cmd",
         required=True,
-        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,to-kobo,kobo,uninstall,serve,import}",
+        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,to-kobo,put,kobo,uninstall,serve,import}",
     )
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
@@ -278,6 +279,16 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     )
     tko.add_argument("--name", default=None, help="the name of their own collection (default Lastread)")
     tko.add_argument("--json", action="store_true", help="as JSON, for the Mac app; too many books are answered, not refused")
+    put = sub.add_parser(
+        "put",
+        help="put a book on the Kobo that is plugged in, now",
+        description="Puts the EPUBs and PDFs you name in the Lastread folder of the Kobo that is plugged in: your own, or one "
+        "that is not yours and that this tool otherwise leaves alone. Without a file: what is in that folder.",
+    )
+    put.add_argument("files", nargs="*", metavar="FILE", help="an EPUB or a PDF on this computer")
+    put.add_argument("--remove", action="append", default=[], metavar="NAME", help="take a book out of the Kobo's Lastread folder")
+    put.add_argument("--eject", action="store_true", help="eject the Kobo when done")
+    put.add_argument("--json", action="store_true", help="as JSON")
     kob = sub.add_parser(
         "kobo",
         help="which Kobos are yours; one that is not is left alone",
@@ -349,6 +360,7 @@ def _run(a, computer) -> None:
         "webhook": _webhook,
         "to-kobo": _to_kobo,
         "kobo": _kobo,
+        "put": _put,
     }
     commands[a.cmd](a, computer)
 
@@ -796,6 +808,58 @@ def _plugged(computer) -> dict | None:
         return None
     dev = kobo_db.device(mount)
     return {"id": dev.name, "model": dev.model, "whose": kobos.whose(config.state_dir(), dev)}
+
+
+def _put(a, computer) -> None:
+    """Books put on the Kobo that is plugged in, by hand (G1, G2): whoever's it is."""
+    from .computer import runner
+
+    mount = computer.find_kobo()
+    if not mount:
+        sys.exit("lastread: no Kobo is plugged in. Plug it in and tap Connect on the Kobo.")
+    plugged = _plugged(computer)
+    try:
+        for name in a.remove:
+            tokobo.take_off(mount, name)
+    except (tokobo.Refused, OSError) as ex:
+        sys.exit(f"lastread: {getattr(ex, 'strerror', None) or ex}")
+    r = tokobo.put_files(a.files, mount) if a.files else tokobo.Result()
+    refused = [*r.refused, *((name, f"this computer could not read it ({why})") for name, why in r.unread)]
+    wrote = bool(r.put or a.remove)
+    ejected = bool(a.eject and computer.eject(mount))
+    there = [] if ejected else tokobo.in_folder(mount)
+    if a.json:
+        _json(
+            {
+                "kobo": plugged,
+                "put": r.put,
+                "refused": [{"name": name, "why": why} for name, why in refused],
+                "left": r.left,
+                "why_left": r.why_left,
+                "removed": a.remove,
+                "books": there,
+                "ejected": ejected,
+            }
+        )
+    else:
+        whose = {"mine": "yours", "other": "not yours: nothing else is done with it"}.get(plugged["whose"], "not synced here before")
+        rows = [Row(OK, "Kobo", f"{plugged['model'] or mount}, {whose}")]
+        if r.put:
+            rows.append(Row(OK, "Put", f"{', '.join(r.put)}{runner._how(r) if r.as_epub else ''}"))
+        rows += [Row(OK, "Removed", name) for name in a.remove]
+        rows += [Row(WARN, "Not put", f"{name}: {why}") for name, why in refused]
+        if r.left:
+            why = {"full": "the Kobo is full", "unplugged": "the Kobo was unplugged"}.get(r.why_left, r.why_left)
+            rows.append(Row(WARN, "Not put", f"{plural(r.left, 'book')}: {why}"))
+        if not ejected:
+            rows.append(Row(NOTE, "On it", ", ".join(b["name"] for b in there) or f"Nothing in its {tokobo.FOLDER} folder"))
+        term.Screen.of().rows(rows)
+        if ejected:
+            term.Screen.of().say("Ejected: safe to unplug.")
+        elif wrote:
+            term.Screen.of().say("Eject before unplugging.")
+    if refused or r.left:
+        sys.exit(1)
 
 
 def _kobo(a, computer) -> None:

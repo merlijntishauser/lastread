@@ -7,6 +7,17 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
+### Added
+
+- **A book for someone else's Kobo.** A Kobo that is not yours is a guest:
+  it never syncs and gets no collection, but you can put a book on it. In
+  the Mac app, *EPUB Folder* shows the Kobo that is plugged in: drop an
+  EPUB or a PDF on it, or choose files, and they go on that Kobo now. The
+  books in its Lastread folder are listed there and can be removed, and
+  the Kobo ejected. In a terminal: `lastread put FILE...`. It works for
+  your own Kobo too, for a book that is not in your folder. An EPUB goes
+  as kepub, a PDF as it is; a book with DRM is refused.
+
 ### Fixed
 
 - **Someone else's Kobo is no longer read as yours.** Any Kobo plugged
@@ -21,6 +32,12 @@ minor version may change behaviour; the notes will say so.
   the Finder can still be used on it. After the update your own Kobo is
   recognised from what the earlier version kept where it can be;
   otherwise the first Kobo you plug in is taken to be yours.
+- **A book macOS keeps in iCloud is no longer called a broken EPUB.**
+  With the folder in iCloud Drive (Documents, for one), macOS can take a
+  book off the disk. A sync the Kobo started cannot open such a file, and
+  the tool said "it is not an EPUB that can be read" and never tried that
+  book again for that Kobo. It now says that this computer could not read
+  it and why, and tries again at the next plug-in.
 
 ## 0.31.0 - 2026-11-13
 

@@ -621,13 +621,17 @@ def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -
         said.append(f"No books put on the Kobo ({ex.strerror or ex}).")
         step(Row(WARN, "To Kobo", f"Not done: {ex.strerror or ex}"))
         return False
-    log.info("to the Kobo: %d put, %d refused, %d left (%s)", len(r.put), len(r.refused), r.left, r.why_left or "-")
+    log.info(
+        "to the Kobo: %d put, %d refused, %d unread, %d left (%s)", len(r.put), len(r.refused), len(r.unread), r.left, r.why_left or "-"
+    )
     keep_folder_covers(folder, state_dir)  # of what just went, and of what went before this was done
     told = []
     if r.put:
         told.append(f"{plural(len(r.put), 'book')} put on the Kobo.")
     for name, why in r.refused:
         told.append(f"{name} not put on the Kobo: {why}.")
+    for name, why in r.unread:  # the file here, not the book: said, and tried again at the next plug-in
+        told.append(f"{name} not put on the Kobo yet: this computer could not read it ({why}).")
     if r.left:
         told.append(
             f"{plural(r.left, 'book')} not put on the Kobo: "
@@ -642,7 +646,7 @@ def _put_books(folder: str, mount: str, state_dir: str, said: list[str], step) -
         text = " ".join(told).rstrip(".")
         if r.put:  # how they went, for whoever watches; the notification does not say it (P7)
             text = text.replace(" put on the Kobo", " put on the Kobo" + _how(r), 1)
-        step(Row(WARN if r.refused or r.left or r.unconverted else OK, "To Kobo", text))
+        step(Row(WARN if r.refused or r.unread or r.left or r.unconverted else OK, "To Kobo", text))
     return bool(r.put)
 
 

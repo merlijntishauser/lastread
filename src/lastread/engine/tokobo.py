@@ -73,6 +73,7 @@ class Result:
     as_epub: list[str] = field(default_factory=list)  # plain EPUBs put on the Kobo as they are
     unconverted: list[str] = field(default_factory=list)  # of those, the ones kepubify could not convert
     why_left: str = ""  # "full", "unplugged", or what the Kobo said when it refused every copy
+    unread: list[tuple[str, str]] = field(default_factory=list)  # (file name, why) this computer could not read it: tried again
 
 
 def books_in(folder: str) -> list[str]:
@@ -86,7 +87,31 @@ def books_in(folder: str) -> list[str]:
 
 
 def drm(path: str) -> str:
-    """Why this EPUB would not open on the Kobo, "" when it would (P2)."""
+    """Why this EPUB would not open on the Kobo, "" when it would (P2).
+    Unread when it is this computer that cannot read the file: that says
+    nothing about the book."""
+    try:
+        return _drm(path)
+    except OSError as ex:
+        raise Unread(_why_unread(path, ex)) from ex
+
+
+SF_DATALESS = 0x40000000  # macOS: the file's contents are in iCloud, not on this disk
+
+
+def _why_unread(path: str, ex: OSError) -> str:
+    """Why a file here could not be read, in words that say what to do when
+    macOS keeps it in iCloud: a sync the Kobo started is not let in there."""
+    try:
+        away = getattr(os.stat(path), "st_flags", 0) & SF_DATALESS
+    except OSError:
+        away = 0
+    if away:
+        return "macOS keeps it in iCloud, not on this computer; open its folder in the Finder to download it"
+    return ex.strerror or str(ex)
+
+
+def _drm(path: str) -> str:
     try:
         with zipfile.ZipFile(path) as z:
             names = set(z.namelist())
@@ -100,7 +125,7 @@ def drm(path: str) -> str:
                 methods = {el.get("Algorithm", "") for el in root.iter() if el.tag.rsplit("}", 1)[-1] == "EncryptionMethod"}
                 if methods - FONTS:
                     return "it is encrypted (DRM)"
-    except (OSError, zipfile.BadZipFile, ET.ParseError):
+    except (zipfile.BadZipFile, ET.ParseError):
         return "it is not an EPUB that can be read"
     return ""
 
@@ -247,7 +272,13 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
             done[sha] = {"name": name, "at": _now(), "found": True, "path": os.path.relpath(same, mount).replace(os.sep, "/")}
             _keep(state_dir, remembered)
             continue
-        if why := drm(path):
+        try:
+            why = drm(path)
+        except Unread as ex:  # the file here, not the book: it is not refused, and is tried again (P5)
+            log.warning("a book could not be read, left for the next sync: %s", ex)
+            r.unread.append((name, str(ex)))
+            continue
+        if why:
             r.refused.append((name, why))
             done[sha] = {"name": name, "at": _now(), "refused": why}
             _keep(state_dir, remembered)
@@ -272,6 +303,8 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
         except Unread as ex:
             # The file on this computer, not the Kobo: it waits until it can be read, and the rest still go.
             log.warning("a book could not be read, left for the next sync: %s", ex)
+            if os.path.exists(path):  # one taken out of the folder meanwhile is nothing to tell
+                r.unread.append((name, str(ex)))
             continue
         except OSError as ex:
             if not os.path.isdir(mount) or ex.errno in GONE:
@@ -298,6 +331,106 @@ def _put_each(r: Result, todo, there, mount: str, target: str, tmp: str, done: d
         r.put.append(landed)
         done[sha] = {"name": landed, "at": _now()}
         _keep(state_dir, remembered)
+
+
+BY_HAND = (".epub", ".pdf")  # what put_files takes: a PDF goes as it is, the Kobo reads it
+
+
+def put_files(paths: list[str], mount: str, kepubify: str | None = None) -> Result:
+    """These files, put on the Kobo at mount now (G1): a book handed over
+    by hand, also to a Kobo that is not the reader's. Into the same one
+    folder (P1), never over another file (P4), whole or not at all (P5),
+    an EPUB as kepub when kepubify is there (P7) and not one with DRM (P2);
+    a PDF as it is. Nothing is remembered: this is not the folder that is
+    kept in step, and a book given twice is on the Kobo twice."""
+    r = Result()
+    target = os.path.join(mount, FOLDER)
+    r.kepubify = find_kepubify() if kepubify is None else kepubify
+    with tempfile.TemporaryDirectory(prefix="khs-kepub-") as tmp:
+        for n, path in enumerate(paths):
+            path = os.path.abspath(os.path.expanduser(path))
+            name = os.path.basename(path)
+            kind = next((k for k in BY_HAND if name.lower().endswith(k)), "")
+            try:
+                if not os.path.isfile(path):
+                    raise Refused("not_a_file", "it is not a file" if os.path.exists(path) else "it is not there")
+                if not kind or name.startswith("."):
+                    raise Refused("not_a_book", "it is not an EPUB or a PDF")
+                if inside(path, mount):
+                    raise Refused("on_the_kobo", "it is on the Kobo already")
+                try:
+                    size, sha = os.path.getsize(path), _sha256(path)
+                    with open(path, "rb") as fh:
+                        head = fh.read(1024)
+                except OSError as ex:
+                    raise Unread(_why_unread(path, ex)) from ex
+                if kind == ".pdf" and b"%PDF-" not in head:
+                    raise Refused("not_a_pdf", "it is not a PDF that can be read")
+                if kind == ".epub" and (why := drm(path)):
+                    raise Refused("drm", why)
+            except Refused as ex:
+                r.refused.append((name, str(ex)))
+                continue
+            except Unread as ex:
+                r.unread.append((name, str(ex)))
+                continue
+            if shutil.disk_usage(mount).free < size + SPARE:
+                r.left, r.why_left = len(paths) - n, "full"
+                break
+            source, as_name = path, fat_name(name)
+            if kind == ".epub" and not name.lower().endswith(KEPUB):
+                converted = _kepub(r.kepubify, path, tmp) if r.kepubify else ""
+                if converted:
+                    source, as_name = converted, fat_name(os.path.basename(converted))
+                else:
+                    r.as_epub.append(name)
+                    if r.kepubify:
+                        r.unconverted.append(name)
+            try:
+                os.makedirs(target, exist_ok=True)
+                r.put.append(_copy(source, target, as_name, sha))
+            except Unread as ex:
+                r.unread.append((name, str(ex)))
+            except OSError as ex:
+                if not os.path.isdir(mount) or ex.errno in GONE:
+                    r.left, r.why_left = len(paths) - n, "unplugged"
+                    break
+                why = ex.strerror or str(ex)
+                if ex.errno in WHOLE_KOBO:
+                    r.left, r.why_left = len(paths) - n, why
+                    break
+                r.refused.append((name, f"the Kobo would not take it ({why})"))
+            finally:
+                if source != path:
+                    os.unlink(source)
+    return r
+
+
+def in_folder(mount: str) -> list[dict]:
+    """The books in the Kobo's Lastread folder now: {"name", "size", "format"}
+    each, by name. What this tool put there, by the folder or by hand, and
+    nothing else on the Kobo: its other books are not this tool's to list."""
+    target = os.path.join(mount, FOLDER)
+    out = []
+    try:
+        names = sorted(os.listdir(target), key=str.lower)
+    except OSError:
+        return out
+    for name in names:
+        low, path = name.lower(), os.path.join(target, name)
+        if name.startswith(".") or not low.endswith(BY_HAND) or not os.path.isfile(path):
+            continue
+        out.append({"name": name, "size": os.path.getsize(path), "format": "kepub" if low.endswith(KEPUB) else low.rsplit(".", 1)[-1]})
+    return out
+
+
+def take_off(mount: str, name: str) -> None:
+    """One book out of the Kobo's Lastread folder (G2): only a book
+    in_folder lists, by its name there, so nothing else on the Kobo can be
+    reached. The Kobo forgets the book itself when it is unplugged."""
+    if name not in {b["name"] for b in in_folder(mount)}:
+        raise Refused("not_there", f"{name} is not in the Kobo's {FOLDER} folder.")
+    os.unlink(os.path.join(mount, FOLDER, name))
 
 
 def _kepub(kepubify: str, path: str, tmp: str) -> str:
@@ -336,7 +469,7 @@ def _copy(path: str, target: str, name: str, sha: str) -> str:
         try:
             src = open(path, "rb")  # noqa: SIM115 (closed by the with below)
         except OSError as ex:
-            raise Unread(ex.strerror or str(ex)) from ex
+            raise Unread(_why_unread(path, ex)) from ex
         with src, open(partial, "wb") as dst:
             shutil.copyfileobj(_Source(src), dst, 1 << 20)
             dst.flush()

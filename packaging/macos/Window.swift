@@ -56,6 +56,9 @@ final class WindowModel: ObservableObject {
     @Published var booksBroken: String?
     @Published var folder: ToKoboAnswer?  // the folder whose books go on the Kobo, from `to-kobo --json` (Folder.swift)
     @Published var folderBroken: String?
+    @Published var onKobo: PutAnswer?  // the Kobo that is plugged in and the books in its Lastread folder (`put --json`); nil without one
+    @Published var putting = false  // books are on their way to it
+    @Published var putSaid = ""  // what the last put, removal or eject did
     var folderAsking = false  // a look at the folder is under way: the next refresh does not start another
     @Published var search = ""
     @Published var filter = UserDefaults.standard.string(forKey: "BooksShow") ?? "all" {  // Show: remembered, apart from Covers'
@@ -105,7 +108,7 @@ final class WindowModel: ObservableObject {
                     self.broken = nil
                     if let plugged = found.plugged, plugged.whose.isEmpty {
                         if plugged.id != self.askLater && !self.syncing { self.whoseKobo = plugged }
-                    } else {
+                    } else if !isPreview {  // the preview's pictures put the question themselves
                         self.whoseKobo = nil  // unplugged, or answered elsewhere
                     }
                     // Started by the app while this window runs its own Sync now: that one, not one elsewhere.
@@ -113,6 +116,7 @@ final class WindowModel: ObservableObject {
                     self.elsewhere = self.syncing && started == "app" ? "" : started
                     self.loadBooks()
                     self.loadFolder()
+                    self.loadKobo()
                 case .failure(let why):
                     self.broken = why.said
                 }
@@ -743,15 +747,15 @@ extension View {
 func whoseQuestion(_ kobo: StatusAnswer.Plugged) -> String {
     let what = kobo.model.isEmpty ? "The Kobo that is plugged in" : "The \(kobo.model) that is plugged in"
     return "\(what) has not been synced on this Mac before. Nothing was read from it.\n\n"
-        + "Yours: it syncs from now on, beside any other Kobo of yours. Not yours: it is left alone whenever it is plugged in, "
-        + "so that someone else's reading does not land among your books."
+        + "Yours: it syncs from now on, beside any other Kobo of yours. Not yours: it is a guest here. It never syncs and gets no "
+        + "collection, so someone else's reading does not land among your books. You can still put a book on it, under \(Pane.folder.rawValue)."
 }
 
 /// The subtitle's word for the Kobo that is plugged in: whose it is, when it is not simply the reader's.
 func pluggedIn(_ status: StatusAnswer?) -> String? {
     guard let status, status.kobo != nil else { return nil }
     switch status.plugged?.whose {
-    case "other": return "Someone else's Kobo plugged in"
+    case "other": return "Guest Kobo plugged in"
     case "": return "A new Kobo plugged in"
     default: return "Kobo plugged in"
     }

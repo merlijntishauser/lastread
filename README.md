@@ -183,7 +183,8 @@ finish date, or see why something did not sync.
 Someone else's Kobo on your computer is not read as yours. The first time
 a Kobo other than your own is plugged in, the sync stops before it reads
 anything and asks whose it is. Yours too, and it syncs beside the first.
-Not yours, and it is left alone from then on.
+Not yours, and it is a guest: left alone from then on, except that you can
+still put a book on it by hand (`lastread put`, or a drop in the Mac app).
 
 Other commands:
 
@@ -201,6 +202,7 @@ Other commands:
 | `lastread token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
 | `lastread export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `lastread export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `lastread export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `lastread webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
+| `lastread put FILE...` | Put the EPUBs and PDFs you name on the Kobo that is plugged in, now: your own, or one that is not yours (a guest, which is otherwise left alone). An EPUB goes as kepub when kepubify is there, a PDF as it is. Without a file it lists the Kobo's Lastread folder; `--remove NAME` takes a book out of it, `--eject` ejects when done. In the Mac app: drop the file on the Kobo's bar under *EPUB Folder*. |
 | `lastread kobo` | The Kobos this computer knows, and whose each is. The first Kobo you sync is yours. Another one is not read until you have said whose it is: `lastread kobo mine` makes it a second Kobo of yours, `lastread kobo not-mine` has it left alone at every plug-in. `lastread kobo forget ID` has one asked about again. |
 | `lastread to-kobo FOLDER` | Put the EPUBs in FOLDER on the Kobo at every plug-in; `--off` stops it. `--collection synced` puts them in the collection of the books that sync, `--collection own` in one of their own (`--name`, Lastread by default); `none` is the default. |
 | `lastread uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
