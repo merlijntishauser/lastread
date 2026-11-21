@@ -7,7 +7,20 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Fixed
+
+- **Someone else's Kobo is no longer read as yours.** Any Kobo plugged
+  into your login was synced as your own: a partner's or a child's Kobo
+  put their books and their progress among yours, could put a book on your
+  Hardcover shelf, and in server mode overwrote what your own Kobo had
+  said. The computer now keeps which Kobos are yours. The first one it
+  syncs is; a Kobo it has not met is not read, and the sync asks whose it
+  is, in the Mac app's window or with the new `lastread kobo`. Yours too:
+  it syncs as a second Kobo beside the first, and the server keeps the two
+  apart. Not yours: it is left alone at every plug-in, and not ejected, so
+  the Finder can still be used on it. After the update your own Kobo is
+  recognised from what the earlier version kept where it can be;
+  otherwise the first Kobo you plug in is taken to be yours.
 
 ## 0.31.0 - 2026-11-13
 

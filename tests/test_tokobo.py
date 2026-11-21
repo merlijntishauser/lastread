@@ -14,7 +14,7 @@ from dataclasses import replace
 import pytest
 
 from lastread import cli
-from lastread.computer import config, runner
+from lastread.computer import config, kobos, runner
 from lastread.engine import epub, kobo_db, state, tokobo
 from lastread.web import covers
 from tests.kobo_fixture import BOOKS
@@ -158,9 +158,10 @@ def test_a_book_goes_on_each_kobo_once_and_a_delete_on_the_kobo_stays(plugged, h
     a_book(books / "Four.epub", "Four")
     shutil.copyfile(books / "Four.epub", os.path.join(mount(home), "Four.epub"))
     assert runner.sync(mac, cfg).message == "" and on_kobo(home) == ["Three.epub", "Two.epub"]
-    # Another Kobo gets every book of the folder, once.
+    # Another Kobo of the reader's gets every book of the folder, once.
     with open(os.path.join(mount(home), ".kobo", "version"), "w") as fh:
         fh.write("N99OTHERKOBO,4.9.77,6.0.274403,4.9.77,4.9.77,00000000-0000-0000-0000-000000000390\n")
+    kobos.say(config.state_dir(), kobo_db.device(mount(home)).name, True)  # asked whose it is (W2): theirs too
     shutil.rmtree(os.path.join(mount(home), tokobo.FOLDER))
     os.unlink(os.path.join(mount(home), "Four.epub"))
     out = runner.sync(mac, cfg)

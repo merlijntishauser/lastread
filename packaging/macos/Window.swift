@@ -41,6 +41,8 @@ final class WindowModel: ObservableObject {
     /// What the last sync that ended while this window was open said: on the
     /// top line, from every pane, until the next sync starts or a check is run.
     @Published var told: Told?
+    @Published var whoseKobo: StatusAnswer.Plugged?  // a Kobo this Mac has not synced before is plugged in: the window asks whose it is
+    private var askLater = ""  // the Kobo that question was put off for: not asked again while this window is open
     @Published var notifications = UNAuthorizationStatus.notDetermined
     @Published var previews = UNShowPreviewsSetting.always
     @Published var newer: String?
@@ -101,6 +103,11 @@ final class WindowModel: ObservableObject {
                 case .success(let found):
                     self.status = found
                     self.broken = nil
+                    if let plugged = found.plugged, plugged.whose.isEmpty {
+                        if plugged.id != self.askLater && !self.syncing { self.whoseKobo = plugged }
+                    } else {
+                        self.whoseKobo = nil  // unplugged, or answered elsewhere
+                    }
                     // Started by the app while this window runs its own Sync now: that one, not one elsewhere.
                     let started = found.syncing ?? ""
                     self.elsewhere = self.syncing && started == "app" ? "" : started
@@ -141,6 +148,25 @@ final class WindowModel: ObservableObject {
             DispatchQueue.main.async {
                 self.notifications = settings.authorizationStatus
                 self.previews = settings.showPreviewsSetting
+            }
+        }
+    }
+
+    /// The answer to "Is this Kobo yours?" (`kobo mine`, `kobo not-mine`); nil puts the question off.
+    /// One that is the reader's is read right away, as plugging it in would have.
+    func sayKobo(_ kobo: StatusAnswer.Plugged, mine: Bool?) {
+        whoseKobo = nil
+        guard let mine else {
+            askLater = kobo.id
+            return
+        }
+        if isPreview { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let said = tool(["kobo", mine ? "mine" : "not-mine", kobo.id, "--json"])
+            DispatchQueue.main.async {
+                if !said.ok { self.problem = said.output.trimmingCharacters(in: .whitespacesAndNewlines) }
+                self.refresh()
+                if said.ok && mine { self.syncNow() }
             }
         }
     }
@@ -415,6 +441,18 @@ struct MainView: View {
                     }
                 }
             }
+            // A Kobo this Mac has not synced before: nothing is read from it until this is answered.
+            .alert(
+                "Is this Kobo yours?",
+                isPresented: Binding(get: { model.whoseKobo != nil }, set: { if !$0, let kobo = model.whoseKobo { model.sayKobo(kobo, mine: nil) } }),
+                presenting: model.whoseKobo
+            ) { kobo in
+                Button("It is mine") { model.sayKobo(kobo, mine: true) }
+                Button("Not mine") { model.sayKobo(kobo, mine: false) }
+                Button("Not now", role: .cancel) { model.sayKobo(kobo, mine: nil) }
+            } message: { kobo in
+                Text(whoseQuestion(kobo))
+            }
         }
         .overlay { if let book = model.enlarged { Lightbox(model: model, book: book) } }  // over the whole window
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.enlarged?.id)
@@ -497,7 +535,7 @@ struct TopLine: View {
     private func toldLine(_ told: Told) -> String {
         let message = told.message.hasSuffix(".") ? String(told.message.dropLast()) : told.message  // a fragment, as the facts are
         var parts = [message, spokenInSentence(told.date)]
-        if model.status?.kobo != nil { parts.append("Kobo plugged in") }
+        if let kobo = pluggedIn(model.status) { parts.append(kobo) }
         return parts.joined(separator: " · ")
     }
 
@@ -513,7 +551,7 @@ struct TopLine: View {
         default: parts.append("Choose where your reading goes")
         }
         if let last = status.lastSync, let date = last.date { parts.append("last sync \(spokenInSentence(date))") }
-        if status.kobo != nil { parts.append("Kobo plugged in") }
+        if let kobo = pluggedIn(status) { parts.append(kobo) }
         return parts.joined(separator: " · ")
     }
 }
@@ -590,6 +628,12 @@ struct OverviewSections: View {
                 if model.previews == .never {
                     Button("Show previews") { if let url = URL(string: notificationSettings) { NSWorkspace.shared.open(url) } }
                 }
+            }
+        } else if check.what == "Kobo", let kobo = model.status?.plugged, kobo.whose != "mine" {
+            if kobo.whose.isEmpty {
+                Button("Whose is it?") { model.whoseKobo = kobo }
+            } else {
+                Button("It is mine") { model.sayKobo(kobo, mine: true) }  // said to be someone else's before: a change of mind
             }
         } else if check.state == "fail" || check.state == "warn" {
             switch check.what {
@@ -695,6 +739,24 @@ extension View {
 }
 
 /// The server's page, at Settings: in server mode the Hardcover connection is made there.
+/// What the window says under "Is this Kobo yours?".
+func whoseQuestion(_ kobo: StatusAnswer.Plugged) -> String {
+    let what = kobo.model.isEmpty ? "The Kobo that is plugged in" : "The \(kobo.model) that is plugged in"
+    return "\(what) has not been synced on this Mac before. Nothing was read from it.\n\n"
+        + "Yours: it syncs from now on, beside any other Kobo of yours. Not yours: it is left alone whenever it is plugged in, "
+        + "so that someone else's reading does not land among your books."
+}
+
+/// The subtitle's word for the Kobo that is plugged in: whose it is, when it is not simply the reader's.
+func pluggedIn(_ status: StatusAnswer?) -> String? {
+    guard let status, status.kobo != nil else { return nil }
+    switch status.plugged?.whose {
+    case "other": return "Someone else's Kobo plugged in"
+    case "": return "A new Kobo plugged in"
+    default: return "Kobo plugged in"
+    }
+}
+
 func openServerSettings(_ server: String) {
     if let url = URL(string: server)?.appendingPathComponent("settings") { NSWorkspace.shared.open(url) }
 }

@@ -29,9 +29,17 @@ struct StatusAnswer: Codable {
     let server: String
     let folder: String
     let kobo: String?  // where it is mounted, when one is plugged in
+    let plugged: Plugged?  // which Kobo that is, and whose; nil from a tool before 0.32
     let lastSync: Sync?
     let syncing: String?  // what started the sync that runs now in another process ("mount", "app", "hand"); "" when none
     var books: Books?  // local mode, once a Kobo was read: the books are on this Mac
+
+    /// The Kobo that is plugged in, as this Mac knows it: nothing is read from one that is not the reader's.
+    struct Plugged: Codable, Equatable {
+        let id: String  // its name here (kobo-1a2b3c4d), made from its serial number
+        let model: String
+        let whose: String  // "mine", "other" (someone else's: left alone), or "" when nobody has said yet
+    }
 
     /// The books in counts, for the overview's arrows.
     struct Books: Codable {

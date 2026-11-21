@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 
 from .. import __version__
 
+KOBO_HEADER = "X-Lastread-Kobo"  # which Kobo an upload was read from
+
 
 class ServerError(Exception):
     """Something the person can act on; str() is the message."""
@@ -38,13 +40,21 @@ class Server:
         self._open = opener or urllib.request.build_opener(_NoRedirect).open
 
     def _request(
-        self, method: str, path: str, body: bytes | None = None, timeout: int = 60, content_type: str = "", with_type: bool = False
+        self,
+        method: str,
+        path: str,
+        body: bytes | None = None,
+        timeout: int = 60,
+        content_type: str = "",
+        with_type: bool = False,
+        more: dict | None = None,
     ):
         """(status, body), or with with_type (status, body, media type, what
         the X-Lastread header says)."""
         headers = {"Authorization": "Bearer " + self._token, "User-Agent": f"lastread/{__version__}"}  # the server notes it
         if content_type:
             headers["Content-Type"] = content_type
+        headers.update(more or {})
         req = urllib.request.Request(self.url + path, data=body, method=method, headers=headers)
         try:
             with self._open(req, timeout=timeout) as r:
@@ -78,11 +88,14 @@ class Server:
             reason = getattr(ex, "reason", ex)
             raise ServerError(f"Could not reach {self.host} ({reason}).") from ex
 
-    def upload(self, gz_path: str) -> dict:
-        """Send the gzipped database. Returns what the server imported."""
+    def upload(self, gz_path: str, kobo: str = "") -> dict:
+        """Send the gzipped database. Returns what the server imported.
+        kobo: the name of the Kobo it was read from (kobo_db.Device.name),
+        so that the server keeps two Kobos of one reader apart (W4)."""
         with open(gz_path, "rb") as fh:
             body = fh.read()
-        _, raw = self._request("PUT", "/upload", body, timeout=120, content_type="application/gzip")
+        more = {KOBO_HEADER: kobo} if kobo else None
+        _, raw = self._request("PUT", "/upload", body, timeout=120, content_type="application/gzip", more=more)
         try:
             return json.loads(raw)
         except ValueError as ex:

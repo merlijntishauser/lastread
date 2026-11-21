@@ -14,6 +14,42 @@ Three sources of truth, each for its own part:
 - **Hardcover** is where it ends up. The only things taken back from it
   are your own edits there.
 
+## Whose Kobo it is
+
+One login on a computer syncs for one reader, and any Kobo can be plugged
+into it. Read as yours, someone else's Kobo would put their books and
+their progress among yours, and on your Hardcover shelf.
+
+- **W1** The first Kobo a computer syncs is yours. The computer keeps
+  which Kobos are yours under a name made from each Kobo's serial number;
+  the serial number itself is kept nowhere. Kobos synced here by a
+  version before this rule are known from what that version kept.
+  Tests: `tests/test_whose_kobo.py::test_the_first_kobo_a_computer_syncs_is_the_readers`,
+  `tests/test_whose_kobo.py::test_the_kobos_from_before_are_known_without_asking`
+- **W2** A Kobo the computer has not synced before is not read. Nothing
+  of it is imported or sent and nothing is written to it; the sync asks
+  whose it is, at every plug-in, until you answer: in the Mac app's
+  window, or with `lastread kobo mine` or `lastread kobo not-mine`.
+  Tests: `tests/test_whose_kobo.py::test_another_kobo_is_not_read_until_the_reader_says_whose_it_is`,
+  `tests/test_whose_kobo.py::test_in_local_mode_another_kobo_is_not_imported_either`
+- **W3** A Kobo you said is not yours is left alone whenever it is
+  plugged in: not read, no collection, not ejected, and nothing is said
+  about it. `lastread status` and `lastread doctor` read nothing from it
+  either. The answer can be changed (`lastread kobo`).
+  Tests: `tests/test_whose_kobo.py::test_a_kobo_that_is_someone_elses_is_left_alone`,
+  `tests/test_whose_kobo.py::test_the_answer_for_a_kobo_is_given_and_changed_with_the_kobo_command`,
+  `tests/test_whose_kobo.py::test_the_doctor_reads_nothing_from_a_kobo_that_is_not_the_readers`
+- **W4** A second Kobo of your own is a Kobo beside the first, and the
+  rules for one book on two Kobos hold (C4, C8). In server mode the upload
+  says which Kobo it was read from, and the server keeps the second one as
+  a device of its own, so the two do not overwrite each other's books.
+  Tests: `tests/test_whose_kobo.py::test_a_second_kobo_of_the_reader_is_a_device_of_its_own_on_the_server`,
+  `tests/test_whose_kobo.py::test_an_upload_that_names_no_kobo_is_the_tokens_device`
+- **W5** A Kobo that does not say which Kobo it is (no readable
+  `.kobo/version`) cannot be told from another. It syncs as yours, as
+  every Kobo did before these rules.
+  Tests: `tests/test_whose_kobo.py::test_a_kobo_that_does_not_say_which_it_is_syncs_as_before`
+
 ## Which books
 
 - **B1** Only books that were opened count. A book nobody touched is not
@@ -511,15 +547,20 @@ any other you put on it yourself (M10).
 - **U2** In server mode the upload holds the book rows and the reading
   events, nothing else, and the server refuses an upload that holds more.
   Of a book row only what the server reads: what the book is, how far it
-  is read and when, and the two marks of an audiobook (B9).
+  is read and when, and the two marks of an audiobook (B9). With it goes
+  the name the computer keeps for the Kobo (W1, W4), not its serial number.
   Tests: `tests/test_computer.py::test_the_upload_holds_only_what_the_server_reads`,
   `tests/test_upload.py::test_an_upload_with_more_than_the_server_reads_is_refused`,
-  `tests/test_audiobooks.py::test_an_audiobook_is_still_one_after_the_upload`
+  `tests/test_audiobooks.py::test_an_audiobook_is_still_one_after_the_upload`,
+  `tests/test_whose_kobo.py::test_a_second_kobo_of_the_reader_is_a_device_of_its_own_on_the_server`
 
 ## Known limits
 
 Not bugs, but worth knowing. Each follows from a rule above.
 
+- **The first Kobo is taken to be yours** (W1), and so is a Kobo that
+  does not say which one it is (W5). A Kobo that was read as yours by
+  mistake stays among your books until you switch its books off.
 - **Finish dates are UTC dates** (H11). Read until just after midnight and
   Hardcover may show the day before. Set the date on the page (*Finished*,
   with a date) when it matters.

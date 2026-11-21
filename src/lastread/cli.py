@@ -160,6 +160,7 @@ COMMANDS = (
             ("export", "Your reading as JSON, for a database of your own"),
             ("webhook", "POST each sync to an address of your own"),
             ("to-kobo", "Put the books from a folder of yours on the Kobo"),
+            ("kobo", "Which Kobos are yours; one that is not is left alone"),
             ("uninstall", "Remove the trigger"),
         ),
     ),
@@ -205,7 +206,7 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     sub = p.add_subparsers(
         dest="cmd",
         required=True,
-        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,to-kobo,uninstall,serve,import}",
+        metavar="{setup,token,sync,status,doctor,history,settings,update,open,export,webhook,to-kobo,kobo,uninstall,serve,import}",
     )
     stp = sub.add_parser("setup", help="make this computer sync a plugged-in Kobo")
     stp.add_argument("--server", default="", help="the server's address, e.g. https://kobo.example.org")
@@ -277,6 +278,18 @@ def main(argv: list[str] | None = None, computer=None) -> None:
     )
     tko.add_argument("--name", default=None, help="the name of their own collection (default Lastread)")
     tko.add_argument("--json", action="store_true", help="as JSON, for the Mac app; too many books are answered, not refused")
+    kob = sub.add_parser(
+        "kobo",
+        help="which Kobos are yours; one that is not is left alone",
+        description="Without a word: the Kobos this computer knows, and the one that is plugged in. "
+        "`mine` and `not-mine` answer for the Kobo that is plugged in, or for the one named. "
+        "`forget` has a Kobo asked about again at its next plug-in.",
+    )
+    kob.add_argument("say", nargs="?", choices=("mine", "not-mine", "forget"), help="your answer for a Kobo")
+    kob.add_argument(
+        "id", nargs="?", default="", help="the Kobo's name here, as the list shows it (kobo-1a2b3c4d); without it, the one plugged in"
+    )
+    kob.add_argument("--json", action="store_true", help="as JSON")
     uni = sub.add_parser("uninstall", help="remove the trigger")
     uni.add_argument("--purge", action="store_true", help="also remove the state and the upload token")
     srv = sub.add_parser("serve", help="run the server: the page and the upload endpoint")
@@ -335,6 +348,7 @@ def _run(a, computer) -> None:
         "token": _token,
         "webhook": _webhook,
         "to-kobo": _to_kobo,
+        "kobo": _kobo,
     }
     commands[a.cmd](a, computer)
 
@@ -773,6 +787,63 @@ def _book_counts() -> dict | None:
 _STARTED = {"mount": "plugging in the Kobo", "app": "Sync now in the app", "hand": "hand"}
 
 
+def _plugged(computer) -> dict | None:
+    """The Kobo that is plugged in: its name here, its model, and whose it is ("" = not said yet)."""
+    from .computer import config, kobos
+
+    mount = computer.find_kobo()
+    if not mount:
+        return None
+    dev = kobo_db.device(mount)
+    return {"id": dev.name, "model": dev.model, "whose": kobos.whose(config.state_dir(), dev)}
+
+
+def _kobo(a, computer) -> None:
+    from .computer import config, kobos
+
+    state_dir = config.state_dir()
+    plugged = _plugged(computer)
+    if a.say:
+        name = a.id or (plugged or {}).get("id", "")
+        if not name:
+            sys.exit("lastread: no Kobo is plugged in; plug it in, or name one from `lastread kobo`.")
+        if not kobos.ID.match(name):
+            if not a.id:  # the one plugged in: it does not say its serial number
+                sys.exit("lastread: this Kobo does not say which Kobo it is, so it cannot be told from another. It syncs as yours.")
+            sys.exit(f"lastread: {name} is not the name of a Kobo; `lastread kobo` lists them.")
+        if a.say == "forget":
+            if not kobos.forget(state_dir, name):
+                sys.exit(f"lastread: {name} is not a Kobo this computer knows.")
+        else:
+            kobos.say(state_dir, name, a.say == "mine", plugged["model"] if plugged and plugged["id"] == name else "")
+        plugged = _plugged(computer)
+    known = kobos.listed(state_dir)
+    if a.json:
+        return _json({"kobos": known, "plugged": plugged})
+    here = (plugged or {}).get("id")
+    rows = []
+    for k in known:
+        what = " ".join(x for x in (k["model"] or "Kobo", "(plugged in)" if k["id"] == here else "") if x)
+        if k["whose"] == kobos.MINE:
+            rows.append(Row(OK, k["id"], f"{what}: yours, it syncs"))
+        else:
+            rows.append(Row(NOTE, k["id"], f"{what}: not yours, left alone", f"`lastread kobo mine {k['id']}` if it is yours after all."))
+    if plugged and not plugged["whose"]:
+        rows.append(
+            Row(
+                WARN,
+                plugged["id"],
+                f"{plugged['model'] or 'Kobo'} (plugged in): not synced here before, so nothing is read from it",
+                "`lastread kobo mine` if it is yours, `lastread kobo not-mine` to have it left alone.",
+            )
+        )
+    if not rows:
+        rows.append(Row(NOTE, "Kobos", "None yet: the first Kobo this computer syncs is taken to be yours."))
+    term.Screen.of().rows(rows)
+    if a.say == "mine" and plugged and plugged["id"] == (a.id or plugged["id"]):
+        term.Screen.of().say("It syncs at the next plug-in, or now with `lastread sync`.")
+
+
 def _status(a, computer) -> None:
     from .computer import config, runner
     from .computer.platform import HARDCOVER, KOBO_DB, UPLOAD
@@ -787,6 +858,7 @@ def _status(a, computer) -> None:
                 "server": cfg.server,
                 "folder": config.state_dir(),
                 "kobo": computer.find_kobo(),
+                "plugged": _plugged(computer),  # which Kobo it is, and whose: "" has the window ask (W2)
                 "last_sync": _last_sync(),
                 "syncing": runner.running(),
                 "books": _book_counts() if cfg.mode == "local" else None,  # in server mode they are on the server
@@ -841,8 +913,21 @@ def _status(a, computer) -> None:
             Row(OK if there else WARN, "To Kobo", f"Books in {cfg.to_kobo} go on the Kobo" + ("" if there else ", but it is not there"))
         )
     mount = computer.find_kobo()
+    plugged = _plugged(computer)
     if not mount:
         rows.append(Row(NOTE, "Kobo", "Not found"))
+    elif plugged and plugged["whose"] != "mine":  # nothing is read from a Kobo that is not the reader's (W2, W3)
+        if plugged["whose"]:
+            rows.append(Row(NOTE, "Kobo", f"{mount}: not yours, left alone", "`lastread kobo mine` if it is yours after all."))
+        else:
+            rows.append(
+                Row(
+                    WARN,
+                    "Kobo",
+                    f"{mount}: not synced here before, so nothing is read from it",
+                    "`lastread kobo mine` if it is yours, `lastread kobo not-mine` to have it left alone.",
+                )
+            )
     else:
         try:
             with tempfile.TemporaryDirectory(prefix="khs-") as tmp:

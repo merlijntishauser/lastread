@@ -338,7 +338,7 @@ def _last_told(folder: str) -> Check:
 def kobo_checks(computer, cfg, wanted: str | None, collection_dir: str, kobo_db_path: str, by_hand: bool = True) -> list[Check]:
     """The Kobo, its database, whether this tool may write its collection
     there, the collection and the backups."""
-    from .computer import runner
+    from .computer import config, kobos, runner
 
     mount = computer.find_kobo()
     if not mount:
@@ -357,7 +357,33 @@ def kobo_checks(computer, cfg, wanted: str | None, collection_dir: str, kobo_db_
         ]
     dev = kobo_db.device(mount)
     about = ", ".join(x for x in (dev.model, f"software {dev.software}" if dev.software else "") if x)
-    out = [Check("Kobo", OK, f"Found at {mount}{' (' + about + ')' if about else ''}.")]
+    found = f"Found at {mount}{' (' + about + ')' if about else ''}"
+    whose = kobos.whose(config.state_dir(), dev)
+    if whose == kobos.OTHER:  # nothing is read from a Kobo that is not the reader's (W3)
+        return [
+            Check(
+                "Kobo",
+                NOTE,
+                f"{found}. It is not yours, so it is left alone: its database and the collection were not checked.",
+                _said(computer, "`lastread kobo mine` if it is yours after all.", "Choose It is mine if it is yours after all."),
+            ),
+            _backups(collection_dir),
+        ]
+    if whose == kobos.UNKNOWN:  # (W2)
+        return [
+            Check(
+                "Kobo",
+                WARN,
+                f"{found}. This computer has not synced it before, so nothing is read from it.",
+                _said(
+                    computer,
+                    "`lastread kobo mine` if it is yours, `lastread kobo not-mine` to have it left alone.",
+                    "Say whose it is.",
+                ),
+            ),
+            _backups(collection_dir),
+        ]
+    out = [Check("Kobo", OK, f"{found}.")]
     db = os.path.join(mount, kobo_db_path)
     with tempfile.TemporaryDirectory(prefix="khs-") as tmp:
         try:

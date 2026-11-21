@@ -200,6 +200,9 @@ def _migrate(con: sqlite3.Connection) -> None:
     if "client_version" not in {r[1] for r in con.execute("pragma table_info(device)")}:
         # The version of the tool on the computer that uploaded last: "" for one too old to say (2026-10-04).
         _add_column(con, "device", "client_version", "text")
+    if "kobo" not in {r[1] for r in con.execute("pragma table_info(device)")}:
+        # Which Kobo the device is (kobo_db.Device.name), once an upload has said so: null before (2026-11-21, W4).
+        _add_column(con, "device", "kobo", "text")
     if "list_size" not in reader_cols:  # books the list shows at first: null the usual 100, 0 all of them (2026-10-04)
         _add_column(con, "reader", "list_size", "integer")
     con.executescript(BOOK_VIEW)

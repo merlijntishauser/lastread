@@ -1103,7 +1103,8 @@ async def put_upload(request: Request):
             gz = request.headers.get("content-type", "") == "application/gzip"
             # The import, the snapshot and a possible renewal of the Hardcover connection (a request
             # of up to 30 s) block: off the event loop, so /healthz and the app's questions still answer.
-            result = await run_in_threadpool(_take_upload, tmp, gz, reader, device, request.headers.get("user-agent", ""))
+            kobo = request.headers.get("x-lastread-kobo", "")
+            result = await run_in_threadpool(_take_upload, tmp, gz, reader, device, request.headers.get("user-agent", ""), kobo)
         finally:
             os.unlink(tmp)
     except upload.UploadError as ex:
@@ -1111,9 +1112,13 @@ async def put_upload(request: Request):
     return JSONResponse({"ok": True, **result})
 
 
-def _take_upload(path: str, gz: bool, reader: str, device: str, user_agent: str) -> dict:
-    """An upload spooled to path: imported, noted, and the reader's sync started."""
+def _take_upload(path: str, gz: bool, reader: str, device: str, user_agent: str, kobo: str = "") -> dict:
+    """An upload spooled to path: imported, noted, and the reader's sync started.
+    kobo: the Kobo it was read from, when the computer says so (W4)."""
+    con = db()
+    device = upload.device_of(con, reader, device, kobo)
     result = upload.store_and_import(path, gz, reader, device, DATA)
+    upload.note_kobo(con, reader, device, kobo)
     note_client(reader, device, user_agent)
     if token := token_to_use(db(), reader, live_for(reader)):
         job.start(os.path.join(DATA, "state.db"), reader, live_for(reader), token)

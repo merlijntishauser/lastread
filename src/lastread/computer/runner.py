@@ -24,12 +24,13 @@ from .. import ISSUES, __version__, logs
 from ..engine import collection, epub, export, hardcover, job, kobo_db, state, tokobo
 from ..server import accounts, stats
 from ..term import FAIL, NOTE, OK, WARN, Row, plural
-from . import config, history, page, remote, webhook
+from . import config, history, kobos, page, remote, webhook
 from .platform import KOBO_DB, UPLOAD, WEBHOOK, Computer
 
 NAME = "Lastread"
 FAILED = "Kobo sync failed"
 NOT_REACHED = "Hardcover not reached"  # the Kobo was read, the sync to Hardcover did not run to its end
+ASKS = "Is this Kobo yours?"  # in place of a sync: a Kobo this computer has not met (W2)
 CLICKED = "app"  # the trigger of Sync now in the Mac app: someone is waiting for an answer
 LOG_FILE = "agent.log"
 LOCK = "sync.lock"
@@ -140,7 +141,18 @@ def sync(
         how = "open Lastread and choose Set up" if computer.in_app else "run `lastread setup`"
         return Outcome(False, message=f"Not set up yet: {how}.")
     mount = computer.find_kobo()
+    left_alone = False
+    if mount:  # whose it is, before anything is read from it (W2, W3)
+        left_alone, asked = _not_the_readers(computer, state_dir, mount, step)
+        if asked:
+            return asked
+        if left_alone:
+            mount = None
     if not mount and (cfg.server or trigger == "mount"):
+        if left_alone:
+            if trigger == CLICKED:
+                return Outcome(True, message="The Kobo that is plugged in is not yours: it is left alone.")
+            return Outcome(True)
         step(Row(NOTE, "Kobo", "No Kobo found: plug it in and tap Connect on the Kobo."))
         if trigger == CLICKED:
             return Outcome(True, message="No Kobo found: plug it in and tap Connect on the Kobo.")
@@ -186,9 +198,13 @@ def sync(
         # A Kobo plugged in while this ran: the sync it started left word and went (F4). Once: what is
         # plugged in during the second look waits for the next sync.
         if later := _plugged_in_meanwhile(computer, cfg, state_dir, mount):
-            log.info("a Kobo was plugged in while this sync ran: it is read now")
-            step(Row(NOTE, "Kobo", "Plugged in while this sync ran: it is read now"))
-            mount, out = later, _both(out, one(later, "mount"))
+            left_alone, asked = _not_the_readers(computer, state_dir, later, step)
+            if asked:
+                out = _both(out, asked)
+            elif not left_alone:
+                log.info("a Kobo was plugged in while this sync ran: it is read now")
+                step(Row(NOTE, "Kobo", "Plugged in while this sync ran: it is read now"))
+                mount, out = later, _both(out, one(later, "mount"))
         if trigger == CLICKED and not out.message:  # an answer, but not one to keep over the last real news
             out = replace(out, message="Nothing new since the last sync." if mount else "No Kobo plugged in, and nothing else to do.")
         return out
@@ -199,6 +215,26 @@ def sync(
             except FileNotFoundError:
                 pass
         lock.close()
+
+
+def _not_the_readers(computer: Computer, state_dir: str, mount: str, step) -> tuple[bool, Outcome | None]:
+    """(left alone, the question to ask instead of a sync) for the Kobo at
+    `mount`. A Kobo the reader said is someone else's is left alone, as if
+    none were plugged in (W3). One this computer has not met is not read
+    either: the sync ends with the question whose it is (W2). The reader's
+    own: (False, None)."""
+    dev = kobo_db.device(mount)
+    found = kobos.meet(state_dir, dev)
+    if found == kobos.OTHER:
+        log.info("the Kobo plugged in (%s) is not the reader's: left alone", dev.name)
+        step(Row(NOTE, "Kobo", "Not yours: left alone. Nothing is read from it or written to it."))
+        return True, None
+    if found == kobos.UNKNOWN:
+        log.info("a Kobo this computer has not met (%s): not read until the reader says whose it is", dev.name)
+        message = kobos.question(dev, computer.in_app)
+        step(Row(WARN, "Kobo", message))
+        return False, Outcome(False, ASKS, message, about="Kobo", shown=True)
+    return False, None
 
 
 def _leave_word(state_dir: str) -> None:
@@ -691,7 +727,7 @@ def _sync_to_server(
                 kobo_db.export_for_upload(copy, small)
                 with open(small, "rb") as fi, gzip.open(small + ".gz", "wb", compresslevel=9) as fo:
                     shutil.copyfileobj(fi, fo)
-                result = server.upload(small + ".gz")
+                result = server.upload(small + ".gz", kobo_db.device(mount).name)
             except kobo_db.NotAKoboDatabase as ex:
                 log.error("not a Kobo database: %s", ex)
                 return Outcome(False, FAILED, damaged(computer), about="Kobo")

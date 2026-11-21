@@ -17,6 +17,7 @@ from __future__ import annotations
 import gzip
 import hashlib
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -44,6 +45,33 @@ def device_for(token: str, con) -> tuple[str, str]:
     if d is None:
         raise UploadError(401, "unknown token")
     return d["reader"], d["device"]
+
+
+KOBO = re.compile(r"^kobo-[0-9a-f]{8}$")  # kobo_db.Device.name: made from the serial, which it does not show
+
+
+def device_of(con, reader: str, device: str, kobo: str) -> str:
+    """The device an upload is filed under (W4). `device` is the name the
+    reader gave the computer's token; `kobo` is what the computer says the
+    upload was read from. The first Kobo a computer sends is that device.
+    Another Kobo of the same reader, sent from the same computer, is a
+    device of its own beside it, so that the two do not overwrite each
+    other's books and the rules for one book on two Kobos hold (C4, C8).
+    An upload that names no Kobo (a computer on a version before 0.32) is
+    the token's device, as it always was."""
+    if not KOBO.match(kobo or ""):
+        return device
+    row = con.execute("select kobo from device where reader=? and device=?", (reader, device)).fetchone()
+    if row is None or not row["kobo"] or row["kobo"] == kobo:
+        return device
+    return f"{device}-{kobo.removeprefix('kobo-')}"
+
+
+def note_kobo(con, reader: str, device: str, kobo: str) -> None:
+    """Which Kobo this device is, once an upload has said so."""
+    if KOBO.match(kobo or ""):
+        con.execute("update device set kobo=? where reader=? and device=? and coalesce(kobo, '')=''", (kobo, reader, device))
+        con.commit()
 
 
 def safe(name: str) -> str:

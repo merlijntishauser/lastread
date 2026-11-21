@@ -180,6 +180,11 @@ picture at the top.
 Open the page when you want to switch a book on or off, fix a match, set a
 finish date, or see why something did not sync.
 
+Someone else's Kobo on your computer is not read as yours. The first time
+a Kobo other than your own is plugged in, the sync stops before it reads
+anything and asks whose it is. Yours too, and it syncs beside the first.
+Not yours, and it is left alone from then on.
+
 Other commands:
 
 | | |
@@ -196,6 +201,7 @@ Other commands:
 | `lastread token --start-over` | You moved to another Hardcover account on purpose: forget what was put on the old account's shelf, so the next sync fills the new one. |
 | `lastread export` | Your reading as JSON: every book on the Kobo you or anyone on the account opened, how far, the dates, minutes per day, and what syncs. For a database or a dashboard of your own; it works without Hardcover. `lastread export --output reading.json` writes a file only you can read; add `--every-sync` and that file is written again after every sync, for a dashboard to read. `lastread export --stop` ends that. The page has the same file under Settings, *Your reading as a file*. |
 | `lastread webhook` | After every sync that read something new from the Kobo, a POST with JSON to an address of your own: a reading tracker, a database, an automation. https, an optional Bearer token kept in the Keychain, and a test before anything is stored. See [docs/webhook.md](docs/webhook.md). |
+| `lastread kobo` | The Kobos this computer knows, and whose each is. The first Kobo you sync is yours. Another one is not read until you have said whose it is: `lastread kobo mine` makes it a second Kobo of yours, `lastread kobo not-mine` has it left alone at every plug-in. `lastread kobo forget ID` has one asked about again. |
 | `lastread to-kobo FOLDER` | Put the EPUBs in FOLDER on the Kobo at every plug-in; `--off` stops it. `--collection synced` puts them in the collection of the books that sync, `--collection own` in one of their own (`--name`, Lastread by default); `none` is the default. |
 | `lastread uninstall` | Remove the trigger. `--purge` also removes the state and the tokens. |
 
@@ -379,7 +385,10 @@ on the Kobo, the title, author, ISBN, progress, dates, cover number and
 language, its file's kind and playing time (by which an audiobook is
 known), and the times books were opened on that Kobo. On a shared Kobo
 account that includes the books of the others on the account; each reader
-decides which are theirs. The server keeps what was uploaded for 90 days.
+decides which are theirs. With the upload goes a name for the Kobo, made
+from its serial number in a way that does not show it, so that the server
+keeps two Kobos of yours apart. The server keeps what was uploaded for 90
+days.
 
 **Never, in either mode**: the Kobo account's login tokens, the keys of
 your books, reviews, wishlist or anything else in the Kobo's database. The
