@@ -273,7 +273,7 @@ def settings(
                 ""
                 if connected
                 # With a pasted token already working, signing in instead is an offer, not the next step: not filled.
-                else f'<form method="post" action="/settings/connect#hardcover"><button{"" if token_state == "stored" else " class=\"solid\""}>{T["s_connect"]}</button></form>'
+                else f'<form method="post" action="/settings/connect#hardcover"><button{"" if token_state == "stored" else ' class="solid"'}>{T["s_connect"]}</button></form>'
                 f'<p class="hint">{e(T["s_connect_help"])}</p>'
             )
             token_form = f'{start}<details class="paste"><summary>{T["s_paste_instead"]}</summary>{paste}</details>'

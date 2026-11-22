@@ -402,7 +402,7 @@ def sync_button(con, reader: str, live: bool, back: str, j) -> str:
         return (
             f'<form method="post" action="/sync" class="syncnow"><input type="hidden" name="back" value="{e(back)}">'
             # Red only when it sends: in a dry run Sync now looks, and nothing goes to Hardcover.
-            f'<button{" class=\"primary\"" if live else ""}><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button>'
+            f'<button{' class="primary"' if live else ""}><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button>'
             f"{done}</form>"
         )
     part = p["part"]
