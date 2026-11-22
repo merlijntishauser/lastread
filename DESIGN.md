@@ -105,16 +105,16 @@ colors:
   site-select: "#fbd5e5"
   site-caret: "#e8343f"
   site-on-card: "#ffffff"
-  site-sheet: "#fbfbf8"
-  site-sheet-margin: "#f4f5f1"
-  site-sheet-ink: "#17191c"
-  site-sheet-graphite: "#4a4f57"
-  site-sheet-faint: "#5f656e"
-  site-sheet-rule: "#cdd1cb"
-  site-sheet-edge: "#80868e"
-  site-sheet-red: "#c0212b"
-  site-sheet-green: "#2c6a39"
-  site-sheet-blue: "#1c5e8b"
+  site-sheet: "#ffffff"
+  site-sheet-margin: "#e2e1db"
+  site-sheet-ink: "#1c1c1a"
+  site-sheet-graphite: "#4b4a44"
+  site-sheet-faint: "#5a5953"
+  site-sheet-rule: "#bdbcb4"
+  site-sheet-edge: "#76756d"
+  site-sheet-red: "#bb1d2a"
+  site-sheet-green: "#256535"
+  site-sheet-blue: "#22509c"
   site-sheet-on-fill: "#ffffff"
   plum-coral: "#ff6b6b"
   plum-magenta: "#c23c8c"
@@ -140,17 +140,17 @@ colors:
   site-flag-code-dark: "#f1f0f6"
   site-link-dark: "#ff8fc2"
   site-select-dark: "#6b1d4c"
-  site-sheet-dark: "#171a1e"
-  site-sheet-margin-dark: "#1b1f24"
-  site-sheet-ink-dark: "#e7e9e4"
-  site-sheet-graphite-dark: "#aeb4bb"
-  site-sheet-faint-dark: "#959ca4"
-  site-sheet-rule-dark: "#30353c"
-  site-sheet-edge-dark: "#6e757e"
-  site-sheet-red-dark: "#ff8077"
-  site-sheet-green-dark: "#86cf95"
-  site-sheet-blue-dark: "#86c5ea"
-  site-sheet-on-fill-dark: "#0f1114"
+  site-sheet-dark: "#171816"
+  site-sheet-margin-dark: "#2b2c28"
+  site-sheet-ink-dark: "#ecebe4"
+  site-sheet-graphite-dark: "#b9b8af"
+  site-sheet-faint-dark: "#a5a49b"
+  site-sheet-rule-dark: "#4a4b45"
+  site-sheet-edge-dark: "#8d8c83"
+  site-sheet-red-dark: "#ff7f86"
+  site-sheet-green-dark: "#84d197"
+  site-sheet-blue-dark: "#93b8ff"
+  site-sheet-on-fill-dark: "#121311"
 typography:
   display:
     fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -742,7 +742,7 @@ the quiet card, the download card and the sheet swap with the light.
 - **Site Flag** (`site-flag`, with `site-on-flag`, `site-flag-quiet`, `site-flag-code`): the download card and the pressed theme button, ink by day with white words and white at night with ink words; the version line in Flag Quiet (10.55:1), the install commands as code on Flag Code.
 - **Site Link** (`site-link`, night `site-link-dark`): links, the focus ring on the ground, in the quiet card and on the sheet, the text caret and form accents; a magenta, 6.11:1 on the day ground and 9.22:1 on the night. Its selection is `site-select` under ink words.
 - **Name Caret** (`site-caret`): the caret before the name in the head, one red in both lights (4.07:1 by day, 4.63:1 at night; a mark).
-- **The sheet's colours** (`site-sheet`, `site-sheet-margin`, `site-sheet-ink`, `site-sheet-graphite`, `site-sheet-faint`, `site-sheet-rule`, `site-sheet-edge`, `site-sheet-red`, `site-sheet-green`, `site-sheet-blue`, `site-sheet-on-fill`, each with a `-dark` value): the tool's Proof Sheet, Margin, Ink, Graphite, Faint, Rule, Edge, Red, Green, Blue and On Fill at the tool's own values in both lights, scoped to the sheet as `--sh-*` custom properties. The sheet stands on Sheet inside a 1px Rule border, the Hardcover cell on Margin behind the 3px double Rule; the caret, the strike, the write-in and the *Next sync* words are Red (5.8:1 on the day sheet, 7.15:1 at night); nothing on the sheet is filled red, so On Fill is declared with the set and unused; the tick is Green, the circled query Blue, the dash Faint; the switches' edges, the gauge's rule and its ticks are Edge (3.54:1 by day, 3.75:1 at night). Graphite carries the author, the facts, the legend, the struck value, the edition line and the caption (7.53:1 on the day margin, 7.92:1 at night).
+- **The sheet's colours** (`site-sheet`, `site-sheet-margin`, `site-sheet-ink`, `site-sheet-graphite`, `site-sheet-faint`, `site-sheet-rule`, `site-sheet-edge`, `site-sheet-red`, `site-sheet-green`, `site-sheet-blue`, `site-sheet-on-fill`, each with a `-dark` value): since 2026-11-22 the tool's Two Sides colours at the tool's own values in both lights, scoped to the sheet as `--sh-*` custom properties (`site-sheet-margin` is now the Kobo's side, `--sh-ground`). The sheet stands on the Kobo's grey inside a 1px Rule border; Hardcover's column and the caption are on Sheet (white) behind a 2px Ink seam; the marks are discs (a change filled Red with On Fill, up to date a Green ring, a question filled Blue, not syncing a grey dash on the ground). The book's title and the percentage are in Literata, the rest of the row in Atkinson Hyperlegible Next; the site around it keeps Schibsted Grotesk.
 - **Plum** (`plum-coral`, `plum-magenta`, `plum-deep`), **Teal** (`teal-lime`, `teal-bright`, `teal-mid`, `teal-deep`) and **Cobalt** (`cobalt-sky`, `cobalt-blue`, `cobalt-deep`): the three gradient families, each a `linear-gradient(200deg)` from the bright stop at the top to the deep stop at the foot, where the words are: plum at 0, 45 and 100%; teal at 0, 22, 42 and 100%, and under *What it does* at 0, 5, 11 and 100% so that the lime is a corner at the head of the card and the white heading stands on the deep teal at every width; cobalt at 0, 25 and 100%. White on Plum Deep is 9.9:1, on Teal Deep 7.83:1, on Cobalt Deep 10.36:1.
 - **Slate** (`slate-top`, `slate-mid`, `slate-deep`): the fourth card, *What it leaves alone*, at 0, 55 and 100%, with Site Ink dark words in both lights (15.22:1 at the foot).
 - **On Card** (`site-on-card`): the words on every gradient and photo card, white, every card heading included. A strike or a caret is drawn on no card; in the sheet they are the sheet's Red.

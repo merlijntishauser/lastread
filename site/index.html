@@ -63,15 +63,16 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
       </div>
     </div>
 
-    <!-- One row of the Books page, as the page draws it: the book, its two switches, and the
-         Hardcover column with the proof mark. The words are the page's own; the controls are drawn. -->
+    <!-- One row of the Books page, as the page draws it: the Kobo's side (how far, the cover in grey,
+         the title, the Kobo's dotted line, the two switches), the seam with the row's mark on it, and
+         Hardcover's side (the cover in colour, the correction). The words are the page's own; the controls are drawn. -->
     <figure class="sheet" style="--i:1" aria-labelledby="sheet-cap">
       <div class="rail">
-        <ul class="legend" role="list" aria-label="The marks in the Hardcover column">
-          <li><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg><span>Next sync changes this</span></li>
-          <li><svg class="mk ok" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg><span>Up to date on Hardcover</span></li>
-          <li><svg class="mk warn" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><path d="M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7"/><circle cx="10" cy="14.1" r=".6" fill="currentColor"/></svg><span>Needs a match</span></li>
-          <li><svg class="mk none" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg><span>Not syncing</span></li>
+        <ul class="legend" role="list" aria-label="The marks on the seam">
+          <li><span class="disc next"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg></span><span>Next sync changes this</span></li>
+          <li><span class="disc ok"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg></span><span>Up to date on Hardcover</span></li>
+          <li><span class="disc warn"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7"/><circle cx="10" cy="14.1" r=".6" fill="currentColor"/></svg></span><span>Needs a match</span></li>
+          <li><span class="disc none"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h10"/></svg></span><span>Not syncing</span></li>
         </ul>
       </div>
       <table>
@@ -81,27 +82,33 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
           <tr>
             <td class="book">
               <div class="bk">
+                <span class="pct" aria-hidden="true">100<small>%</small></span>
                 <img class="cover" src="img/cover-middlemarch.jpg" alt="" width="48" height="72">
                 <div>
                   <div class="title">Middlemarch</div>
                   <div class="author">George Eliot</div>
                   <div class="bar" role="img" aria-label="Finished"><span style="width:100%"></span></div>
-                  <div class="meta"><span>100%</span> <span>last read 21 Sep 2026</span> <span>31 h read</span></div>
+                  <div class="meta"><span>Finished 21 Sep 2026</span> <span>31 h read</span></div>
                 </div>
               </div>
             </td>
             <td class="sw" data-label="Sync"><span class="field"><span class="sr">Sync: </span>On<svg viewBox="0 0 12 8" aria-hidden="true" fill="currentColor"><path d="M1 1.5h10L6 7z"/></svg></span></td>
             <td class="sw" data-label="State"><span class="field"><span class="sr">State: </span>Follow Kobo<svg viewBox="0 0 12 8" aria-hidden="true" fill="currentColor"><path d="M1 1.5h10L6 7z"/></svg></span></td>
             <td class="hc">
-              <div class="act next"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg><span>Next sync</span><span class="sr">: Read, finished 21 Sep 2026. Hardcover has Currently reading, 88%.</span></div>
-              <div class="fix" aria-hidden="true"><span class="swap"><s>Currently reading, 88%</s> <ins><svg viewBox="0 0 10 10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5 5 2l3.5 6.5"/></svg>Read, finished 21 Sep 2026</ins></span></div>
-              <div class="sub">Middlemarch, Ebook</div>
-              <span class="details">Details</span>
+              <div class="hcrow">
+                <img class="hccover" src="img/cover-middlemarch.jpg" alt="" width="32" height="48">
+                <div>
+                  <div class="act next"><span class="disc next"><svg class="mk" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg></span><span>Next sync</span><span class="sr">: Read, finished 21 Sep 2026. Hardcover has Currently reading, 88%.</span></div>
+                  <div class="fix" aria-hidden="true"><span class="swap"><s>Currently reading, 88%</s> <ins><svg viewBox="0 0 10 10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5 5 2l3.5 6.5"/></svg>Read, finished 21 Sep 2026</ins></span></div>
+                  <div class="sub">Middlemarch, Ebook</div>
+                  <span class="details">Details</span>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
-      <figcaption id="sheet-cap" class="caption">One row of its page, at full size, from a made-up shelf of 34 books. The marks are the page's own. It starts as a dry run: its Sync now button says what it would send, and sends nothing until you go live.</figcaption>
+      <figcaption id="sheet-cap" class="caption">One row of its page, at full size, from a made-up shelf of 34 books: the Kobo's side on the left, Hardcover's on the right, and on the rule between them what the next sync does. It starts as a dry run: its Sync now button says what it would send, and sends nothing until you go live.</figcaption>
     </figure>
 
     <!-- The three it runs between: the Kobo, your computer, Hardcover. One fact each. -->

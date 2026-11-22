@@ -39,9 +39,11 @@ headline-over-a-screenshot opener (the row is markup, not a picture) and
 the split hero with copy on one side and a device on the other.
 
 OWN-WORLD: The ground is white by day (#fbfbfd) and near-black at night
-(#0d0c14). The sheet is the tool's row and carries the tool's own colours,
-scoped to it (`--sh-*`: sheet, margin tint, rule, edge, red, green, blue,
-in both lights), a 1px rule and 18px corners; it is the one place the
+(#0d0c14). The sheet is the tool's row, drawn in the tool's own design (Two Sides,
+since 2026-11-22): the Kobo's grey side, Hardcover's white side, the ink
+seam with the row's mark on it as a disc, the tool's colours scoped to it
+(`--sh-*`, in both lights) and the tool's faces (Literata, Atkinson
+Hyperlegible Next), a 1px rule and 18px corners; it is the one place the
 site's palette and the tool's meet. Three gradient families carry the cards,
 each one hue family in three or four saturated stops with the dark end
 where the words are: plum to coral (#5b2a86 to #ff6b6b), teal to lime
@@ -78,10 +80,10 @@ and the lede on the left, the download card on the right (the app icon,
 Download for Mac as the one filled button, the live version line, one line
 of reassurance under it, brew and uv as code). Under them the sheet, 1360
 wide: a rail with the four marks' legend, the head row
-(Book, Sync, State, Hardcover status), the one row (cover, title, author,
-the line gauge, the facts; the two drawn switches; the margin on its tint
-behind a double rule with the caret, the correction, the edition line and
-Details), and a caption saying the shelf is made up, the marks are the
+(Book, Sync, State, Hardcover status), the one row (the percentage set large, the cover in grey, title, author, the
+Kobo's dotted line, the facts; the two drawn switches; the seam with the
+red disc; Hardcover's white side with the cover in colour, the correction,
+the edition line and Details), and a caption saying the shelf is made up, the marks are the
 page's own, and that it starts as a dry run and what its Sync now button
 would say. The three cards begin at the foot of the viewport. Below 900px the claim is one column; below 720px
 the row stacks (book, the two switches side by side, the margin under

@@ -37,5 +37,5 @@ def test_the_page_loads_nothing_from_elsewhere():
 
 
 def test_the_fonts_come_with_their_licences():
-    for face in ("SchibstedGrotesk", "SourceSerif4"):
+    for face in ("SchibstedGrotesk", "Literata", "AtkinsonHyperlegibleNext"):
         assert (SITE / "fonts" / f"{face}-LICENSE.txt").is_file()

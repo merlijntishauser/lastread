@@ -43,7 +43,7 @@ def main():
     server = serve()
     url = f"http://127.0.0.1:{server.server_port}/"
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(executable_path=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"))
         for scheme in ("light", "dark"):
             for name, (w, h) in SIZES.items():
                 page = browser.new_page(viewport={"width": w, "height": h}, color_scheme=scheme, device_scale_factor=1)

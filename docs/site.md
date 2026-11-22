@@ -21,17 +21,20 @@ ground by day and a near-black one at night, with the same two faces as the
 page from the same files.
 
 - **The first viewport** is the headline and the lede with the download
-  card beside them, and under both the sheet: one row of the Books page
-  drawn in the page's own markup (`figure.sheet`), with the marks' legend
-  in its rail, the head row, and *Middlemarch*
-  finished on the Kobo: the cover, the line gauge, the facts, the two
-  switches drawn as fields, and the Hardcover column on its tint behind a
-  double rule, where *Currently reading, 88%* is struck through and *Read,
-  finished 21 Sep 2026* is written in after the caret, the tool's own
-  motion at the tool's own timing. The sheet carries the tool's colours,
-  scoped to it (`--sh-*`), by day and at night. Its caption says the shelf
-  is made up, the marks are the page's own, and that it starts as a dry
-  run, its *Sync now* button saying what it would send (the button itself
+  card beside them, and under both the sheet:
+  one row of the Books page drawn in the page's own markup (`figure.sheet`),
+  in the page's own design, Two Sides: the marks' legend as the seam's discs,
+  the head row, and *Middlemarch* finished on the Kobo. On the Kobo's grey
+  side: 100% set large in Literata, the cover in grey, the Kobo's dotted
+  line, the facts, the two switches drawn as fields. Then the seam, an ink
+  rule with the red disc of a change on it, and Hardcover's white side: the
+  cover in colour, where *Currently reading, 88%* is struck through and
+  *Read, finished 21 Sep 2026* is written in after the caret, the tool's own
+  motion at the tool's own timing. The sheet carries the tool's colours and
+  faces (Literata, Atkinson Hyperlegible Next), scoped to it (`--sh-*`), by
+  day and at night. Its caption says the shelf
+  is made up, which side is which, and that it starts as a dry run, its
+  *Sync now* button saying what it would send (the button itself
   is not drawn: it looked like the page's action beside the download).
   Under it the three the sync runs between, one card each with one fact
   and no figures: the Kobo as it comes, on the photograph of a Kobo being
