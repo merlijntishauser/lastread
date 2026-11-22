@@ -429,8 +429,7 @@ struct MainView: View {
             .withoutSidebarToggle()  // the window's toolbar has AppKit's (Lastread.swift)
         } detail: {
             VStack(spacing: 0) {
-                TopLine(model: model).padding(.horizontal, 20).padding(.vertical, 12)
-                Divider()
+                TopLine(model: model)
                 if let broken = model.broken {
                     Galley { ProofSheet { Row(state: "fail", what: "The tool", found: broken).onSheet() } }
                 } else if settingUp {
@@ -475,55 +474,71 @@ extension MainView {
     private var settingUp: Bool { model.settingUp || model.status?.mode == "" }
 }
 
+/// The band: the tool itself, dark in both lights, across the top of every pane (DESIGN.md, The band).
+/// Whether it is ready, with its mark in the band's own colours, what the last sync did or how it
+/// syncs, then the page and Sync now: red only while the sync is live, as only then does it send.
 struct TopLine: View {
     @ObservedObject var model: WindowModel
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 16) {
             Group {
                 if busy {
-                    ProgressView().controlSize(.small)
+                    ProgressView().controlSize(.small).environment(\.colorScheme, .dark)  // drawn light, on the dark band
                 } else {
-                    Mark(state: readiness.state, size: 22)
+                    Mark(state: readiness.state, size: 22, onBand: true)
                 }
             }
             .frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
-                Text(busy ? "Syncing…" : readiness.sentence).font(.title3.weight(.semibold))
-                    .foregroundStyle(busy ? Pencil.ink : said(readiness.state))  // the first line in its mark's colour
-                if let told = model.told, !busy {  // a sync ended while the window was open: what it did, with its mark; a failure in ink
+                Text(busy ? "Syncing…" : readiness.sentence).font(.system(size: 16, weight: .bold)).foregroundStyle(Pencil.bandInk)
+                if let told = model.told, !busy {  // a sync ended while the window was open: what it did, with its mark; a failure in the band's ink
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Mark(state: told.ok ? "ok" : "fail", size: 15).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
+                        Mark(state: told.ok ? "ok" : "fail", size: 14, onBand: true).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
                         // No fixedSize: sized to its own height in this row above every pane, the line pushed
                         // the whole window up under the title bar after a sync (0.24.0). Two lines at most.
-                        Text(toldLine(told)).fontWeight(told.ok ? .regular : .semibold).foregroundStyle(told.ok ? Pencil.graphite : Pencil.ink)
+                        Text(toldLine(told)).font(.system(size: 13, weight: told.ok ? .regular : .semibold))
+                            .foregroundStyle(told.ok ? Pencil.bandGraphite : Pencil.bandInk)
                             .textSelection(.enabled).lineLimit(2)
                     }
                     .accessibilityElement(children: .combine)
                 } else {
-                    Text(subtitle).foregroundStyle(Pencil.graphite).textSelection(.enabled)
+                    Text(subtitle).font(.system(size: 13)).foregroundStyle(Pencil.bandGraphite).textSelection(.enabled).lineLimit(2)
                 }
             }
             Spacer(minLength: 12)
             Button(model.pageTitle) { openThePage() }
+                .buttonStyle(BandButton())
                 .disabled(model.status?.mode.isEmpty ?? true)
-            Button("Sync now") { model.syncNow() }
-                .buttonStyle(.borderedProminent)
-                .tint(Pencil.fill)  // red fills only what a sync sends
-                .help("Sync now (⌘R, also in the Sync menu)")
-                .disabled(busy || model.settingUp || (model.status?.mode.isEmpty ?? true))
+            Button { model.syncNow() } label: {
+                HStack(spacing: 8) {
+                    Text("Sync now").fontWeight(.semibold)
+                    if let sends = sendsLine { Text(sends).fontWeight(.regular).opacity(0.9) }
+                }
+            }
+            .buttonStyle(BandButton(sends: live))  // red fills only what a sync sends: outlined in a dry run
+            .help("Sync now (⌘R, also in the Sync menu)")
+            .accessibilityLabel("Sync now")
+            .accessibilityValue(sendsLine ?? "")
+            .disabled(busy || model.settingUp || (model.status?.mode.isEmpty ?? true))
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .background(Pencil.band)
+    }
+
+    /// Live: the next sync sends to Hardcover. From the status in local mode, from the books (the server's) in server mode.
+    private var live: Bool { model.status?.books?.live ?? model.books?.live ?? false }
+
+    /// "sends 3 changes" beside Sync now, while it is live and the next sync changes something.
+    private var sendsLine: String? {
+        guard live, !busy else { return nil }
+        let n = model.status?.books?.next ?? model.books?.books.filter { $0.syncs && $0.status.kind == "next" }.count ?? 0
+        return n > 0 ? "sends \(n) \(n == 1 ? "change" : "changes")" : nil
     }
 
     private var busy: Bool { model.syncing || !model.elsewhere.isEmpty }
-
-    private func said(_ state: String) -> Color {
-        switch state {
-        case "ok": return Pencil.green
-        case "warn": return Pencil.blue
-        default: return Pencil.ink
-        }
-    }
 
     private var readiness: (sentence: String, state: String) {
         guard let status = model.status else { return ("Lastread", "note") }
@@ -560,61 +575,192 @@ struct TopLine: View {
     }
 }
 
-/// The overview on the galley stock: Getting started until the reader is
-/// live, the chain on a proof sheet, a sync as it runs, and the checks of the
-/// link that is open: by itself the first that needs the reader, else the one
-/// clicked.
+/// A button on the band: outlined in the band's ink, or, for what sends, filled red with On Fill words.
+struct BandButton: ButtonStyle {
+    var sends = false
+
+    func makeBody(configuration: Configuration) -> some View { Drawn(configuration: configuration, sends: sends) }
+
+    private struct Drawn: View {
+        let configuration: Configuration
+        let sends: Bool
+        @Environment(\.isEnabled) private var enabled
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 13))
+                .lineLimit(1)
+                .foregroundStyle(sends ? Pencil.onFill : Pencil.bandInk)
+                .padding(.horizontal, sends ? 16 : 14)
+                .frame(height: 30)
+                .background(RoundedRectangle(cornerRadius: 7).fill(sends ? Pencil.send : Color.clear))
+                .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(sends ? Color.clear : Pencil.bandInk.opacity(0.55), lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: 7))
+                .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.45)
+        }
+    }
+}
+
+/// A plain button on the page: an ink fill for the one thing to do (DESIGN.md, the One Red Rule: every
+/// filled button that does not send is ink), or outlined in Edge.
+struct PageButton: ButtonStyle {
+    var filled = false
+
+    func makeBody(configuration: Configuration) -> some View { Drawn(configuration: configuration, filled: filled) }
+
+    private struct Drawn: View {
+        let configuration: Configuration
+        let filled: Bool
+        @Environment(\.isEnabled) private var enabled
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: 13))
+                .lineLimit(1)
+                .foregroundStyle(filled ? Pencil.onFlag : Pencil.ink)
+                .padding(.horizontal, 14)
+                .frame(height: 28)
+                .background(RoundedRectangle(cornerRadius: 7).fill(filled ? Pencil.flag : Color.clear))
+                .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(filled ? Color.clear : Pencil.edge, lineWidth: 1))
+                .contentShape(RoundedRectangle(cornerRadius: 7))
+                .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.45)
+        }
+    }
+}
+
+/// The overview, in two sides (DESIGN.md, The overview): on the Kobo's grey, your side of the
+/// chain (the Kobo, this Mac and the server) with the last sync and the checks of the link that
+/// is open: by itself the first that needs the reader, else the one clicked. On the white past
+/// the seam, Hardcover; on the seam the hop's disc. Getting started stands above both until live.
 struct OverviewSections: View {
     @ObservedObject var model: WindowModel
     @State private var chosen: String?  // nil: the first link with a problem; "": none
 
     var body: some View {
-        Galley {
-            if let version = model.newer {
-                ProofSheet {
-                    Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
-                        HStack {
-                            Button("What's New") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
-                            Button("Install and Restart") { installUpdate(version) }
+        GeometryReader { box in
+            let right = min(380, max(230, box.size.width * 0.3))
+            ScrollView {
+                VStack(spacing: 0) {
+                    if model.newer != nil || model.books?.start != nil {
+                        VStack(alignment: .leading, spacing: 14) { ahead }
+                            .padding(.horizontal, 40).padding(.top, 24).padding(.bottom, 4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Pencil.ground)  // over the two sides: the seam starts under it
+                    }
+                    HStack(alignment: .top, spacing: 0) {
+                        yourSide
+                            .padding(.leading, 40).padding(.trailing, 28).padding(.top, 36).padding(.bottom, 30)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                        Spacer().frame(width: 2)
+                        hardcoverSide
+                            .padding(.leading, 36).padding(.trailing, 28).padding(.top, 36).padding(.bottom, 30)
+                            .frame(width: right, alignment: .topLeading)
+                    }
+                }
+                .frame(minHeight: box.size.height, alignment: .top)
+                .overlayPreferenceValue(HopKey.self) { anchor in  // the hop to Hardcover: its disc on the seam, level with the chain's
+                    GeometryReader { g in
+                        if let anchor {
+                            hop.position(x: g.size.width - right - 1, y: g[anchor].midY)
                         }
                     }
-                    .onSheet()
                 }
-                .padding(.bottom, 8)
             }
-            if let start = model.books?.start {  // until live: what to do, step by step; the chain under it stays the status board
-                StartSteps(model: model, start: start).padding(.bottom, 14)
+            .background {
+                HStack(spacing: 0) {
+                    Pencil.ground
+                    Pencil.ink.frame(width: 2)
+                    Pencil.sheet.frame(width: right)
+                }
             }
+        }
+    }
+
+    /// Above both sides: a newer version, and Getting started until the reader is live.
+    @ViewBuilder private var ahead: some View {
+        if let version = model.newer {
             ProofSheet {
-                ChainView(model: model, open: $chosen).padding(12)
-            }
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(model.checks == nil ? "Checking everything a sync depends on…" : model.summary).font(.callout).foregroundStyle(Pencil.graphite)
-                    if model.checks != nil && open == nil {  // nothing opened by itself: say that a step can be
-                        Text("Click a step for its checks.").font(.callout).foregroundStyle(Pencil.graphite)
+                Row(state: "note", what: "Version \(version) is out", found: "This is \(bundleVersion()).") {
+                    HStack {
+                        Button("What's New") { if let link = URL(string: releases + version) { NSWorkspace.shared.open(link) } }
+                        Button("Install and Restart") { installUpdate(version) }
                     }
                 }
-                Spacer()
-                Button("Check again") { model.refresh() }.disabled(model.checks == nil)
+                .onSheet()
             }
-            .padding(.horizontal, 4)
+        }
+        if let start = model.books?.start {  // until live: what to do, step by step; the chain under it stays the status board
+            StartSteps(model: model, start: start)
+        }
+    }
+
+    private var server: Bool { model.status?.mode == "server" }
+
+    @ViewBuilder private var yourSide: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            SideHead(label: "On your side", title: server ? "The Kobo, this Mac and the server" : "The Kobo and this Mac")
+            ChainView(model: model, open: $chosen)
             if model.syncing || model.outcome != nil {
-                SyncSection(model: model).padding(.top, 14)
+                SyncSection(model: model)
+                summary(withCheck: true)
             } else if model.elsewhere.isEmpty, let last = model.syncs.first {  // nothing runs: the last sync, as History has it; History keeps the rest
-                SheetHead("Last sync").padding(.top, 14)
-                ProofSheet { SyncRow(sync: last) }
+                LastSync(sync: last) {
+                    Button("Check again") { model.refresh() }.buttonStyle(PageButton()).disabled(model.checks == nil)
+                }
+                summary(withCheck: false)
+            } else {
+                summary(withCheck: true)
             }
             if let link = model.links.first(where: { $0.id == open }), model.checks != nil {
-                SheetHead(link.id).padding(.top, 14)
-                ProofSheet {
-                    ForEach(Array(link.checks.enumerated()), id: \.element.id) { n, check in
-                        if n > 0 { SoftRule() }
-                        Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }.onSheet()
+                VStack(alignment: .leading, spacing: 10) {
+                    SheetHead(link.id)
+                    ProofSheet {
+                        ForEach(Array(link.checks.enumerated()), id: \.element.id) { n, check in
+                            if n > 0 { SoftRule() }
+                            Row(state: check.state, what: check.what, found: check.found, todo: check.todo) { fix(check) }.onSheet()
+                        }
                     }
                 }
             }
         }
+    }
+
+    @ViewBuilder private var hardcoverSide: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            SideHead(label: "On Hardcover", title: model.hardcoverWord)
+            if let link = model.links.last, link.id == "Hardcover" {
+                HardcoverLink(model: model, link: link, chosen: open == link.id) { chosen = open == link.id ? "" : link.id }
+            }
+        }
+    }
+
+    /// The disc of the hop to Hardcover: how Hardcover is, on the seam. The link beside it says it in words.
+    @ViewBuilder private var hop: some View {
+        if let link = model.links.last, link.id == "Hardcover" {
+            if model.checks == nil && link.checks.count <= 1 {
+                ProgressView().controlSize(.small).frame(width: 40, height: 40)
+                    .background(Circle().fill(Pencil.ground)).overlay(Circle().strokeBorder(Pencil.edge, lineWidth: 1))
+                    .accessibilityHidden(true)
+            } else {
+                Disc(state: model.shownState(link), size: 40).accessibilityHidden(true)  // the Hardcover link carries the words
+            }
+        }
+    }
+
+    /// What the checks found, in a line; Check again beside it when the last sync does not hold it.
+    private func summary(withCheck: Bool) -> some View {
+        HStack(alignment: .center) {
+            Text(summaryLine).font(.system(size: 13)).foregroundStyle(Pencil.graphite)
+            Spacer(minLength: 8)
+            if withCheck {
+                Button("Check again") { model.refresh() }.buttonStyle(PageButton()).disabled(model.checks == nil)
+            }
+        }
+    }
+
+    private var summaryLine: String {
+        guard model.checks != nil else { return "Checking everything a sync depends on…" }
+        return open == nil ? model.summary + " Click a step for its checks." : model.summary  // nothing opened by itself: say that a step can be
     }
 
     private var open: String? {
@@ -714,6 +860,46 @@ struct ProofSheet<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 4))
             .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Pencil.rule, lineWidth: 1))
+    }
+}
+
+/// The head of a side of the overview: what side it is, small in graphite, then its name in Literata.
+struct SideHead: View {
+    let label: String
+    let title: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.system(size: 13, weight: .bold)).foregroundStyle(Pencil.graphite)
+            Text(title).font(titleFont(30, .bold)).foregroundStyle(Pencil.ink).lineLimit(1).minimumScaleFactor(0.6)
+                .accessibilityAddTraits(.isHeader)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// The last sync on the overview, as History has it: its disc, what it said, when and what started it.
+struct LastSync<Action: View>: View {
+    let sync: Sync
+    @ViewBuilder let action: () -> Action
+    private let started = ["mount": "Kobo plugged in", "app": "Sync now", "hand": "By hand"]
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 14) {
+            Disc(state: sync.ok ? "ok" : "fail", size: 26)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(sync.message.isEmpty ? "Nothing new." : sync.message).font(.system(size: 14, weight: .semibold)).foregroundStyle(Pencil.ink)
+                Text((["Last sync"] + [sync.date.map(spokenInSentence), started[sync.trigger]].compactMap { $0 }).joined(separator: ", "))
+                    .font(.system(size: 13)).foregroundStyle(Pencil.graphite)
+            }
+            .accessibilityElement(children: .combine)
+            Spacer(minLength: 8)
+            action()
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+        .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Pencil.rule, lineWidth: 1))
     }
 }
 

@@ -168,9 +168,9 @@ if [ -n "${KHS_PREVIEW:-}" ]; then
 	plutil -replace CFBundleDisplayName -string "$NAME Preview" "$widget/Info.plist"
 fi
 plutil -lint "$widget/Info.plist" >/dev/null
-cp "$lib/site-packages/lastread/web/static/fonts/SourceSerif4-latin.woff2" \
-	"$lib/site-packages/lastread/web/static/fonts/SourceSerif4-latin-ext.woff2" \
-	"$lib/site-packages/lastread/web/static/fonts/SourceSerif4-LICENSE.txt" "$widget/Resources/fonts/"
+cp "$lib/site-packages/lastread/web/static/fonts/Literata-latin.woff2" \
+	"$lib/site-packages/lastread/web/static/fonts/Literata-latin-ext.woff2" \
+	"$lib/site-packages/lastread/web/static/fonts/Literata-LICENSE.txt" "$widget/Resources/fonts/"
 cp "$here/org.gargleblaster.kobo-hardcover-sync.app.agent.plist" "$contents/Library/LaunchAgents/"
 iconset="$out/AppIcon.iconset"
 rm -rf "$iconset"

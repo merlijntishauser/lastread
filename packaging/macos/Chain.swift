@@ -1,7 +1,8 @@
 // The overview (docs/plans/2026-10-24-mac-app-native-books-design.md): the
 // sync drawn as the path it takes, Kobo → This Mac → (Server) → Hardcover,
-// each link with its mark, and the page's marks drawn as the page draws
-// them (web/marks.py), in the page's colours (DESIGN.md).
+// each link with its mark in a disc, in the page's colours (DESIGN.md, Two
+// Sides): your links on the Kobo's grey, Hardcover on the white past the
+// seam, and the hop between them as a disc on the seam (Window.swift).
 
 import AppKit
 import SwiftUI
@@ -66,8 +67,7 @@ extension WindowModel {
             out.append(
                 ChainLink(id: "Server", checks: checks.filter { $0.what == "Server" }, line: URL(string: status?.server ?? "")?.host ?? ""))
         }
-        // Who, and live or a dry run: from the status in local mode, from the books answer (the server's) in server mode.
-        let who: (live: Bool, user: String)? = books.map { ($0.live, $0.user) } ?? self.books.map { ($0.live, $0.user) }
+        let who = hardcoverWho
         let hardcover: String
         if let who, !who.user.isEmpty {
             hardcover = who.live ? "Live · @\(who.user)" : "Dry run · @\(who.user)"
@@ -78,6 +78,23 @@ extension WindowModel {
         }
         out.append(ChainLink(id: "Hardcover", checks: checks.filter { $0.group == "Hardcover" }, line: hardcover))
         return out
+    }
+
+    /// Who, and live or a dry run: from the status in local mode, from the books answer (the server's) in server mode.
+    var hardcoverWho: (live: Bool, user: String)? {
+        status?.books.map { ($0.live, $0.user) } ?? books.map { ($0.live, $0.user) }
+    }
+
+    /// The head of Hardcover's side of the overview: how the sync stands there.
+    var hardcoverWord: String {
+        guard let who = hardcoverWho, !who.user.isEmpty else { return status?.mode == "server" && hardcoverWho == nil ? "On the server" : "Not connected" }
+        return who.live ? "Live" : "Dry run"
+    }
+
+    /// A link's state as the overview shows it: while a sync runs, how it went there so far.
+    func shownState(_ link: ChainLink) -> String {
+        let running = syncing || !elsewhere.isEmpty || outcome != nil
+        return running ? passed[link.id] ?? link.state : link.state
     }
 
     /// The notifications as a check of this Mac: what only macOS knows.
@@ -108,33 +125,49 @@ extension WindowModel {
     }
 }
 
+/// Where the hop to Hardcover leaves your side: the disc of the last of your links, so that the
+/// seam's disc stands level with it.
+struct HopKey: PreferenceKey {
+    static var defaultValue: Anchor<CGRect>?
+    static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) { value = value ?? nextValue() }
+}
+
+/// Your side of the chain: the Kobo, this Mac and the server, and the way out to the seam, where
+/// Hardcover's side begins. A narrow window has the links from top to bottom.
 struct ChainView: View {
     @ObservedObject var model: WindowModel
     @Binding var open: String?
 
     var body: some View {
         let links = model.links
+        let mine = links.filter { $0.id != "Hardcover" }
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .top, spacing: 0) {
-                ForEach(Array(links.enumerated()), id: \.element.id) { n, link in
+                ForEach(Array(mine.enumerated()), id: \.element.id) { n, link in
                     if n > 0 {
                         ArrowView(above: above(n, links), below: below(n, links), working: working(n, links), sends: sends(n, links))
-                            .frame(minWidth: 70, maxWidth: 130)
+                            .frame(minWidth: 64, maxWidth: 110)
                     }
-                    linkView(link).frame(width: 118)
+                    linkView(link, hop: n == mine.count - 1).frame(width: 128)
+                }
+                if mine.count < links.count {  // the way to Hardcover, ending on the seam
+                    ArrowView(
+                        above: above(mine.count, links), below: below(mine.count, links), working: working(mine.count, links),
+                        sends: sends(mine.count, links)
+                    )
+                    .frame(minWidth: 64, maxWidth: 110)
+                    .padding(.trailing, -28)  // to the seam, through the side's own margin
                 }
             }
             VStack(alignment: .leading, spacing: 4) {  // a narrow window: the chain from top to bottom
-                ForEach(links) { link in linkView(link) }
+                ForEach(Array(mine.enumerated()), id: \.element.id) { n, link in linkView(link, hop: n == mine.count - 1) }
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func linkView(_ link: ChainLink) -> some View {
-        let syncing = model.syncing || !model.elsewhere.isEmpty || model.outcome != nil
-        let state = syncing ? model.passed[link.id] ?? link.state : link.state
-        return LinkView(link: link, state: state, checking: model.checks == nil, chosen: open == link.id) {
+    private func linkView(_ link: ChainLink, hop: Bool) -> some View {
+        LinkView(link: link, state: model.shownState(link), checking: model.checks == nil, chosen: open == link.id, hop: hop) {
             open = open == link.id ? "" : link.id
         }
     }
@@ -173,48 +206,46 @@ struct ChainView: View {
     }
 }
 
-/// A link of the chain on the overview's proof sheet. Your Kobo is the
-/// page's non-repro blue rail, Hardcover its proof margin behind the double
-/// rule; This Mac and the server are on the sheet itself. What it says is in
-/// the colour of its mark when it needs you: blue for a question, ink for a failure.
+/// A link of your side of the chain, on the Kobo's grey: its disc, its name, and how it is in a few
+/// words, in the colour of its mark when it needs you: blue for a question, ink for a failure.
 struct LinkView: View {
     let link: ChainLink
     let state: String
     let checking: Bool
     let chosen: Bool
+    var hop = false  // the last of your links: the seam's disc stands level with this one's
     let choose: () -> Void
 
-    private var kobo: Bool { link.id == "Kobo" }
-    private var name: Color { kobo ? Pencil.railInk : Pencil.ink }
     private var line: Color {
         switch state {
         case "warn": return Pencil.blue
-        case "fail": return name
-        default: return kobo ? Pencil.railGraphite : Pencil.graphite
+        case "fail": return Pencil.ink
+        default: return Pencil.graphite
         }
     }
 
     var body: some View {
         Button(action: choose) {
-            VStack(spacing: 5) {
+            VStack(spacing: 10) {
                 Group {
                     if checking && link.id != "Kobo" && link.checks.count <= 1 {
                         ProgressView().controlSize(.small)
                     } else {
-                        Mark(state: state, size: 24, dash: kobo ? Pencil.railGraphite : Pencil.faint)
+                        Disc(state: state, size: 40)
                     }
                 }
-                .frame(height: 26)
-                Text(link.id).font(.headline).foregroundStyle(name)
-                Text(link.said).font(.caption.weight(state == "fail" ? .semibold : .regular)).foregroundStyle(line)
+                .frame(width: 40, height: 40)
+                .anchorPreference(key: HopKey.self, value: .bounds) { hop ? $0 : nil }
+                Text(link.id).font(.system(size: 16, weight: .bold)).foregroundStyle(Pencil.ink)
+                Text(link.said).font(.system(size: 12.5, weight: state == "fail" ? .semibold : .regular)).foregroundStyle(line)
                     .multilineTextAlignment(.center).lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)  // wrapped in the link's width: the overview scrolls, nothing is pushed
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 8)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 6)
             .frame(maxWidth: .infinity)
-            .background { slip }
             .overlay(alignment: .bottom) {  // the open link: a rule under it, as the page marks where you are
-                if chosen { Rectangle().fill(name).frame(height: 2).padding(.horizontal, 18).padding(.bottom, 3) }
+                if chosen { Rectangle().fill(Pencil.ink).frame(height: 2).padding(.horizontal, 18) }
             }
             .contentShape(Rectangle())
         }
@@ -223,17 +254,46 @@ struct LinkView: View {
         .accessibilityAddTraits(chosen ? .isSelected : [])
         .accessibilityHint(chosen ? "Hides its checks" : "Shows its checks")
     }
+}
 
-    @ViewBuilder private var slip: some View {
-        if kobo {
-            RoundedRectangle(cornerRadius: 3).fill(Pencil.rail)
-        } else if link.id == "Hardcover" {
-            HStack(spacing: 1) {  // the proofreader's double rule, down the margin's left
-                Pencil.rule.frame(width: 1)
-                Pencil.rule.frame(width: 1)
-                Pencil.margin
+/// Hardcover, on the white past the seam: a book as it lies on the shelf there (the last read that
+/// syncs and has its match, in colour), the name and how it is. Its mark is the disc on the seam.
+struct HardcoverLink: View {
+    @ObservedObject var model: WindowModel
+    let link: ChainLink
+    let chosen: Bool
+    let choose: () -> Void
+
+    var body: some View {
+        let state = model.shownState(link)
+        Button(action: choose) {
+            VStack(spacing: 10) {
+                if let book = shelved { Cover(path: book.cover, width: 64).background(Pencil.sheet).coverShadow().padding(.bottom, 4) }
+                Text(link.id).font(.system(size: 16, weight: .bold)).foregroundStyle(Pencil.ink)
+                Text(link.said).font(.system(size: 12.5, weight: state == "fail" ? .semibold : .regular))
+                    .foregroundStyle(state == "warn" ? Pencil.blue : state == "fail" ? Pencil.ink : Pencil.graphite)
+                    .multilineTextAlignment(.center).lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)  // wrapped in the link's width: the overview scrolls, nothing is pushed
             }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .bottom) {
+                if chosen { Rectangle().fill(Pencil.ink).frame(height: 2).padding(.horizontal, 18) }
+            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Hardcover, \(markWords(state)). \(link.said)")
+        .accessibilityAddTraits(chosen ? [.isButton, .isSelected] : .isButton)
+        .accessibilityHint(chosen ? "Hides its checks" : "Shows its checks")
+    }
+
+    /// The book read last that syncs and has its match on Hardcover, with a cover.
+    private var shelved: BooksAnswer.Book? {
+        model.books?.books.filter { $0.syncs && !$0.details.link.isEmpty && !$0.cover.isEmpty && $0.opened }
+            .max { $0.lastRead < $1.lastRead }
     }
 }
 
@@ -265,7 +325,7 @@ struct ArrowView: View {
                         p.addLine(to: CGPoint(x: w - 1, y: 5))
                         p.addLine(to: CGPoint(x: w - 7, y: 9))
                     }
-                    .stroke(Pencil.edge, style: StrokeStyle(lineWidth: 1, lineCap: .round, lineJoin: .round))
+                    .stroke(Pencil.edge, style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
                     if working {
                         Rectangle().fill(Pencil.red).frame(width: still ? w - 8 : w / 3, height: 2)
                             .offset(x: still ? 0 : (sweep ? w * 2 / 3 - 8 : 0), y: 0)
@@ -281,7 +341,7 @@ struct ArrowView: View {
             Text(below).font(.caption.monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(2).multilineTextAlignment(.center)
         }
         .padding(.horizontal, 6)
-        .padding(.top, 14)
+        .padding(.top, 8)
         .accessibilityElement(children: .combine)
         .accessibilityLabel([above, below, working ? "Syncing" : ""].filter { !$0.isEmpty }.joined(separator: ", "))
     }

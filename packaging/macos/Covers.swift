@@ -1,10 +1,11 @@
 // Covers (docs/plans/2026-10-26-mac-app-server-books-and-covers-design.md,
 // step 3): the library as a press run. Three rows of covers drift left,
-// the front one largest: books read in the last year, then every other
-// book read, then at the back the books never opened. Under them, past a
-// double rule, the delivery pile: the book being read and the tip. The
-// covers are the only pictures; the rest is the page's paper, ink, rules
-// and marks. The drift and the lift are this pane's own motion; under
+// the front one largest, on the Kobo's grey: books read in the last year,
+// then every other book read, then at the back the books never opened.
+// Under them, past the seam (an ink rule across the window), the delivery
+// pile on Hardcover's white: the book being read and the tip, whose blue
+// disc stands on the seam. The covers are the only pictures; the rest is
+// the page's paper, ink, rules and marks. The drift and the lift are this pane's own motion; under
 // reduced motion the run stands still and moves only by hand.
 
 import AppKit
@@ -92,10 +93,18 @@ struct CoversPane: View {
                 let runHeight = box.size.height * 0.62
                 let rows = rows(books)
                 let present = RunRow.allCases.filter { !rows[$0.rawValue].isEmpty }  // a row without books takes no room
+                let coverWidth = RunRow.front.height * scale(runHeight, present) / 1.5
                 VStack(spacing: 0) {
                     run(books, rows: rows, present: present, size: CGSize(width: box.size.width, height: runHeight))
-                    DoubleRule().padding(.horizontal, 20)
-                        .overlay(alignment: .trailing) {  // on the rule, which breaks for them: marks in the margin
+                    Pencil.ink.frame(height: 2)  // the seam: the Kobo's run above, Hardcover's pile below
+                        .overlay(alignment: .leading) {  // the tip's disc, over the tip: the one question on the pile
+                            if books.tip(among: selection(books)) != nil {
+                                Disc(state: "warn", size: 30).fixedSize()
+                                    .offset(x: tipAt(books, width: box.size.width, coverWidth: Pile.width(coverWidth, height: box.size.height - runHeight - 2)) - 15)
+                                    .accessibilityHidden(true)  // the tip says it in words
+                            }
+                        }
+                        .overlay(alignment: .trailing) {  // on the seam, in a slip of the grey: which books the run holds
                             HStack(spacing: 10) {
                                 if !reduceMotion {  // under reduced motion the run stands anyway
                                     Button { held.toggle() } label: {
@@ -106,11 +115,17 @@ struct CoversPane: View {
                                 }
                                 Show(show: $show, books: books)
                             }
-                            .padding(.horizontal, 8).background(Pencil.ground).padding(.trailing, 28)
+                            .padding(.horizontal, 8)
+                            .frame(height: 30)
+                            .background(Pencil.ground, in: RoundedRectangle(cornerRadius: 7))
+                            .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(Pencil.edge, lineWidth: 1))
+                            .fixedSize()
+                            .padding(.trailing, 24)
                         }
                         .zIndex(1)
-                    Pile(model: model, books: books, show: selection(books), coverWidth: RunRow.front.height * scale(runHeight, present) / 1.5)
-                        .frame(height: box.size.height - runHeight - 3)
+                    Pile(model: model, books: books, show: selection(books), coverWidth: coverWidth)
+                        .frame(height: box.size.height - runHeight - 2)
+                        .background(Pencil.sheet)
                 }
             }
             .background(Pencil.ground)
@@ -136,6 +151,13 @@ struct CoversPane: View {
             }
             .frame(maxWidth: .infinity)
         }
+    }
+
+    /// Where the tip's cover stands on the pile, from the left: the second of its two halves, or the first without a book being read.
+    private func tipAt(_ books: BooksAnswer, width: CGFloat, coverWidth: CGFloat) -> CGFloat {
+        let first = Pile.inset
+        let start = readingNow(books.books) == nil ? first : first + (width - 2 * first - Pile.gap) / 2 + Pile.gap
+        return start + coverWidth / 2
     }
 
     // ---------- the run ----------
@@ -425,10 +447,9 @@ struct RunCover: View, Equatable {
                 .background(Pencil.sheet)
                 .shadow(color: .black.opacity(up ? 0.22 : 0.28), radius: up ? 6 : 1, y: up ? 6 : 1)
                 .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
-            if book.status.kind == "next" {  // the one mark on the run: the next sync changes this book
-                Mark(state: "next", size: max(12, 16 * k))
-                    .background(Circle().fill(Pencil.sheet).padding(-1))
-                    .offset(x: -5, y: 6)
+            if book.status.kind == "next" {  // the one mark on the run: the next sync changes this book, its red disc
+                Disc(state: "next", size: max(14, 20 * k))
+                    .offset(x: -6, y: 7)
             }
         }
         .scaleEffect(up && !reduceMotion ? 1.12 : 1, anchor: .bottom)
@@ -489,82 +510,81 @@ struct Caption: View {
     }
 }
 
-/// The proofreader's hairline pair, 3 points high: where the run ends and the pile begins.
-struct DoubleRule: View {
-    var body: some View {
-        VStack(spacing: 1) {
-            Rectangle().fill(Pencil.rule).frame(height: 1)
-            Rectangle().fill(Pencil.rule).frame(height: 1)
-        }
-        .frame(height: 3)
-        .accessibilityHidden(true)
-    }
-}
-
-/// The delivery pile: the book being read, and the tip.
+/// The delivery pile, on Hardcover's white: the book being read, how far set large, and the tip.
 struct Pile: View {
     @ObservedObject var model: WindowModel
     let books: BooksAnswer
     let show: String  // the selection the run holds: the tip is one of its books
     let coverWidth: CGFloat  // as wide as the front row's covers
+    static let inset: CGFloat = 40  // from the window's sides
+    static let gap: CGFloat = 40  // between the book being read and the tip
+
+    /// A cover on the pile: the front row's width, less where the pile is short.
+    static func width(_ coverWidth: CGFloat, height: CGFloat) -> CGFloat { min(coverWidth, max(48, (height - 48) / 1.5)) }
 
     private var reading: BooksAnswer.Book? { readingNow(books.books) }
 
     var body: some View {
         GeometryReader { box in
-            let coverWidth = min(coverWidth, max(48, (box.size.height - 48) / 1.5))
-            HStack(alignment: .top, spacing: 36) {
+            let coverWidth = Self.width(coverWidth, height: box.size.height)
+            HStack(alignment: .center, spacing: Self.gap) {
                 if books.books.isEmpty {
                     Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(Pencil.graphite)
+                    Spacer(minLength: 0)
                 } else {
                     if let book = reading {
-                        HStack(alignment: .top, spacing: 16) {
+                        HStack(alignment: .center, spacing: 22) {
                             lying(book, width: coverWidth)
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(book.title).font(titleFont(22)).lineLimit(3).fixedSize(horizontal: false, vertical: true)
-                                Text(book.author).foregroundStyle(Pencil.graphite).lineLimit(1)
-                                Gauge(percent: book.percent, finished: book.finished).padding(.vertical, 2)
-                                Text(book.facts.joined(separator: " · ")).font(.callout.monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(1)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Reading now").font(.system(size: 12.5, weight: .bold)).foregroundStyle(Pencil.graphite)
+                                HStack(alignment: .firstTextBaseline, spacing: 14) {
+                                    Percent(percent: book.percent, size: 44)
+                                    Text(book.title).font(titleFont(24)).foregroundStyle(Pencil.ink).lineLimit(2)
+                                }
+                                Text(bookByline(book)).font(.system(size: 13.5).monospacedDigit()).foregroundStyle(Pencil.graphite).lineLimit(2)
+                                Gauge(percent: book.percent, finished: book.finished, quiet: !book.syncs, width: 220).padding(.top, 2)
                             }
-                            .frame(maxWidth: 360, alignment: .leading)
+                            .accessibilityElement(children: .combine)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if let (tip, book) = books.tip(among: show) {
-                        HStack(alignment: .top, spacing: 16) {
+                        HStack(alignment: .center, spacing: 18) {
                             lying(book, width: coverWidth)
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack(alignment: .top, spacing: 6) {
-                                    Mark(state: "warn", size: 18)
-                                    Text(tip.text).fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(alignment: .top, spacing: 8) {
+                                    Disc(state: "warn", size: 20)
+                                    Text(tip.text).font(.system(size: 13.5, weight: .semibold)).foregroundStyle(Pencil.blue).lineLimit(3)
                                 }
-                                Text(book.title).font(titleFont(16)).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                                Text(book.author).font(.callout).foregroundStyle(Pencil.graphite).lineLimit(1)
-                                HStack {
-                                    Button("Open") { model.chosenBook = book.id }
-                                    Button("Not now") { model.change(book.id, ["--not-now"]) }.disabled(model.changing.contains(book.id))
+                                Text(book.title).font(titleFont(22)).foregroundStyle(Pencil.ink).lineLimit(2)
+                                Text(book.author).font(.system(size: 13.5)).foregroundStyle(Pencil.graphite).lineLimit(1)
+                                HStack(spacing: 8) {
+                                    Button("Open") { model.chosenBook = book.id }.buttonStyle(PageButton(filled: true))
+                                    Button("Not now") { model.change(book.id, ["--not-now"]) }.buttonStyle(PageButton()).disabled(model.changing.contains(book.id))
                                 }
                                 .padding(.top, 4)
                             }
-                            .frame(maxWidth: 280, alignment: .leading)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel("A tip")
+                    } else if reading != nil {
+                        Spacer(minLength: 0).frame(maxWidth: .infinity)  // the book being read keeps its half
                     }
                 }
-                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 22)
+            .padding(.horizontal, Self.inset)
+            .padding(.vertical, 16)
+            .frame(width: box.size.width, height: box.size.height, alignment: .leading)
         }
     }
 
-    /// A cover on the pile, which opens its book: also by keyboard and VoiceOver.
+    /// A cover on the pile, in colour, which opens its book: also by keyboard and VoiceOver.
     private func lying(_ book: BooksAnswer.Book, width: CGFloat) -> some View {
         Button { model.chosenBook = book.id } label: {
             Cover(path: book.cover, width: width)
                 .background(Pencil.sheet)
-                .shadow(color: .black.opacity(0.28), radius: 1, y: 1)
-                .shadow(color: .black.opacity(0.1), radius: 4, y: 3)
+                .coverShadow()
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open \(book.title)")

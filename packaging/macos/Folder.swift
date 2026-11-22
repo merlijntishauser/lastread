@@ -485,7 +485,7 @@ struct FolderTable: View {
                 .width(min: 140, ideal: 180)
             TableColumn("Hardcover status") { b in
                 if let book = model.book(b) {
-                    StatusCell(book: book, chosen: chosen == b.id)
+                    StatusCell(book: book, chosen: chosen == b.id, mark: true)
                 } else {
                     NotYet(book: b)
                 }

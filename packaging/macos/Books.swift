@@ -120,7 +120,6 @@ struct BooksPane: View {
                     BooksBar(model: model, words: books.words)
                     if let start = books.start { StartSteps(model: model, start: start, compact: true) }
                     HeadNotes(model: model, books: books)
-                    Divider()
                     if books.books.isEmpty {
                         Spacer()
                         Text("No books yet: nothing was read from a Kobo so far. Plug it in.").foregroundStyle(Pencil.graphite)
@@ -130,9 +129,10 @@ struct BooksPane: View {
                     }
                 }
                 .frame(minWidth: 440, maxWidth: .infinity)
+                .background(Pencil.ground)
                 if let id = model.chosenBook, let book = books.books.first(where: { $0.id == id }) {
-                    Divider()
-                    DetailsPane(model: model, book: book, words: books.words).frame(width: 300)
+                    Pencil.rule.frame(width: 1)
+                    DetailsPane(model: model, book: book, words: books.words).frame(width: 300).background(Pencil.sheet)
                 }
             }
 
@@ -157,12 +157,11 @@ struct BooksPane: View {
     }
 }
 
-/// The notes under the toolbar: what asks the reader something, each with
-/// the blue circled query. Needs you leads, once live: the books switched
-/// on that wait, with the way to them. The tip is one quieter line under
-/// it: one book of those Show has chosen, with a question, a nudge; Open shows it
-/// in Details, Not now puts it aside for a month and the tool gives the next.
-/// The marks stand in one column, the buttons end on one edge.
+/// The notes under the toolbar, in a white box: what asks the reader something, each with the
+/// blue disc of the query. Needs you leads, once live: the books switched on that wait, with the
+/// way to them. The tip is one quieter line under it: one book of those Show has chosen, with a
+/// question, a nudge; Open shows it in Details, Not now puts it aside for a month and the tool
+/// gives the next. The discs stand in one column, the buttons end on one edge.
 struct HeadNotes: View {
     @ObservedObject var model: WindowModel
     let books: BooksAnswer
@@ -170,37 +169,44 @@ struct HeadNotes: View {
     var body: some View {
         let tipped = books.tip(among: model.filter)  // a book of the selection chosen at Show
         if books.needsYou != nil || tipped != nil {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 if let needs = books.needsYou {
-                    HStack(alignment: .center, spacing: 10) {
-                        Mark(state: "warn", size: 20).frame(width: 20)
-                        Text(needs.text).font(.callout.weight(.medium)).lineLimit(2)  // no fixedSize above the table: see TopLine
-                        Spacer(minLength: 8)
+                    HStack(alignment: .center, spacing: 12) {
+                        Disc(state: "warn", size: 22)
+                        Text(needs.text).font(.system(size: 13, weight: .semibold)).foregroundStyle(Pencil.ink).lineLimit(2)  // no fixedSize above the table: see TopLine
                         if needs.match > 0 && model.filter != "needs_match" {
-                            Button("Show Them") { model.filter = "needs_match" }
+                            Button { model.filter = "needs_match" } label: {
+                                Text("Show them").font(.system(size: 13)).underline().foregroundStyle(Pencil.blue)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Show Them")
                         }
+                        Spacer(minLength: 8)
                     }
                     .accessibilityElement(children: .contain)
                 }
                 if case let (tip, book)? = tipped {
-                    HStack(alignment: .center, spacing: 10) {
-                        Mark(state: "warn", size: 14).frame(width: 20)  // centred under the question above, smaller: a nudge
-                        Cover(path: book.cover, width: 20)
-                        (Text(book.title).font(titleFont(13)).foregroundColor(Pencil.ink) + Text(" · " + tip.text).font(.callout).foregroundColor(Pencil.graphite))
+                    HStack(alignment: .center, spacing: 12) {
+                        Disc(state: "warn", size: 15).frame(width: 22)  // centred under the question above, smaller: a nudge
+                        Cover(path: book.cover, width: 20).coverShadow()
+                        (Text(book.title).font(titleFont(13)).foregroundColor(Pencil.ink) + Text(" · " + tip.text).font(.system(size: 13)).foregroundColor(Pencil.graphite))
                             .lineLimit(2)  // no fixedSize above the table: see TopLine
                         Spacer(minLength: 8)
-                        HStack {
-                            Button("Open") { model.chosenBook = book.id }
-                            Button("Not now") { model.change(book.id, ["--not-now"]) }.disabled(model.changing.contains(book.id))
+                        HStack(spacing: 8) {
+                            Button("Open") { model.chosenBook = book.id }.buttonStyle(PageButton())
+                            Button("Not now") { model.change(book.id, ["--not-now"]) }.buttonStyle(PageButton()).disabled(model.changing.contains(book.id))
                         }
-                        .controlSize(.small)
                     }
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel("A tip: \(book.title). \(tip.text)")
                 }
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
+            .background(Pencil.sheet, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Pencil.rule, lineWidth: 1))
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
         }
     }
 }
@@ -227,8 +233,9 @@ struct BooksBar: View {
             }
             Legend(legend: words.legend)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 24)
+        .padding(.top, 14)
+        .padding(.bottom, 12)
     }
 
     private var search: some View {
@@ -293,8 +300,8 @@ struct Legend: View {
     var body: some View {
         Flow(spacing: 14, lineSpacing: 4) {
             ForEach(legend, id: \.self) { item in
-                HStack(spacing: 4) {
-                    Mark(state: item.first ?? "", size: 14)
+                HStack(spacing: 5) {
+                    Mark(state: item.first ?? "", size: 16, dash: Pencil.faint)  // bare, as the page's legend draws them
                     Text(item.last ?? "")
                 }
                 .fixedSize()
@@ -345,32 +352,171 @@ struct Flow: Layout {
     }
 }
 
+/// The list in two sides (DESIGN.md, Two Sides): each book's Kobo side on the grey (how far, the
+/// cover in grey, the title, the Kobo's gauge, Sync and State), the seam with the book's disc, and
+/// Hardcover's side on the white (the cover in colour once it syncs and has its match, and what the
+/// next sync does with it). Not a table: its columns cannot carry the two grounds and the seam
+/// between them, and its selection would cover both. A click or the arrows open a book's Details;
+/// the open book's Kobo side takes the Blue Wash.
 struct BooksTable: View {
     @ObservedObject var model: WindowModel
+    @FocusState private var focused: Bool
 
     var body: some View {
-        let words = model.books?.words
-        Table(model.shownBooks, selection: $model.chosenBook) {
-            TableColumn("Book") { book in BookCell(book: book) }
-                .width(min: 160, ideal: 200)
-            TableColumn("Sync") { book in
-                WordPicker(label: "Sync", options: words?.syncs ?? [], selection: model.binding(book.id, \.sync) { ["--sync", $0] })
-            }
-            .width(min: 64, ideal: 70, max: 100)
-            TableColumn("State") { book in
-                VStack(alignment: .leading, spacing: 1) {
-                    WordPicker(label: "State", options: words?.states ?? [], selection: model.stateBinding(book))
-                    if !book.stateDate.isEmpty {
-                        OnSelection { selected in Text(book.stateDate).font(.caption).foregroundStyle(quiet(selected)).padding(.leading, 4) }
+        GeometryReader { box in
+            let shape = RowShape(width: box.size.width)
+            let shown = model.shownBooks
+            VStack(spacing: 0) {
+                BooksHead(shape: shape)
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            ForEach(shown) { book in
+                                let chosen = model.chosenBook == book.id
+                                BookRow(model: model, book: book, shape: shape, chosen: chosen)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {  // a click opens its Details, as a table's selection did
+                                        model.chosenBook = book.id
+                                        focused = true
+                                    }
+                                    .contextMenu { Button(model.pageTitle) { openAt(book.id) } }
+                                    .accessibilityElement(children: .contain)
+                                    .accessibilityAddTraits(chosen ? .isSelected : [])
+                                    .accessibilityAction(named: "Show Details") { model.chosenBook = book.id }
+                                    .id(book.id)
+                            }
+                        }
+                    }
+                    .focusable()
+                    .withoutFocusRing()  // the open row's wash shows where the keyboard is
+                    .focused($focused)
+                    .onMoveCommand { move($0, in: shown) }
+                    .onChange(of: model.chosenBook) { id in
+                        if let id, shown.contains(where: { $0.id == id }) { proxy.scrollTo(id) }  // the arrows keep it in sight
                     }
                 }
             }
-            .width(min: 96, ideal: 110, max: 160)
-            TableColumn("Hardcover status") { book in StatusCell(book: book, chosen: model.chosenBook == book.id) }
-                .width(min: 140, ideal: 190)
+            .background { shape.sides }  // under the last row the two sides run on to the foot
         }
-        .contextMenu(forSelectionType: String.self) { ids in
-            if let id = ids.first { Button(model.pageTitle) { openAt(id) } }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Books")
+    }
+
+    /// Up and down move the open book along the list, as in a table.
+    private func move(_ direction: MoveCommandDirection, in shown: [BooksAnswer.Book]) {
+        guard !shown.isEmpty else { return }
+        let at = shown.firstIndex { $0.id == model.chosenBook }
+        switch direction {
+        case .up: model.chosenBook = shown[max((at ?? 1) - 1, 0)].id
+        case .down: model.chosenBook = shown[min((at ?? -1) + 1, shown.count - 1)].id
+        default: return
+        }
+    }
+}
+
+/// Where the sides of the list fall at this width: Hardcover's side a third of it, at most 420 points.
+/// Narrow (Details open beside it), Sync and State go under the book, and the figures are smaller.
+struct RowShape {
+    let width: CGFloat
+    var compact: Bool { width < 940 }
+    var hardcover: CGFloat { compact ? max(150, width * 0.36) : min(420, max(220, width * 0.34)) }
+    static let sync: CGFloat = 90
+    static let state: CGFloat = 150
+
+    var sides: some View {
+        HStack(spacing: 0) {
+            Pencil.ground
+            Pencil.ink.frame(width: 2)
+            Pencil.sheet.frame(width: hardcover)
+        }
+    }
+}
+
+/// The heads of the list's columns, on their sides.
+struct BooksHead: View {
+    let shape: RowShape
+
+    var body: some View {
+        HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Text("Book").frame(maxWidth: .infinity, alignment: .leading)
+                if !shape.compact {
+                    Text("Sync").frame(width: RowShape.sync, alignment: .leading)
+                    Text("State").frame(width: RowShape.state, alignment: .leading)
+                }
+            }
+            .padding(.leading, shape.compact ? 14 : 24)
+            .padding(.trailing, 18)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Pencil.ground)
+            Pencil.ink.frame(width: 2)
+            Text("Hardcover status").padding(.leading, 24).frame(width: shape.hardcover, alignment: .leading)
+                .frame(maxHeight: .infinity).background(Pencil.sheet)
+        }
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(Pencil.graphite)
+        .frame(height: 30)
+        .overlay(alignment: .top) { Pencil.rule.frame(height: 1) }
+        .accessibilityElement(children: .ignore)
+        .accessibilityHidden(true)  // each row says its own: the book, Sync, State, the Hardcover status
+    }
+}
+
+/// A book in the list, its two sides and the seam between them, the disc centred on the seam.
+struct BookRow: View {
+    @ObservedObject var model: WindowModel
+    let book: BooksAnswer.Book
+    let shape: RowShape
+    let chosen: Bool
+
+    var body: some View {
+        let words = model.books?.words
+        HStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    BookCell(book: book, compact: shape.compact)
+                    if shape.compact {
+                        HStack(alignment: .top, spacing: 6) { sync(words); state(words) }.padding(.leading, 96)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                if !shape.compact {
+                    sync(words).frame(width: RowShape.sync, alignment: .leading)
+                    state(words).frame(width: RowShape.state, alignment: .leading)
+                }
+            }
+            .padding(.leading, shape.compact ? 14 : 24)
+            .padding(.trailing, 18)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .background(chosen ? Pencil.blueWash : Pencil.ground)
+            .overlay(alignment: .top) { Pencil.rule.frame(height: 1) }
+            Pencil.ink.frame(width: 2)
+                .frame(maxHeight: .infinity)
+                .overlay { Disc(state: book.status.kind, size: 24).fixedSize().accessibilityHidden(true) }  // the cell says it in words
+                .zIndex(1)
+            StatusCell(book: book, cover: true)
+                .padding(.leading, 24)
+                .padding(.trailing, shape.compact ? 12 : 24)
+                .padding(.vertical, 10)
+                .frame(width: shape.hardcover, alignment: .leading)
+                .frame(maxHeight: .infinity)
+                .background(Pencil.sheet)
+                .overlay(alignment: .top) { Pencil.ruleSoft.frame(height: 1) }
+        }
+        .fixedSize(horizontal: false, vertical: true)  // both sides as tall as the taller
+    }
+
+    private func sync(_ words: BooksAnswer.Words?) -> some View {
+        WordPicker(label: "Sync", options: words?.syncs ?? [], selection: model.binding(book.id, \.sync) { ["--sync", $0] })
+    }
+
+    private func state(_ words: BooksAnswer.Words?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            WordPicker(label: "State", options: words?.states ?? [], selection: model.stateBinding(book))
+            if !book.stateDate.isEmpty {
+                Text(book.stateDate).font(.caption).foregroundStyle(Pencil.graphite).padding(.leading, 4)
+            }
         }
     }
 }
@@ -414,16 +560,21 @@ func openThePage() {
     DispatchQueue.global(qos: .userInitiated).async { _ = tool(["open"]) }
 }
 
+/// The Kobo's side of a book: how far, large; the cover in grey (faded when it does not sync);
+/// the title, the author with when it was last read, and the Kobo's gauge.
 struct BookCell: View {
     let book: BooksAnswer.Book
+    var compact = false
 
     var body: some View {
         OnSelection { selected in
-            HStack(alignment: .top, spacing: 10) {
-                Cover(path: book.cover, width: 32)
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: compact ? 10 : 14) {
+                Percent(percent: book.percent, size: compact ? 22 : 30, quiet: book.percent == 0)
+                    .frame(width: compact ? 50 : 68, alignment: .trailing)
+                Cover(path: book.cover, width: compact ? 26 : 34, grey: true).background(Pencil.sheet).coverShadow().opacity(book.syncs ? 1 : 0.6)
+                VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
-                        Text(book.title).font(titleFont(14)).lineLimit(2)
+                        Text(book.title).font(titleFont(15)).foregroundStyle(pencil(Pencil.ink, selected)).lineLimit(2)
                         if book.new {
                             Text("Auto").font(.caption2.weight(.semibold)).foregroundStyle(pencil(Pencil.blue, selected))
                                 .padding(.horizontal, 4).overlay(RoundedRectangle(cornerRadius: 3).stroke(pencil(Pencil.blue, selected), lineWidth: 0.75))
@@ -435,32 +586,47 @@ struct BookCell: View {
                                 .help("An audiobook: off until you switch it on. Hardcover then gets its status and dates on an audiobook edition, and no progress.")
                         }
                     }
-                    Text(book.author).font(.callout).foregroundStyle(quiet(selected)).lineLimit(1)
-                    Gauge(percent: book.percent, finished: book.finished)
-                    Text(book.facts.joined(separator: " · ")).font(.caption.monospacedDigit()).foregroundStyle(quiet(selected)).lineLimit(1)
+                    Text(bookByline(book)).font(.system(size: 12).monospacedDigit()).foregroundStyle(quiet(selected)).lineLimit(1)
+                    Gauge(percent: book.percent, finished: book.finished, quiet: !book.syncs).padding(.top, 1)
                 }
             }
         }
-        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
     }
+
 }
 
-/// The Hardcover status: its mark and words; for a change, the old value
-/// struck in red and the new one after a caret; then the edition.
+/// "Herman Melville, last read 30 Sep 2026, 4 h read": the facts after the author, without the percentage the large figure says.
+func bookByline(_ book: BooksAnswer.Book) -> String {
+    let facts = book.facts.filter { !($0.hasSuffix("%") && Int($0.dropLast()) != nil) }
+        .map { $0.prefix(1).lowercased() + $0.dropFirst() }
+    return ([book.author].filter { !$0.isEmpty } + facts).joined(separator: ", ")
+}
+
+/// Hardcover's side of a book: what the next sync does with it, in words beside its mark (in the
+/// list the mark is the disc on the seam; elsewhere it stands bare before the words). The first line in its mark's
+/// colour; for a change the old value struck in red and the new one after a caret; then the edition.
+/// On the list, the cover in colour once the book syncs and has its match on Hardcover.
 struct StatusCell: View {
     let book: BooksAnswer.Book
     var chosen = false  // its row is the selection: grey, not blue, while the window or the table is in the back
+    var cover = false  // on the list
+    var mark = false  // off the seam (Details, the EPUB Folder's table): the mark bare before the words
 
     var body: some View {
         OnSelection { selected in
-            HStack(alignment: .top, spacing: 6) {
-                Mark(state: book.status.kind, size: 16).padding(.top, 1)
+            HStack(alignment: .center, spacing: 12) {
+                if mark { Mark(state: book.status.kind, size: 17) }
+                if cover && book.syncs && !book.details.link.isEmpty {
+                    Cover(path: book.cover, width: 26).background(Pencil.sheet).coverShadow()
+                }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(headline).font(.callout.weight(book.status.kind == "next" ? .semibold : .regular))
-                        .foregroundStyle(book.status.kind == "next" ? sends(selected, chosen: chosen) : book.status.kind == "none" ? quiet(selected) : AnyShapeStyle(.primary))
-                        .fixedSize(horizontal: false, vertical: true)
-                    if book.status.kind == "next" && book.status.text.contains(":") { Correction(book: book, selected: selected, chosen: chosen) }  // as the page: a change it can say
+                    first(selected)
+                    if kind == "next" && book.status.text.contains(":") {  // as the page: a change it can say
+                        Correction(book: book, selected: selected, chosen: chosen)
+                    } else if kind != "next" && !rest.isEmpty {
+                        Text(rest).font(.system(size: 13)).foregroundStyle(pencil(Pencil.ink, selected)).lineLimit(2)
+                    }
                     if !book.edition.isEmpty {
                         HStack(spacing: 4) {
                             if book.stet { Mark(state: "stet", size: 14) }
@@ -471,14 +637,36 @@ struct StatusCell: View {
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([book.status.text, book.edition].filter { !$0.isEmpty }.joined(separator: ". "))
     }
 
+    private var kind: String { book.status.kind }
+
     /// "Next sync", not "Next sync: …": the correction says the rest.
-    private var headline: String {
-        book.status.kind == "next" ? String(book.status.text.split(separator: ":", maxSplits: 1).first ?? "") : book.status.text
+    private var headline: String { String(book.status.text.split(separator: ":", maxSplits: 1).first ?? "") }
+    private var rest: String {
+        book.status.text.split(separator: ":", maxSplits: 1).dropFirst().first.map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+    }
+
+    /// The first line: small and bold over a second line, in the colour of the mark; a failure reversed out of ink.
+    @ViewBuilder private func first(_ selected: Bool) -> some View {
+        let over = kind == "next" || !rest.isEmpty  // a line follows it
+        switch kind {
+        case "next":
+            Text(headline).font(.system(size: over ? 11.5 : 13, weight: .bold)).foregroundStyle(sends(selected, chosen: chosen))
+        case "ok":
+            Text(headline).font(.system(size: over ? 11.5 : 13, weight: over ? .bold : .semibold)).foregroundStyle(pencil(Pencil.green, selected))
+        case "warn":
+            Text(headline).font(.system(size: 13, weight: .semibold)).foregroundStyle(pencil(Pencil.blue, selected))
+        case "err":
+            Text(headline).font(.system(size: 11.5, weight: .bold)).foregroundStyle(selected ? Color(nsColor: .selectedContentBackgroundColor) : Pencil.onFlag)
+                .padding(.horizontal, 5).padding(.vertical, 1)
+                .background(RoundedRectangle(cornerRadius: 2).fill(selected ? onSelection : Pencil.flag))
+        default:
+            Text(headline).font(.system(size: 13)).foregroundStyle(quiet(selected))
+        }
     }
 }
 
@@ -494,9 +682,9 @@ struct Correction: View {
             if !kept.isEmpty { Text(kept) }
             if !was.isEmpty { Text(was).strikethrough(color: selected ? onSelection : chosen ? Pencil.redHeld : Pencil.red).foregroundStyle(quiet(selected)) }
             Mark(state: "next", size: 10)
-            Text(now).foregroundStyle(sends(selected, chosen: chosen))
+            Text(now).fontWeight(.bold).foregroundStyle(sends(selected, chosen: chosen))
         }
-        .font(.callout)
+        .font(.system(size: 13))
         .lineLimit(1)
     }
 }
@@ -537,7 +725,7 @@ struct DetailsPane: View {
                     .keyboardShortcut(model.enlarged == nil ? .cancelAction : nil)  // Escape closes the cover over it first
                     .accessibilityLabel("Close Details")
                 }
-                StatusCell(book: book)
+                StatusCell(book: book, mark: true)
                 Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 6) {
                     GridRow {
                         Text("Sync").foregroundStyle(Pencil.graphite)

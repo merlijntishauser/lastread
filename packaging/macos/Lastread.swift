@@ -327,6 +327,28 @@ final class App: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotifi
         settingsModel?.checkNow()  // so the General tab shows an answer
         let tabs = (settings?.contentViewController as? NSTabViewController)?.tabViewItems.count ?? 0
         var steps: [() -> Void] = []
+        var shownBefore = "all"
+        steps.append {  // every book, so that the list shows each kind of row; Show is put back after
+            shownBefore = self.model?.filter ?? "all"
+            self.model?.filter = "all"
+        }
+        for (look, name) in [("light", NSAppearance.Name.aqua), ("dark", NSAppearance.Name.darkAqua)] {  // the panes of Two Sides in both lights
+            steps.append { NSApp.appearance = NSAppearance(named: name) }
+            for pane in [Pane.overview, .books, .covers, .history] {
+                steps.append { self.model?.pane = pane }
+                steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased())-\(look).png")) } }
+            }
+            steps.append {  // a book open beside the list: its row takes the wash
+                self.model?.pane = .books
+                self.model?.chosenBook = self.model?.shownBooks.first { !$0.details.hardcover.isEmpty }?.id ?? self.model?.shownBooks.first?.id
+            }
+            steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-details-\(look).png")) } }
+            steps.append { self.model?.chosenBook = nil }
+        }
+        steps.append {
+            NSApp.appearance = nil
+            self.model?.filter = shownBefore
+        }
         for pane in Pane.allCases {
             steps.append { self.model?.pane = pane }
             steps.append { self.window.map { picture($0, folder.appendingPathComponent("window-\(pane.rawValue.lowercased()).png")) } }

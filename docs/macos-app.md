@@ -100,7 +100,7 @@ Lastread.app/Contents/
     LICENSE, THIRD-PARTY-NOTICES.md, PYTHON-LICENSE.txt
   PlugIns/Widget.appex/Contents/         the widget (Swift), from macOS 14
     MacOS/Widget
-    Resources/fonts/                     Source Serif 4 and its licence, for the titles
+    Resources/fonts/                     Literata and its licence, for the titles
 ```
 
 The Python is a build from
@@ -136,11 +136,16 @@ started in three ways:
 - **Opened by hand after setup, or by a click on a notification.** It
   opens its window; the design is
   `docs/plans/2026-10-24-mac-app-native-books-design.md`, which follows
-  `docs/plans/2026-10-24-mac-app-window-design.md`. One line says whether
+  `docs/plans/2026-10-24-mac-app-window-design.md`, drawn since 0.33 in
+  the page's Two Sides (`DESIGN.md`): the Kobo's grey, Hardcover's white
+  and the ink seam between them with each book's mark on it as a disc.
+  Across the top of every pane a dark band says whether
   it is ready for the Kobo, with the mode and the last sync, beside
   *Open in Browser* (in server mode *Open on* and the server's name:
   the page has that one name everywhere in the app; inside Settings a
-  long name becomes *Open on the server*) and *Sync now*. In server mode
+  long name becomes *Open on the server*) and *Sync now*, filled red only
+  while the sync is live (outlined in a dry run), with how many changes it
+  sends when the next sync has some. In server mode
   the line says "With the server" without the name, which the chain and
   the button carry. When a sync ends while the window is
   open (*Sync now*, or the Kobo plugged in), that second line says what
@@ -156,8 +161,10 @@ started in three ways:
   A plain AppKit split view with the standard items does the same
   (measured: twelve sightings in six toggles), so the fix is the
   placement, not the framework. The guide's window has the same. Overview is the chain a sync takes: Kobo, This
-  Mac, the server in server mode, Hardcover. Each link has the page's
-  mark for how it is, from `doctor --json` and whether notifications are
+  Mac, the server in server mode, Hardcover. Your links stand on the
+  Kobo's grey, Hardcover on the white past the seam, and the hop to it is
+  a disc on the seam. Each link has the page's
+  mark for how it is, in a disc, from `doctor --json` and whether notifications are
   on. In local mode the arrows carry the counts of `status --json`: the
   books from the Kobo, what the next sync sends, the collection. A click
   on a link shows its checks, with a button where the app can mend what
@@ -165,12 +172,17 @@ started in three ways:
   While a sync runs (`sync --trigger app --steps`) a red line sweeps along
   the arrow it works on, the links it passed get their marks, and the
   steps are listed under the chain. Books, in local mode, is the page's
-  list drawn in the app, from `books --json`: each book with its cover
-  (fetched once by `books --covers`), its title in the page's Source
-  Serif 4, its Sync, its State and its Hardcover status with the page's
-  marks, a change struck and written in as on the page; search, the
-  page's filters and its sorts above it, with the legend of the marks.
-  A click opens its Details beside the list. Sync and State are changed
+  list drawn in the app, from `books --json`, in two sides: on the
+  Kobo's grey how far it is read (large, in Literata, the page's book
+  face), its cover in grey (fetched once by `books --covers`), its title,
+  the Kobo's dotted gauge, its Sync and its State; on the seam its mark
+  as a disc; on Hardcover's white its status, a change struck and written
+  in as on the page, and the cover in colour once it syncs and has its
+  match. Search, the page's filters and its sorts above it, with the
+  legend of the marks. It is a list of its own, not a table: a table's
+  columns cannot carry the two grounds and the seam, and its selection
+  would cover both. A click, or the arrow keys, opens a book's Details
+  beside the list, and that row's grey takes the Blue Wash. Sync and State are changed
   in the row or in Details (`book ID --sync`, `--state`, `--date`); a
   book without a match shows the books it could be, with *Use*
   (`--pick`), and a search on Hardcover (`--search`); *Remove from
@@ -189,8 +201,8 @@ started in three ways:
   (`settings --set live=true`), off until connected. A book answer
   (`book ID --json`) carries the steps as they are after the change.
   Once live, `needs_you` counts the books switched on without a match or
-  not sent at the last sync; Books shows it as a band with the blue
-  circled query and *Show Them* (the filter Needs a match). *Connect…*
+  not sent at the last sync; Books shows it in a white box above the
+  list with the query on its blue disc and *Show them* (the filter Needs a match). *Connect…*
   (also on Overview's Hardcover link and in Settings, General) signs in
   as the page does: `token --json` opens Hardcover in the browser and
   says each step as a line of JSON, the sheet follows it, and *Paste a
@@ -211,16 +223,17 @@ started in three ways:
   (`docs/plans/2026-10-26-mac-app-server-books-and-covers-design.md`):
   three rows drifting left, by `opened` (from `books --json`: a Kobo
   status, a percentage or time read; not the last read date, which the
-  Kobo sets on unopened books too) and by the last year; under a double
-  rule, the book being read and the tip. Hover stops a row and lifts a
+  Kobo sets on unopened books too) and by the last year, on the Kobo's
+  grey; under the seam, on Hardcover's white, the book being read (how far,
+  large) and the tip, whose blue disc stands on the seam. Hover stops a row and lifts a
   cover with a caption; a click opens the spread (the cover large in the
   left third, from `book ID --large-cover`, and Details beside it); Space shows
   it large; arrows, Return and Escape for the keyboard; two fingers move
   the run. The drift pauses when the app is hidden, stands still under
   Reduce motion, and stands at the reader's choice with *Hold* on the
-  rule (remembered). A lifted cover's caption ends with its row's name;
+  seam (remembered). A lifted cover's caption ends with its row's name;
   a held run shows each row's name at its left edge. A row without books takes no room, and a short
-  row is not shown twice across the window. *Show*, on the double rule,
+  row is not shown twice across the window. *Show*, on the seam,
   narrows the run to one of the list's filters (Syncing is the books the
   collection on the Kobo holds); Covers and Books each remember their
   own choice.
@@ -413,8 +426,11 @@ check above never does.
   settings and an export work, on its own folder. It shares the
   Hardcover connection in the Keychain with the app itself, so it does
   not connect, disconnect or take a book off the shelf. Opened with
-  `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of each pane of
-  its window, of a book's Details, of a sample sync on the chain, and of each Settings tab
+  `open --env KHS_SNAPSHOT=<folder>`, it saves a picture of Overview,
+  Books, Covers, History and a book's Details in light and in dark
+  (`window-<pane>-light.png`, `-dark.png`, with Books' *Show* at All while
+  they are taken and put back after), then of each pane of
+  its window in the Mac's own appearance, of a book's Details, of a sample sync on the chain, and of each Settings tab
   there, then films the sidebar closing and opening three times
   (`sidebar-<way>-<n>.txt`: every view near the window's top-right
   corner, sampled 120 times a second, written when it changes, with the
