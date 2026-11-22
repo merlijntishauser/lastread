@@ -25,11 +25,12 @@ def test_the_licence_is_mit_and_the_package_says_so():
 
 def test_every_font_travels_with_its_full_licence():
     fonts = sorted((STATIC / "fonts").glob("*.woff2"))
-    assert len(fonts) == 6
+    assert len(fonts) == 12  # the page's two families, and the two the Mac app's packaging still uses
     for f in fonts:
         family = f.name.split("-")[0]
         licence = (STATIC / "fonts" / f"{family}-LICENSE.txt").read_text()
-        # "SourceSerif4" in the file name is "Source Serif 4" in its notice, "SchibstedGrotesk" "Schibsted-Grotesk".
+        # "SourceSerif4" in the file name is "Source Serif 4" in its notice, "SchibstedGrotesk" "Schibsted-Grotesk",
+        # "AtkinsonHyperlegibleNext" "Atkinson Hyperlegible Next".
         assert licence.startswith("Copyright ") and family in re.sub(r"[ -]", "", licence.splitlines()[0]), f.name
         assert "SIL OPEN FONT LICENSE Version 1.1" in licence and "PERMISSION & CONDITIONS" in licence and "TERMINATION" in licence
         assert f.name in NOTICES and licence.splitlines()[0] in NOTICES and f.name in (STATIC / "fonts" / "README.txt").read_text()

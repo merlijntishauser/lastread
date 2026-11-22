@@ -15,7 +15,7 @@ def tokens(block: str) -> dict:
 DAY = tokens(CSS[CSS.index(":root {") : CSS.index("@media (prefers-color-scheme: dark)")])
 NIGHT_AUTO = tokens(CSS[CSS.index("@media (prefers-color-scheme: dark)") : CSS.index(':root[data-theme="dark"]')])
 NIGHT_CHOSEN = tokens(CSS[CSS.index(':root[data-theme="dark"]') : CSS.index("* { box-sizing")])
-GROUNDS = ("sheet", "margin", "ground")  # the sheet, the Hardcover column's tint, the page
+GROUNDS = ("sheet", "margin", "ground")  # Hardcover's side and every card, a tint on it, the Kobo's side and the page
 
 
 def luminance(colour: str) -> float:
@@ -32,7 +32,7 @@ def contrast(a: str, b: str) -> float:
 
 def test_the_night_colours_are_the_same_whether_the_system_or_the_reader_chose_them():
     assert NIGHT_AUTO == NIGHT_CHOSEN and len(NIGHT_AUTO) > 15  # written out twice in the stylesheet: this keeps them one
-    assert set(NIGHT_AUTO) == set(DAY) - {"serif", "sans", "mono", "r-sheet", "r-ctl", "rail-w"}  # every colour has a day and a night value
+    assert set(NIGHT_AUTO) == set(DAY) - {"serif", "sans", "mono", "r-sheet", "r-ctl", "seam-w"}  # every colour has a day and a night value
 
 
 def test_words_can_be_read_on_every_surface_they_stand_on():
@@ -42,13 +42,13 @@ def test_words_can_be_read_on_every_surface_they_stand_on():
                 assert contrast(theme[word], theme[ground]) >= 4.5, (
                     f"{name}: --{word} on --{ground} is {contrast(theme[word], theme[ground]):.2f}"
                 )
-        for word in ("rail-ink", "rail-graphite"):  # the rail: the name, the navigation, the sync status
-            assert contrast(theme[word], theme["rail"]) >= 4.5, f"{name}: --{word} on the rail"
+        for word in ("band-ink", "band-graphite"):  # the band: the name, the navigation, the sync status
+            assert contrast(theme[word], theme["band"]) >= 4.5, f"{name}: --{word} on the band"
         # The words on a filled control: red for what sends (Sync now, Go live), blue for a choice, ink for the rest.
         assert contrast(theme["on-fill"], theme["red"]) >= 4.5, name
         assert contrast(theme["on-fill"], theme["blue"]) >= 4.5, name
         assert contrast(theme["on-flag"], theme["flag"]) >= 4.5, name
-    assert "button.primary { background: var(--red)" in CSS and '.chip[aria-current="true"] { background: var(--blue)' in CSS
+    assert "button.primary { background: var(--red)" in CSS and '.chip[aria-current="true"] { background: var(--flag)' in CSS
 
 
 def test_edges_and_marks_can_be_seen():
@@ -57,9 +57,11 @@ def test_edges_and_marks_can_be_seen():
             assert contrast(theme["edge"], theme[ground]) >= 3, f"{name}: the edge of a field on --{ground}"
             for mark in ("red", "green", "blue", "faint", "flag"):  # the marks, the line gauge's fill, the focus ring
                 assert contrast(theme[mark], theme[ground]) >= 3, f"{name}: --{mark} as a mark on --{ground}"
-        for mark in ("green", "rail-graphite"):  # the marks in the rail's sync status
-            assert contrast(theme[mark], theme["rail"]) >= 3, f"{name}: --{mark} as a mark on the rail"
-    assert re.search(r"input\[type=\"search\"\][^{]*\{[^}]*border: 1px solid var\(--edge\)", CSS)  # fields carry that edge
+        for mark in ("band-green", "band-blue", "band-red", "band-graphite"):  # the marks in the band's sync status
+            assert contrast(theme[mark], theme["band"]) >= 3, f"{name}: --{mark} as a mark on the band"
+        # The marks on the seam: drawn in --on-fill on a red or blue disc.
+        assert contrast(theme["on-fill"], theme["red"]) >= 3 and contrast(theme["on-fill"], theme["blue"]) >= 3, name
+    assert re.search(r"input\[type=\"search\"\][^{]*\{[^}]*border: 1.5px solid var\(--edge\)", CSS)  # fields carry that edge
     assert "::placeholder { color: var(--faint); }" in CSS
 
 

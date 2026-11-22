@@ -189,21 +189,26 @@ What a Kobo does with it (seen on software 6.0):
 
 ## The pages
 
-The page reads like a proof of your Hardcover shelf. The Hardcover column
-is its margin: what the next sync changes is marked there the way a
-proofreader marks a page, the old value struck through and the new one
-after a caret, and a legend above the list says what each mark means.
-Red is only for what a sync sends; blue is your own choice or a question
-for you.
+The page is drawn as the handover it makes. Each book is a row with two
+sides: the Kobo's side on grey e-ink paper (the book, how far you are, set
+large, the cover in grey, the Kobo's own dotted line of progress, and the
+two switches) and Hardcover's side in white (what Hardcover has, the cover
+in colour). Between them runs a dark rule, the seam, and on it each row's
+mark: what the next sync does with that book. A change shows the old value
+struck through and the new one written in after it. Red is only for what a
+sync sends; blue is a question for you. The marks are explained behind
+*What the marks mean* above the list, and every mark has its words beside it.
 
-One frame for every page: a rail that is "your Kobo" (the name, the
-navigation, what the Kobo and Hardcover last did, *Sync now*) and a sheet
-that is "your books". On a phone the rail becomes a band at the top, the
-navigation a bar at the bottom, and each book a card with its own margin.
-Two typefaces: Source Serif 4 for book titles, Schibsted Grotesk for
-everything else. DESIGN.md has the whole system. Everything is served by the tool
-itself, book covers included: it fetches them from Kobo's servers once
-and keeps them, so the browser talks to nobody else.
+One frame for every page: a dark band across the top (the name, the
+navigation, what the Kobo and Hardcover last did, *Sync now*), the page
+under it and a quiet foot (who you are, the theme, Help). On a phone the
+navigation is a bar at the bottom and each book a card: the Kobo's part
+above, the seam across the card, Hardcover's part below. Two typefaces:
+Literata for book titles, page heads and how far a book is read, Atkinson
+Hyperlegible Next for everything else. DESIGN.md has the whole system.
+Everything is served by the tool itself, fonts and book covers included:
+it fetches the covers from Kobo's servers once and keeps them, so the
+browser talks to nobody else.
 
 `browser_tests/shots.py` renders every page in both themes at three widths
 with a made-up shelf; look at its pictures after a change to the

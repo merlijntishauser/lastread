@@ -131,7 +131,8 @@ T = {
     "marked_send": ("sends {n} marked change", "sends {n} marked changes"),
     "marked_would": ("would send {n} marked change", "would send {n} marked changes"),
     # toolbar
-    "search": "Search title or author",
+    "search": "Search title or author…",
+    "skip": "Skip to the page",
     "sort_by": "Sort by",
     "sort_last_read": "Last read, newest first",
     "sort_last_read_old": "Last read, oldest first",
@@ -247,7 +248,7 @@ T = {
     "no_match": "Hardcover found nothing for this book. Search for it under another title, for example the original one, or by its author. "
     "A book Hardcover does not have yet has to be added there first.",
     "search_hc": "Search Hardcover",
-    "search_hc_hint": "Other title or author",
+    "search_hc_hint": "Other title or author…",
     "search_btn": "Search",
     "remove_hc": "Remove from Hardcover",
     "confirm_remove": "Remove this book from your Hardcover shelf?",

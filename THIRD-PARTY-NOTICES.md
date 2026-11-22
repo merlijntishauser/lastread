@@ -9,14 +9,20 @@ what is installed next to it, and what it fetches while it runs.
 
 ### Fonts
 
-Both under the **SIL Open Font License 1.1**. The full licence text, with
+All four under the **SIL Open Font License 1.1**. The full licence text, with
 each font's copyright notice, is in the folder with the font files,
 `src/lastread/web/static/fonts/`.
 
 | Font | Files | Copyright | Licence text |
 |---|---|---|---|
+| Atkinson Hyperlegible Next | `AtkinsonHyperlegibleNext-latin.woff2`, `AtkinsonHyperlegibleNext-latin-ext.woff2`, `AtkinsonHyperlegibleNext-italic-latin.woff2`, `AtkinsonHyperlegibleNext-italic-latin-ext.woff2` | Copyright 2020-2024 The Atkinson Hyperlegible Next Project Authors (https://github.com/googlefonts/atkinson-hyperlegible-next) | `AtkinsonHyperlegibleNext-LICENSE.txt` |
+| Literata | `Literata-latin.woff2`, `Literata-latin-ext.woff2` | Copyright 2017 The Literata Project Authors (https://github.com/googlefonts/literata) | `Literata-LICENSE.txt` |
 | Schibsted Grotesk | `SchibstedGrotesk-latin.woff2`, `SchibstedGrotesk-latin-ext.woff2`, `SchibstedGrotesk-italic-latin.woff2`, `SchibstedGrotesk-italic-latin-ext.woff2` | Copyright 2023 The Schibsted-Grotesk Project Authors (https://github.com/schibsted/schibsted-grotesk) | `SchibstedGrotesk-LICENSE.txt` |
 | Source Serif 4 | `SourceSerif4-latin.woff2`, `SourceSerif4-latin-ext.woff2` | Copyright 2014 The Source Serif 4 Project Authors (https://github.com/adobe-fonts/source-serif) | `SourceSerif4-LICENSE.txt` |
+
+The page is set in Atkinson Hyperlegible Next and Literata. Schibsted
+Grotesk and Source Serif 4 stay for the Mac app: its disk image art and its
+widget are drawn with them, from this folder.
 
 The files are the subsets Google Fonts serves, unchanged. If you pass this
 project on, the fonts go with their licence files; the Open Font License

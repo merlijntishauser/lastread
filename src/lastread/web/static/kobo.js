@@ -6,9 +6,9 @@
 (function () {
   const root = document.documentElement;
   const current = () => root.dataset.theme || 'auto';
-  // The browser's own bar: the rail's colour in the theme in force, also when
+  // The browser's own bar: the band's colour in the theme in force, also when
   // it was chosen here against the system's.
-  const bar = () => { const bg = getComputedStyle(root).getPropertyValue('--rail').trim();
+  const bar = () => { const bg = getComputedStyle(root).getPropertyValue('--band').trim();
     document.querySelectorAll('meta[name="theme-color"]').forEach(m => { m.removeAttribute('media'); m.content = bg; }); };
   const paint = () => { document.querySelectorAll('.theme button').forEach(b =>
     b.setAttribute('aria-pressed', String(b.dataset.set === current()))); bar(); };

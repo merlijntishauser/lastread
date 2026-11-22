@@ -7,7 +7,23 @@ minor version may change behaviour; the notes will say so.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- **The page has a new look: two sides.** Each book is drawn as the
+  handover the tool makes: the Kobo's side in e-ink grey, with how far you
+  are set large and the cover in grey; Hardcover's side in white, with the
+  cover in colour; and between them a dark rule with each book's mark on
+  it, saying what the next sync does with it. The name, the navigation and
+  *Sync now* are in a dark band across the top. On a phone each book is a
+  card with the same two parts. New typefaces: Literata and Atkinson
+  Hyperlegible Next, both served by the tool itself.
+- **Sync now is red only when it sends.** In a dry run, before you go live,
+  it is outlined: nothing goes to Hardcover yet.
+- **What the marks mean folds away** above the list, so the first books
+  are on the first screen. Every mark has its words beside it.
+- **Easier by keyboard and screen reader.** A first Tab offers *Skip to
+  the page*; each book's Sync, State and date fields carry the book's
+  title in their name; the focus ring shows on the dark band too.
 
 ## 0.32.1 - 2026-11-22
 

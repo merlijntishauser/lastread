@@ -207,7 +207,7 @@ def test_once_live_the_books_that_need_you_are_said_above_the_list(tmp_path, mon
 def test_settings_has_the_few_on_top_and_the_rest_under_advanced(tmp_path, monkeypatch):
     c = client(tmp_path, monkeypatch)
     main = c.get("/settings", headers={"Remote-User": "robin"}).text
-    main = main[main.index('<main class="cards">') : main.index("</main>")]
+    main = main[main.index('<main class="cards"') : main.index("</main>")]
     assert re.findall(r"<h2[^>]*>([^<]+)<", main)[:3] == ["Settings", "You", "Hardcover"]
     # Without JavaScript Advanced is a heading over its cards; kobo.js turns the heading into a button that folds them.
     head = (
@@ -311,7 +311,7 @@ def test_page_has_theme_switch_chips_and_static_assets(tmp_path, monkeypatch):
     assert "Mine Now" not in page  # filtered out
     css = c.get("/static/kobo.css")
     assert css.status_code == 200 and '[data-theme="dark"]' in css.text and "prefers-color-scheme: dark" in css.text
-    assert c.get("/static/fonts/SchibstedGrotesk-latin.woff2").status_code == 200
+    assert c.get("/static/fonts/AtkinsonHyperlegibleNext-latin.woff2").status_code == 200
 
 
 def test_filters_never_leak_other_readers(tmp_path, monkeypatch):
@@ -683,7 +683,7 @@ def test_the_list_says_what_it_is_to_someone_who_cannot_see_it(tmp_path, monkeyp
     assert (
         page.count('<tr id="b-') == page.count('role="row"') - 1 == 2 and page.count('role="cell"') == 8
     )  # laid out as cards on a phone, a table all the same
-    assert '<meta name="theme-color" content="#c3e2ef" media="(prefers-color-scheme: light)">' in page
+    assert '<meta name="theme-color" content="#1c1c1a" media="(prefers-color-scheme: light)">' in page
     alone = c.get("/details/old", headers=h).text
     assert '<main class="dpage"><h1 class="sr">Lastread</h1>' in alone
 
@@ -696,7 +696,7 @@ def test_pages_are_compressed_and_what_does_not_change_is_kept(tmp_path, monkeyp
     assert "content-encoding" not in c.get("/", headers={"Remote-User": "robin", "Accept-Encoding": "identity"}).headers
     css = c.get("/static/kobo.css?v=1", headers=h)
     assert css.headers["content-encoding"] == "gzip" and css.headers["cache-control"] == "max-age=31536000, immutable"
-    font = c.get("/static/fonts/SchibstedGrotesk-latin.woff2", headers=h)  # compressed already: left alone, kept a week
+    font = c.get("/static/fonts/AtkinsonHyperlegibleNext-latin.woff2", headers=h)  # compressed already: left alone, kept a week
     assert "content-encoding" not in font.headers and font.headers["cache-control"] == "max-age=604800" and len(font.content) > 20000
     assert c.get("/static/nothing.css", headers=h).status_code == 404
 

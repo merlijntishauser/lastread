@@ -320,6 +320,10 @@ def book_cell(r) -> str:
     spans = [f"<span>{e(m)}</span>" for m in meta]
     if r["seconds_read"]:  # the time read comes last, with what it counts
         spans[-1] = f'<span title="{T["account_time_help"]}">{e(meta[-1])}</span>'
+    if meta and meta[0] == f"{pct}%":  # how far is set large beside the cover instead
+        spans = spans[1:]
+    # How far, set large: for the eye; the line gauge says it to a screen reader.
+    big = f'<span class="pct{" zero" if not pct else ""}" aria-hidden="true">{pct}<small>%</small></span>'
     label = T["finished_pin"] if done else f"{pct}%"
     # Decorative: the title is right next to it. The browser asks for covers
     # as rows scroll into view; a book without one keeps the plain tile.
@@ -334,7 +338,7 @@ def book_cell(r) -> str:
         else '<span class="cover"></span>'
     )
     return (
-        f'<div class="bk">{cover}<div class="info"><div class="title">{e(r["title"])}{tag}</div><div class="author">{e(r["author"])}</div>'
+        f'<div class="bk">{big}{cover}<div class="info"><div class="title">{e(r["title"])}{tag}</div><div class="author">{e(r["author"])}</div>'
         f'<div class="bar{" done" if done else ""}" role="img" aria-label="{label}"><span style="width:{pct}%"></span></div>'
         f'<div class="meta">{"".join(spans)}</div></div></div>'
     )
@@ -397,7 +401,8 @@ def sync_button(con, reader: str, live: bool, back: str, j) -> str:
     if p is None:
         return (
             f'<form method="post" action="/sync" class="syncnow"><input type="hidden" name="back" value="{e(back)}">'
-            f'<button class="primary"><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button>'
+            # Red only when it sends: in a dry run Sync now looks, and nothing goes to Hardcover.
+            f'<button{" class=\"primary\"" if live else ""}><span>{T["sync_now"]}</span><small class="marked">{e(marked_line(con, reader, live))}</small></button>'
             f"{done}</form>"
         )
     part = p["part"]
@@ -486,8 +491,8 @@ def state_cell(r, back: str) -> str:
     return (
         f'<form method="post" action="/state" class="stateform"><input type="hidden" name="id" value="{e(r["content_id"])}">'
         f'<input type="hidden" name="back" value="{e(back)}">'
-        f'<select name="state" class="rowstate" aria-label="{T["col_state"]}">{sel}</select>'
-        f'<input type="date" name="date" class="rowdate" aria-label="{T["state_date"]}" value="{e(r["state_date"] or "")}"'
+        f'<select name="state" class="rowstate" aria-label="{e(T["col_state"])}: {e(r["title"])}">{sel}</select>'
+        f'<input type="date" name="date" class="rowdate" aria-label="{e(T["state_date"])}: {e(r["title"])}" value="{e(r["state_date"] or "")}"'
         f"{'' if cur in ('finished', 'rereading') else ' hidden'}>{NOSCRIPT_SET}</form>"
     )
 
@@ -528,10 +533,17 @@ def hc_cell(r, back: str, status: tuple[str, str]) -> str:
     """The Hardcover column: one status line, one line for the match, and a
     Details button. Everything else lives in the details dialog."""
     href = f"/details/{quote(r['content_id'], safe='')}" + (f"?back={quote(back, safe='')}" if back else "")
+    # A book that goes to Hardcover shows its cover there in colour; on the Kobo's side it is grey.
+    cover = (
+        f'<img class="hccover" src="/cover/{quote(r["content_id"], safe="")}" alt="" width="32" height="48" loading="lazy">'
+        if r["image_id"] and r["hc_book_id"] and state.syncs(r)
+        else ""
+    )
     return (
         mark_html(r, status)
         + edition_line(r)
         + f'<a class="details" href="{href}" aria-label="{e(T["details_of"].format(title=r["title"]))}">{T["details"]}</a>'
+        + cover
     )
 
 
@@ -661,19 +673,24 @@ HEAD_SCRIPT = (
     "<script>try{var t=localStorage.getItem('kobo-theme');"
     "if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>"
 )
-# The browser's own bar in the page's colour, day and night (kobo.js keeps
+# The browser's own bar in the band's colour, day and night (kobo.js keeps
 # it right when the theme is chosen by hand).
 THEME_COLOR = (
-    '<meta name="theme-color" content="#c3e2ef" media="(prefers-color-scheme: light)">'
-    '<meta name="theme-color" content="#123040" media="(prefers-color-scheme: dark)">'
+    '<meta name="theme-color" content="#1c1c1a" media="(prefers-color-scheme: light)">'
+    '<meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">'
+)
+# The two faces nearly every page sets first, asked for before the stylesheet finds them.
+FONT_PRELOAD = "".join(
+    f'<link rel="preload" href="/static/fonts/{f}" as="font" type="font/woff2" crossorigin>'
+    for f in ("AtkinsonHyperlegibleNext-latin.woff2", "Literata-latin.woff2")
 )
 
 
 def shell(body: str, cls: str = "", head: str = "") -> str:
     return (
         f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
-        f'<meta name="viewport" content="width=device-width,initial-scale=1"><title>{T["title"]}</title>'
-        f'{THEME_COLOR}{HEAD_SCRIPT}<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">'
+        f'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>{T["title"]}</title>'
+        f'{THEME_COLOR}{FONT_PRELOAD}{HEAD_SCRIPT}<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">'
         f'<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">'
         f'<link rel="stylesheet" href="/static/kobo.css?v={ASSET_V}">{head}</head><body{f' class="{cls}"' if cls else ""}>{body}'
         f'<script src="/static/kobo.js?v={ASSET_V}"></script></body></html>'
@@ -730,11 +747,11 @@ NAV_ICONS = {
 }
 
 
-# What the marks in the Hardcover column mean, above the list.
+# What the marks on the seam mean, above the list: folded, since every mark has its words beside it.
 LEGEND = (
-    f'<ul class="legend" aria-label="{T["legend"]}">'
+    f'<details class="marks"><summary>{T["legend"]}</summary><ul class="legend" aria-label="{T["legend"]}">'
     + "".join(f'<li class="{k}">{marks.mark(k)}{T["legend_" + k]}</li>' for k in ("next", "wait", "ok", "stet", "warn", "err", "none"))
-    + "</ul>"
+    + "</ul></details>"
 )
 
 
@@ -773,17 +790,20 @@ def status_items(con, reader: str, live: bool, last_upload, j) -> str:
 
 
 def frame(name: str, main: str, current: str = "", is_admin: bool = False, nav: bool = True, side: str = "", head: str = "") -> str:
-    """Every page, one frame: the sidebar (what this is, where to go, and on
-    Books the sync status), the page itself, and a footer with who is signed
-    in and the page tools. On a phone the sidebar is the top of the page and
-    the navigation a bar at the bottom."""
+    """Every page, one frame: the band across the top (what this is, where to
+    go, and on Books the sync status), the page itself, and a foot with who is
+    signed in and the page tools. On a phone the band is the top of the page
+    and the navigation a bar at the bottom."""
     items = [("books", "/"), ("settings", "/settings")] + ([("admin", "/admin")] if is_admin else [])
     links = "".join(
         f'<a href="{href}"{' aria-current="page"' if k == current else ""}>{NAV_ICONS[k]}<span>{T["nav_" + k]}</span></a>'
         for k, href in items
     )
+    # A keyboard reader can pass the band: the first Tab offers a jump to the page itself.
+    main = re.sub(r"<main\b([^>]*)>", r'<main\1 id="main" tabindex="-1">', main, count=1)
     return shell(
-        f'<aside class="side"><div><div class="brand"><h1>{marks.BRAND}<span>{T["title"]}</span></h1>'
+        f'<a class="skip" href="#main">{T["skip"]}</a>'
+        f'<aside class="side"><div><div class="brand"><h1>{marks.BRAND}<span translate="no">{T["title"]}</span></h1>'
         f'<button type="button" class="bandhelp" data-open="help" aria-label="{T["help"]}" title="{T["help"]}">{marks.HELP}</button></div>'
         f'<p class="tagline">{T["tagline"]} <button type="button" class="linkbtn" data-open="help">{T["about"]}</button></p></div>'
         + (f'<nav class="nav" aria-label="{T["nav"]}">{links}</nav>' if nav else "")
@@ -823,7 +843,7 @@ def book_rows(rows, live: bool, quiet: dict, back: str, start: int = 0) -> str:
             f'<tr id="b-{cid}" class="{"on" if state.syncs(r) else "off"}" style="--d:{min(i - start, 12) * 70}ms" role="row"><td class="book" role="cell">{book_cell(r)}</td>'
             f'<td data-label="{T["col_mode"]}" role="cell"><form method="post" action="/mode"><input type="hidden" name="ids" value="{cid}">'
             f'<input type="hidden" name="back" value="{e(back)}">'
-            f'<select name="mode" class="rowmode" aria-label="{T["col_mode"]}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
+            f'<select name="mode" class="rowmode" aria-label="{e(T["col_mode"])}: {e(r["title"])}">{mode_sel}</select>{NOSCRIPT_SET}</form></td>'
             f'<td data-label="{T["col_state"]}" role="cell">{state_cell(r, back)}</td>'
             f'<td class="hc" data-label="{T["col_hardcover"]}" role="cell"><div>{hc_cell(r, back, booklist.hc_status(r, live, quiet))}</div></td></tr>'
         )

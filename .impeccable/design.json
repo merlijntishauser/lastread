@@ -1,12 +1,780 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-31T13:12:51Z",
+  "generatedAt": "2026-11-22T21:17:57Z",
   "title": "Design System: Lastread",
   "extensions": {
     "colorMeta": {
       "ground": {
         "role": "neutral",
-        "displayName": "Galley Stock",
+        "displayName": "E-ink Paper",
+        "canonical": "#e2e1db",
+        "oklch": "oklch(90.9% 0.008 99)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#262522",
+          "#43423e",
+          "#62615d",
+          "#83827d",
+          "#a6a5a1",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Hardcover White",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "margin": {
+        "role": "neutral",
+        "displayName": "Code Tint",
+        "canonical": "#f2f1ec",
+        "oklch": "oklch(95.8% 0.007 97)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#262523",
+          "#43423f",
+          "#62615d",
+          "#83827e",
+          "#a6a5a1",
+          "#cac9c6",
+          "#efeeec"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1c1c1a",
+        "oklch": "oklch(22.6% 0.004 107)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a3",
+          "#c9c9c7",
+          "#eeeeed"
+        ]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "#4b4a44",
+        "oklch": "oklch(40.8% 0.010 99)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423d",
+          "#62615c",
+          "#83827c",
+          "#a6a5a0",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint",
+        "canonical": "#5a5953",
+        "oklch": "oklch(46.3% 0.010 99)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423e",
+          "#62615c",
+          "#83827d",
+          "#a6a5a0",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#bdbcb4",
+        "oklch": "oklch(79.4% 0.011 101)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262521",
+          "#43423d",
+          "#62615b",
+          "#83837c",
+          "#a6a59f",
+          "#cac9c4",
+          "#efefea"
+        ]
+      },
+      "rule-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "canonical": "#d3d2cb",
+        "oklch": "oklch(86.3% 0.010 100)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423e",
+          "#62615c",
+          "#83827d",
+          "#a6a5a0",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Edge",
+        "canonical": "#76756d",
+        "oklch": "oklch(56.1% 0.012 101)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423d",
+          "#62615a",
+          "#84837b",
+          "#a6a59f",
+          "#cac9c4",
+          "#efefea"
+        ]
+      },
+      "band": {
+        "role": "neutral",
+        "displayName": "The Band",
+        "canonical": "#1c1c1a",
+        "oklch": "oklch(22.6% 0.004 107)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a3",
+          "#c9c9c7",
+          "#eeeeed"
+        ]
+      },
+      "band-ink": {
+        "role": "neutral",
+        "displayName": "Band Ink",
+        "canonical": "#efeee8",
+        "oklch": "oklch(94.8% 0.008 99)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#262522",
+          "#43423e",
+          "#62615d",
+          "#83827d",
+          "#a6a5a1",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "band-graphite": {
+        "role": "neutral",
+        "displayName": "Band Graphite",
+        "canonical": "#b8b7ae",
+        "oklch": "oklch(77.8% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423c",
+          "#62625a",
+          "#84837b",
+          "#a6a59e",
+          "#cac9c3",
+          "#efefea"
+        ]
+      },
+      "band-green": {
+        "role": "tertiary",
+        "displayName": "Band Green",
+        "canonical": "#7dcf92",
+        "oklch": "oklch(78.6% 0.119 151)",
+        "tonalRamp": [
+          "#001101",
+          "#002f10",
+          "#0e4f27",
+          "#26723f",
+          "#4b9560",
+          "#79b687",
+          "#a6d8b0",
+          "#d3fadb"
+        ]
+      },
+      "band-blue": {
+        "role": "secondary",
+        "displayName": "Band Blue",
+        "canonical": "#9dc0ff",
+        "oklch": "oklch(80.6% 0.098 262)",
+        "tonalRamp": [
+          "#020a1f",
+          "#142443",
+          "#2b416a",
+          "#446195",
+          "#6482b9",
+          "#8ba6d6",
+          "#b3caf2",
+          "#ddefff"
+        ]
+      },
+      "band-red": {
+        "role": "primary",
+        "displayName": "Band Red",
+        "canonical": "#ff8f93",
+        "oklch": "oklch(77.1% 0.135 18)",
+        "tonalRamp": [
+          "#200002",
+          "#460d14",
+          "#6f252b",
+          "#9c3e45",
+          "#c26065",
+          "#e0898b",
+          "#fcb3b4",
+          "#ffdddd"
+        ]
+      },
+      "blue": {
+        "role": "secondary",
+        "displayName": "Question Blue",
+        "canonical": "#22509c",
+        "oklch": "oklch(44.3% 0.134 260)",
+        "tonalRamp": [
+          "#000826",
+          "#09234e",
+          "#1e4079",
+          "#345fa7",
+          "#5582cc",
+          "#7ea6e7",
+          "#a9cbff",
+          "#d5f0ff"
+        ]
+      },
+      "blue-wash": {
+        "role": "secondary",
+        "displayName": "Blue Wash",
+        "canonical": "#dde6f5",
+        "oklch": "oklch(92.3% 0.023 261)",
+        "tonalRamp": [
+          "#090b10",
+          "#21252c",
+          "#3d424c",
+          "#5b626d",
+          "#7b838f",
+          "#9fa5b0",
+          "#c4c9d3",
+          "#eaeff6"
+        ]
+      },
+      "red": {
+        "role": "primary",
+        "displayName": "Send Red",
+        "canonical": "#bb1d2a",
+        "oklch": "oklch(51.1% 0.190 24)",
+        "tonalRamp": [
+          "#270000",
+          "#510003",
+          "#7f0615",
+          "#af222a",
+          "#d84b4b",
+          "#f47c76",
+          "#ffa9a3",
+          "#ffd7d0"
+        ]
+      },
+      "red-wash": {
+        "role": "primary",
+        "displayName": "Red Wash",
+        "canonical": "#f7dfdf",
+        "oklch": "oklch(92.3% 0.026 18)",
+        "tonalRamp": [
+          "#100909",
+          "#2d2222",
+          "#4d3e3e",
+          "#6f5c5c",
+          "#917d7d",
+          "#b2a0a0",
+          "#d4c5c5",
+          "#f7ebeb"
+        ]
+      },
+      "green": {
+        "role": "tertiary",
+        "displayName": "Tick Green",
+        "canonical": "#256535",
+        "oklch": "oklch(45.3% 0.101 149)",
+        "tonalRamp": [
+          "#001002",
+          "#082d12",
+          "#1f4d2a",
+          "#367043",
+          "#589263",
+          "#82b38a",
+          "#add5b3",
+          "#d9f8dd"
+        ]
+      },
+      "green-wash": {
+        "role": "tertiary",
+        "displayName": "Green Wash",
+        "canonical": "#dcefe1",
+        "oklch": "oklch(93.4% 0.027 154)",
+        "tonalRamp": [
+          "#070d09",
+          "#1f2821",
+          "#39453d",
+          "#56665b",
+          "#77877b",
+          "#9ba99f",
+          "#c1cdc4",
+          "#e8f1ea"
+        ]
+      },
+      "flag": {
+        "role": "tertiary",
+        "displayName": "Flag Ink",
+        "canonical": "#1c1c1a",
+        "oklch": "oklch(22.6% 0.004 107)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a3",
+          "#c9c9c7",
+          "#eeeeed"
+        ]
+      },
+      "on-flag": {
+        "role": "neutral",
+        "displayName": "On Flag",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "on-fill": {
+        "role": "neutral",
+        "displayName": "On Fill",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "ground-dark": {
+        "role": "neutral",
+        "displayName": "E-ink Paper (dark)",
+        "canonical": "#2b2c28",
+        "oklch": "oklch(29.1% 0.007 118)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61625e",
+          "#82837e",
+          "#a4a5a2",
+          "#c9c9c6",
+          "#eeefec"
+        ]
+      },
+      "sheet-dark": {
+        "role": "neutral",
+        "displayName": "Hardcover White (dark)",
+        "canonical": "#171816",
+        "oklch": "oklch(20.7% 0.004 129)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#414240",
+          "#60625f",
+          "#818380",
+          "#a4a5a3",
+          "#c8c9c8",
+          "#eeefed"
+        ]
+      },
+      "margin-dark": {
+        "role": "neutral",
+        "displayName": "Code Tint (dark)",
+        "canonical": "#1f201d",
+        "oklch": "oklch(24.1% 0.006 122)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#414240",
+          "#61625e",
+          "#82837f",
+          "#a4a5a2",
+          "#c9c9c7",
+          "#eeefed"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Ink (dark)",
+        "canonical": "#ecebe4",
+        "oklch": "oklch(93.9% 0.009 100)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423e",
+          "#62615c",
+          "#83827d",
+          "#a6a5a0",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "graphite-dark": {
+        "role": "neutral",
+        "displayName": "Graphite (dark)",
+        "canonical": "#b9b8af",
+        "oklch": "oklch(78.1% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423c",
+          "#62625a",
+          "#84837b",
+          "#a6a59e",
+          "#cac9c3",
+          "#efefea"
+        ]
+      },
+      "faint-dark": {
+        "role": "neutral",
+        "displayName": "Faint (dark)",
+        "canonical": "#a5a49b",
+        "oklch": "oklch(71.7% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423c",
+          "#62625a",
+          "#84837b",
+          "#a6a59e",
+          "#cac9c3",
+          "#efefea"
+        ]
+      },
+      "rule-dark": {
+        "role": "neutral",
+        "displayName": "Rule (dark)",
+        "canonical": "#4a4b45",
+        "oklch": "oklch(41.0% 0.010 115)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252522",
+          "#42423e",
+          "#61625c",
+          "#82837d",
+          "#a5a6a0",
+          "#c9cac5",
+          "#eeefeb"
+        ]
+      },
+      "rule-soft-dark": {
+        "role": "neutral",
+        "displayName": "Soft Rule (dark)",
+        "canonical": "#383934",
+        "oklch": "oklch(34.2% 0.009 116)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252522",
+          "#42423e",
+          "#61625d",
+          "#82837e",
+          "#a5a6a1",
+          "#c9cac6",
+          "#eeefec"
+        ]
+      },
+      "edge-dark": {
+        "role": "neutral",
+        "displayName": "Edge (dark)",
+        "canonical": "#8d8c83",
+        "oklch": "oklch(63.8% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423c",
+          "#62625a",
+          "#84837a",
+          "#a6a59e",
+          "#cac9c3",
+          "#efefea"
+        ]
+      },
+      "band-dark": {
+        "role": "neutral",
+        "displayName": "The Band (dark)",
+        "canonical": "#0e0e0d",
+        "oklch": "oklch(16.3% 0.002 107)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252524",
+          "#424241",
+          "#616160",
+          "#828281",
+          "#a5a5a4",
+          "#c9c9c8",
+          "#eeeeee"
+        ]
+      },
+      "band-ink-dark": {
+        "role": "neutral",
+        "displayName": "Band Ink (dark)",
+        "canonical": "#efeee8",
+        "oklch": "oklch(94.8% 0.008 99)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#262522",
+          "#43423e",
+          "#62615d",
+          "#83827d",
+          "#a6a5a1",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "band-graphite-dark": {
+        "role": "neutral",
+        "displayName": "Band Graphite (dark)",
+        "canonical": "#b0afa6",
+        "oklch": "oklch(75.2% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b08",
+          "#262521",
+          "#43423c",
+          "#62625a",
+          "#84837b",
+          "#a6a59e",
+          "#cac9c3",
+          "#efefea"
+        ]
+      },
+      "band-green-dark": {
+        "role": "tertiary",
+        "displayName": "Band Green (dark)",
+        "canonical": "#7dcf92",
+        "oklch": "oklch(78.6% 0.119 151)",
+        "tonalRamp": [
+          "#001101",
+          "#002f10",
+          "#0e4f27",
+          "#26723f",
+          "#4b9560",
+          "#79b687",
+          "#a6d8b0",
+          "#d3fadb"
+        ]
+      },
+      "band-blue-dark": {
+        "role": "secondary",
+        "displayName": "Band Blue (dark)",
+        "canonical": "#9dc0ff",
+        "oklch": "oklch(80.6% 0.098 262)",
+        "tonalRamp": [
+          "#020a1f",
+          "#142443",
+          "#2b416a",
+          "#446195",
+          "#6482b9",
+          "#8ba6d6",
+          "#b3caf2",
+          "#ddefff"
+        ]
+      },
+      "band-red-dark": {
+        "role": "primary",
+        "displayName": "Band Red (dark)",
+        "canonical": "#ff8f93",
+        "oklch": "oklch(77.1% 0.135 18)",
+        "tonalRamp": [
+          "#200002",
+          "#460d14",
+          "#6f252b",
+          "#9c3e45",
+          "#c26065",
+          "#e0898b",
+          "#fcb3b4",
+          "#ffdddd"
+        ]
+      },
+      "blue-dark": {
+        "role": "secondary",
+        "displayName": "Question Blue (dark)",
+        "canonical": "#93b8ff",
+        "oklch": "oklch(78.3% 0.110 263)",
+        "tonalRamp": [
+          "#020921",
+          "#122347",
+          "#29406f",
+          "#42609b",
+          "#6281bf",
+          "#89a5db",
+          "#b1caf8",
+          "#dcefff"
+        ]
+      },
+      "blue-wash-dark": {
+        "role": "secondary",
+        "displayName": "Blue Wash (dark)",
+        "canonical": "#1f2b45",
+        "oklch": "oklch(29.2% 0.051 265)",
+        "tonalRamp": [
+          "#060b16",
+          "#1d2535",
+          "#374257",
+          "#54617c",
+          "#74829f",
+          "#99a5bf",
+          "#bfc9df",
+          "#e6efff"
+        ]
+      },
+      "red-dark": {
+        "role": "primary",
+        "displayName": "Send Red (dark)",
+        "canonical": "#ff7f86",
+        "oklch": "oklch(74.4% 0.156 18)",
+        "tonalRamp": [
+          "#230001",
+          "#4a0411",
+          "#751d28",
+          "#a33541",
+          "#ca5960",
+          "#e78488",
+          "#ffafb1",
+          "#ffdbdb"
+        ]
+      },
+      "red-wash-dark": {
+        "role": "primary",
+        "displayName": "Red Wash (dark)",
+        "canonical": "#401e22",
+        "oklch": "oklch(28.4% 0.053 14)",
+        "tonalRamp": [
+          "#150708",
+          "#341e20",
+          "#56393b",
+          "#7b5659",
+          "#9e777a",
+          "#be9b9d",
+          "#dec1c3",
+          "#ffe8e9"
+        ]
+      },
+      "green-dark": {
+        "role": "tertiary",
+        "displayName": "Tick Green (dark)",
+        "canonical": "#84d197",
+        "oklch": "oklch(79.5% 0.112 151)",
+        "tonalRamp": [
+          "#001101",
+          "#002e11",
+          "#144f28",
+          "#2b7241",
+          "#4f9462",
+          "#7bb589",
+          "#a8d7b2",
+          "#d5fadc"
+        ]
+      },
+      "green-wash-dark": {
+        "role": "tertiary",
+        "displayName": "Green Wash (dark)",
+        "canonical": "#1a3121",
+        "oklch": "oklch(28.9% 0.041 153)",
+        "tonalRamp": [
+          "#050e07",
+          "#1b291f",
+          "#35473a",
+          "#516857",
+          "#718977",
+          "#96ab9c",
+          "#bdcec1",
+          "#e5f3e8"
+        ]
+      },
+      "flag-dark": {
+        "role": "tertiary",
+        "displayName": "Flag Ink (dark)",
+        "canonical": "#ecebe4",
+        "oklch": "oklch(93.9% 0.009 100)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#262522",
+          "#43423e",
+          "#62615c",
+          "#83827d",
+          "#a6a5a0",
+          "#cac9c5",
+          "#efeeeb"
+        ]
+      },
+      "on-flag-dark": {
+        "role": "neutral",
+        "displayName": "On Flag (dark)",
+        "canonical": "#121311",
+        "oklch": "oklch(18.5% 0.004 129)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#414240",
+          "#60625f",
+          "#818380",
+          "#a4a5a3",
+          "#c8c9c7",
+          "#eeefed"
+        ]
+      },
+      "on-fill-dark": {
+        "role": "neutral",
+        "displayName": "On Fill (dark)",
+        "canonical": "#121311",
+        "oklch": "oklch(18.5% 0.004 129)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#414240",
+          "#60625f",
+          "#818380",
+          "#a4a5a3",
+          "#c8c9c7",
+          "#eeefed"
+        ]
+      },
+      "mac-ground": {
+        "role": "neutral",
+        "displayName": "Galley Stock (Mac app)",
         "canonical": "#edefea",
         "oklch": "oklch(94.9% 0.007 124)",
         "tonalRamp": [
@@ -20,9 +788,9 @@
           "#edefea"
         ]
       },
-      "sheet": {
+      "mac-sheet": {
         "role": "neutral",
-        "displayName": "Proof Sheet",
+        "displayName": "Proof Sheet (Mac app)",
         "canonical": "#fbfbf8",
         "oklch": "oklch(98.7% 0.004 106)",
         "tonalRamp": [
@@ -36,9 +804,9 @@
           "#efefec"
         ]
       },
-      "margin": {
+      "mac-margin": {
         "role": "neutral",
-        "displayName": "Margin Tint",
+        "displayName": "Margin Tint (Mac app)",
         "canonical": "#f4f5f1",
         "oklch": "oklch(96.8% 0.005 118)",
         "tonalRamp": [
@@ -52,9 +820,9 @@
           "#eeefeb"
         ]
       },
-      "ink": {
+      "mac-ink": {
         "role": "neutral",
-        "displayName": "Proof Ink",
+        "displayName": "Proof Ink (Mac app)",
         "canonical": "#17191c",
         "oklch": "oklch(21.3% 0.007 258)",
         "tonalRamp": [
@@ -68,9 +836,9 @@
           "#eceff3"
         ]
       },
-      "graphite": {
+      "mac-graphite": {
         "role": "neutral",
-        "displayName": "Graphite",
+        "displayName": "Graphite (Mac app)",
         "canonical": "#4a4f57",
         "oklch": "oklch(42.6% 0.015 260)",
         "tonalRamp": [
@@ -84,9 +852,9 @@
           "#e9eff9"
         ]
       },
-      "faint": {
+      "mac-faint": {
         "role": "neutral",
-        "displayName": "Faint Graphite",
+        "displayName": "Faint Graphite (Mac app)",
         "canonical": "#5f656e",
         "oklch": "oklch(50.5% 0.016 258)",
         "tonalRamp": [
@@ -100,9 +868,9 @@
           "#e8effa"
         ]
       },
-      "rule": {
+      "mac-rule": {
         "role": "neutral",
-        "displayName": "Rule",
+        "displayName": "Rule (Mac app)",
         "canonical": "#cdd1cb",
         "oklch": "oklch(85.6% 0.009 135)",
         "tonalRamp": [
@@ -116,9 +884,9 @@
           "#ecf0ea"
         ]
       },
-      "rule-soft": {
+      "mac-rule-soft": {
         "role": "neutral",
-        "displayName": "Soft Rule",
+        "displayName": "Soft Rule (Mac app)",
         "canonical": "#e3e6e0",
         "oklch": "oklch(92.1% 0.009 129)",
         "tonalRamp": [
@@ -132,9 +900,9 @@
           "#edf0ea"
         ]
       },
-      "edge": {
+      "mac-edge": {
         "role": "neutral",
-        "displayName": "Field Edge",
+        "displayName": "Field Edge (Mac app)",
         "canonical": "#80868e",
         "oklch": "oklch(61.8% 0.014 256)",
         "tonalRamp": [
@@ -148,9 +916,9 @@
           "#e8eff8"
         ]
       },
-      "rail": {
+      "mac-rail": {
         "role": "neutral",
-        "displayName": "Non-repro Blue",
+        "displayName": "Non-repro Blue (Mac app)",
         "canonical": "#c3e2ef",
         "oklch": "oklch(89.4% 0.037 225)",
         "tonalRamp": [
@@ -164,9 +932,9 @@
           "#d5f4ff"
         ]
       },
-      "rail-ink": {
+      "mac-rail-ink": {
         "role": "neutral",
-        "displayName": "Rail Ink",
+        "displayName": "Rail Ink (Mac app)",
         "canonical": "#14222b",
         "oklch": "oklch(24.4% 0.026 237)",
         "tonalRamp": [
@@ -180,9 +948,9 @@
           "#dff2fe"
         ]
       },
-      "rail-graphite": {
+      "mac-rail-graphite": {
         "role": "neutral",
-        "displayName": "Rail Graphite",
+        "displayName": "Rail Graphite (Mac app)",
         "canonical": "#2f4653",
         "oklch": "oklch(38.1% 0.036 234)",
         "tonalRamp": [
@@ -196,9 +964,9 @@
           "#d8f3ff"
         ]
       },
-      "blue": {
+      "mac-blue": {
         "role": "secondary",
-        "displayName": "Blue Pencil",
+        "displayName": "Blue Pencil (Mac app)",
         "canonical": "#1c5e8b",
         "oklch": "oklch(46.4% 0.098 243)",
         "tonalRamp": [
@@ -212,9 +980,9 @@
           "#d7f3ff"
         ]
       },
-      "blue-wash": {
+      "mac-blue-wash": {
         "role": "secondary",
-        "displayName": "Blue Wash",
+        "displayName": "Blue Wash (Mac app)",
         "canonical": "#ddeff7",
         "oklch": "oklch(94.1% 0.022 226)",
         "tonalRamp": [
@@ -228,9 +996,9 @@
           "#e0f2fa"
         ]
       },
-      "red": {
+      "mac-red": {
         "role": "primary",
-        "displayName": "Red Pencil",
+        "displayName": "Red Pencil (Mac app)",
         "canonical": "#c0212b",
         "oklch": "oklch(52.3% 0.192 25)",
         "tonalRamp": [
@@ -244,9 +1012,9 @@
           "#ffe6e3"
         ]
       },
-      "red-wash": {
+      "mac-red-wash": {
         "role": "primary",
-        "displayName": "Red Wash",
+        "displayName": "Red Wash (Mac app)",
         "canonical": "#f9e3e1",
         "oklch": "oklch(93.3% 0.024 24)",
         "tonalRamp": [
@@ -260,9 +1028,9 @@
           "#ffe9e7"
         ]
       },
-      "green": {
+      "mac-green": {
         "role": "tertiary",
-        "displayName": "Tick Green",
+        "displayName": "Tick Green (Mac app)",
         "canonical": "#2c6a39",
         "oklch": "oklch(47.0% 0.101 148)",
         "tonalRamp": [
@@ -276,9 +1044,9 @@
           "#c0ffc9"
         ]
       },
-      "green-wash": {
+      "mac-green-wash": {
         "role": "tertiary",
-        "displayName": "Green Wash",
+        "displayName": "Green Wash (Mac app)",
         "canonical": "#e1f0e2",
         "oklch": "oklch(94.0% 0.024 147)",
         "tonalRamp": [
@@ -292,9 +1060,9 @@
           "#e4f3e5"
         ]
       },
-      "flag": {
+      "mac-flag": {
         "role": "tertiary",
-        "displayName": "Flag Ink",
+        "displayName": "Flag Ink (Mac app)",
         "canonical": "#17191c",
         "oklch": "oklch(21.3% 0.007 258)",
         "tonalRamp": [
@@ -308,9 +1076,9 @@
           "#eceff3"
         ]
       },
-      "on-flag": {
+      "mac-on-flag": {
         "role": "tertiary",
-        "displayName": "On Flag",
+        "displayName": "On Flag (Mac app)",
         "canonical": "#fbfbf8",
         "oklch": "oklch(98.7% 0.004 106)",
         "tonalRamp": [
@@ -324,9 +1092,9 @@
           "#efefec"
         ]
       },
-      "on-fill": {
+      "mac-on-fill": {
         "role": "neutral",
-        "displayName": "On Fill",
+        "displayName": "On Fill (Mac app)",
         "canonical": "#ffffff",
         "oklch": "oklch(100.0% 0.000 90)",
         "tonalRamp": [
@@ -340,9 +1108,9 @@
           "#eeeeee"
         ]
       },
-      "ground-dark": {
+      "mac-ground-dark": {
         "role": "neutral",
-        "displayName": "Galley Stock (dark)",
+        "displayName": "Galley Stock (dark) (Mac app)",
         "canonical": "#0f1114",
         "oklch": "oklch(17.7% 0.007 258)",
         "tonalRamp": [
@@ -356,9 +1124,9 @@
           "#eceff3"
         ]
       },
-      "sheet-dark": {
+      "mac-sheet-dark": {
         "role": "neutral",
-        "displayName": "Proof Sheet (dark)",
+        "displayName": "Proof Sheet (dark) (Mac app)",
         "canonical": "#171a1e",
         "oklch": "oklch(21.6% 0.009 256)",
         "tonalRamp": [
@@ -372,9 +1140,9 @@
           "#eaeff5"
         ]
       },
-      "margin-dark": {
+      "mac-margin-dark": {
         "role": "neutral",
-        "displayName": "Margin Tint (dark)",
+        "displayName": "Margin Tint (dark) (Mac app)",
         "canonical": "#1b1f24",
         "oklch": "oklch(23.7% 0.011 254)",
         "tonalRamp": [
@@ -388,9 +1156,9 @@
           "#e9eff6"
         ]
       },
-      "ink-dark": {
+      "mac-ink-dark": {
         "role": "neutral",
-        "displayName": "Proof Ink (dark)",
+        "displayName": "Proof Ink (dark) (Mac app)",
         "canonical": "#e7e9e4",
         "oklch": "oklch(93.1% 0.007 124)",
         "tonalRamp": [
@@ -404,9 +1172,9 @@
           "#edefea"
         ]
       },
-      "graphite-dark": {
+      "mac-graphite-dark": {
         "role": "neutral",
-        "displayName": "Graphite (dark)",
+        "displayName": "Graphite (dark) (Mac app)",
         "canonical": "#aeb4bb",
         "oklch": "oklch(76.7% 0.012 252)",
         "tonalRamp": [
@@ -420,9 +1188,9 @@
           "#e9eff7"
         ]
       },
-      "faint-dark": {
+      "mac-faint-dark": {
         "role": "neutral",
-        "displayName": "Faint Graphite (dark)",
+        "displayName": "Faint Graphite (dark) (Mac app)",
         "canonical": "#959ca4",
         "oklch": "oklch(69.0% 0.014 252)",
         "tonalRamp": [
@@ -436,9 +1204,9 @@
           "#e8eff8"
         ]
       },
-      "rule-dark": {
+      "mac-rule-dark": {
         "role": "neutral",
-        "displayName": "Rule (dark)",
+        "displayName": "Rule (dark) (Mac app)",
         "canonical": "#30353c",
         "oklch": "oklch(32.7% 0.014 257)",
         "tonalRamp": [
@@ -452,9 +1220,9 @@
           "#e9eff8"
         ]
       },
-      "rule-soft-dark": {
+      "mac-rule-soft-dark": {
         "role": "neutral",
-        "displayName": "Soft Rule (dark)",
+        "displayName": "Soft Rule (dark) (Mac app)",
         "canonical": "#24282e",
         "oklch": "oklch(27.5% 0.013 258)",
         "tonalRamp": [
@@ -468,9 +1236,9 @@
           "#e9eff7"
         ]
       },
-      "edge-dark": {
+      "mac-edge-dark": {
         "role": "neutral",
-        "displayName": "Field Edge (dark)",
+        "displayName": "Field Edge (dark) (Mac app)",
         "canonical": "#6e757e",
         "oklch": "oklch(56.0% 0.016 255)",
         "tonalRamp": [
@@ -484,9 +1252,9 @@
           "#e7effa"
         ]
       },
-      "rail-dark": {
+      "mac-rail-dark": {
         "role": "neutral",
-        "displayName": "Non-repro Blue (dark)",
+        "displayName": "Non-repro Blue (dark) (Mac app)",
         "canonical": "#123040",
         "oklch": "oklch(29.4% 0.046 235)",
         "tonalRamp": [
@@ -500,9 +1268,9 @@
           "#d2f4ff"
         ]
       },
-      "rail-ink-dark": {
+      "mac-rail-ink-dark": {
         "role": "neutral",
-        "displayName": "Rail Ink (dark)",
+        "displayName": "Rail Ink (dark) (Mac app)",
         "canonical": "#e3f1f7",
         "oklch": "oklch(94.9% 0.017 225)",
         "tonalRamp": [
@@ -516,9 +1284,9 @@
           "#e3f1f7"
         ]
       },
-      "rail-graphite-dark": {
+      "mac-rail-graphite-dark": {
         "role": "neutral",
-        "displayName": "Rail Graphite (dark)",
+        "displayName": "Rail Graphite (dark) (Mac app)",
         "canonical": "#a9c6d4",
         "oklch": "oklch(81.0% 0.037 229)",
         "tonalRamp": [
@@ -532,9 +1300,9 @@
           "#d6f4ff"
         ]
       },
-      "blue-dark": {
+      "mac-blue-dark": {
         "role": "secondary",
-        "displayName": "Blue Pencil (dark)",
+        "displayName": "Blue Pencil (dark) (Mac app)",
         "canonical": "#86c5ea",
         "oklch": "oklch(79.4% 0.083 235)",
         "tonalRamp": [
@@ -548,9 +1316,9 @@
           "#d0f5ff"
         ]
       },
-      "blue-wash-dark": {
+      "mac-blue-wash-dark": {
         "role": "secondary",
-        "displayName": "Blue Wash (dark)",
+        "displayName": "Blue Wash (dark) (Mac app)",
         "canonical": "#173444",
         "oklch": "oklch(31.0% 0.045 235)",
         "tonalRamp": [
@@ -564,9 +1332,9 @@
           "#d2f4ff"
         ]
       },
-      "red-dark": {
+      "mac-red-dark": {
         "role": "primary",
-        "displayName": "Red Pencil (dark)",
+        "displayName": "Red Pencil (dark) (Mac app)",
         "canonical": "#ff8077",
         "oklch": "oklch(74.3% 0.156 26)",
         "tonalRamp": [
@@ -580,9 +1348,9 @@
           "#ffe6e2"
         ]
       },
-      "red-wash-dark": {
+      "mac-red-wash-dark": {
         "role": "primary",
-        "displayName": "Red Wash (dark)",
+        "displayName": "Red Wash (dark) (Mac app)",
         "canonical": "#3b1f1f",
         "oklch": "oklch(27.7% 0.044 20)",
         "tonalRamp": [
@@ -596,9 +1364,9 @@
           "#ffe6e5"
         ]
       },
-      "green-dark": {
+      "mac-green-dark": {
         "role": "tertiary",
-        "displayName": "Tick Green (dark)",
+        "displayName": "Tick Green (dark) (Mac app)",
         "canonical": "#86cf95",
         "oklch": "oklch(79.1% 0.110 150)",
         "tonalRamp": [
@@ -612,9 +1380,9 @@
           "#b9ffc7"
         ]
       },
-      "green-wash-dark": {
+      "mac-green-wash-dark": {
         "role": "tertiary",
-        "displayName": "Green Wash (dark)",
+        "displayName": "Green Wash (dark) (Mac app)",
         "canonical": "#18301e",
         "oklch": "oklch(28.3% 0.045 151)",
         "tonalRamp": [
@@ -628,9 +1396,9 @@
           "#daf8df"
         ]
       },
-      "flag-dark": {
+      "mac-flag-dark": {
         "role": "tertiary",
-        "displayName": "Flag Ink (dark)",
+        "displayName": "Flag Ink (dark) (Mac app)",
         "canonical": "#e7e9e4",
         "oklch": "oklch(93.1% 0.007 124)",
         "tonalRamp": [
@@ -644,9 +1412,9 @@
           "#edefea"
         ]
       },
-      "on-flag-dark": {
+      "mac-on-flag-dark": {
         "role": "tertiary",
-        "displayName": "On Flag (dark)",
+        "displayName": "On Flag (dark) (Mac app)",
         "canonical": "#0f1114",
         "oklch": "oklch(17.7% 0.007 258)",
         "tonalRamp": [
@@ -660,9 +1428,9 @@
           "#eceff3"
         ]
       },
-      "on-fill-dark": {
+      "mac-on-fill-dark": {
         "role": "neutral",
-        "displayName": "On Fill (dark)",
+        "displayName": "On Fill (dark) (Mac app)",
         "canonical": "#0f1114",
         "oklch": "oklch(17.7% 0.007 258)",
         "tonalRamp": [
@@ -1624,55 +2392,87 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The name, once; 1.25rem below 1024px."
+        "purpose": "The name in the band, once, after the red caret; 1.35rem from 1024px."
+      },
+      "display-desk": {
+        "displayName": "Display (desk)",
+        "purpose": "The name in the band from 1024px."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "A page's title; 1.6rem below 1024px."
+        "purpose": "A page's head in Literata (Books, Settings, Admin)."
+      },
+      "headline-phone": {
+        "displayName": "Headline (below 1024px)",
+        "purpose": "A page's head below 1024px."
+      },
+      "headline-desk": {
+        "displayName": "Headline (desk)",
+        "purpose": "A page's head from 1024px."
+      },
+      "percentage": {
+        "displayName": "Percentage",
+        "purpose": "How far a book is read, set large on the Kobo's side; the % sign at 0.42em; Faint at 500 for 0."
+      },
+      "percentage-card": {
+        "displayName": "Percentage (book card)",
+        "purpose": "The percentage on a book card below 1024px."
       },
       "dialog-title": {
         "displayName": "Dialog title",
-        "purpose": "The title of Help; 1.25rem at 520px and below. Help's section headings are 1.0625rem at 750."
+        "purpose": "The title of Help; 1.25rem at 520px and below."
       },
       "card-heading": {
         "displayName": "Card heading",
-        "purpose": "The heading of a card, and of the first run above the list."
+        "purpose": "The heading of a card, Getting started and Advanced."
       },
       "book-title": {
         "displayName": "Book title",
-        "purpose": "A book in the list. Source Serif 4 is for book titles only."
+        "purpose": "A book in the list, in Literata."
       },
       "book-title-details": {
-        "displayName": "Book title in Details",
+        "displayName": "Book title (Details)",
         "purpose": "The title at the top of Details."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Everything else. Running text held to 62ch to 64ch."
+        "purpose": "Everything else; running text to 62ch to 64ch."
       },
       "control": {
         "displayName": "Control",
-        "purpose": "Buttons at 600; fields and selects at 400."
+        "purpose": "Buttons; fields and selects at 400."
+      },
+      "nav": {
+        "displayName": "Navigation (bar)",
+        "purpose": "The navigation bar under the thumb."
+      },
+      "nav-desk": {
+        "displayName": "Navigation (band)",
+        "purpose": "The navigation row in the band from 1024px, and Sync now on a desk."
       },
       "mark": {
         "displayName": "Mark",
-        "purpose": "The first line of a mark in the proof margin, in the mark's colour."
+        "purpose": "The first line of a status on Hardcover's side, in the mark's colour; Details."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Table heads and filter group names. Sentence case."
+        "purpose": "Table heads, filter group names, a book card's field names; sentence case."
       },
       "small": {
         "displayName": "Small",
-        "purpose": "Facts under a gauge, the legend, hints, the edition line."
+        "purpose": "Facts, hints, the legend, the edition line, the foot."
+      },
+      "fine": {
+        "displayName": "Fine",
+        "purpose": "The independence sentence, the count on Sync now, a tag."
       },
       "code": {
         "displayName": "Code",
-        "purpose": "Short technical values and tokens shown once. Tabular."
+        "purpose": "Short technical values."
       },
       "sign-in-code": {
         "displayName": "Sign-in code",
-        "purpose": "The code compared by eye with Hardcover."
+        "purpose": "Set large to compare by eye with what Hardcover shows."
       },
       "site-headline": {
         "displayName": "Site headline",
@@ -1750,13 +2550,18 @@
     "shadows": [
       {
         "name": "lift",
-        "value": "0 1px 0 #cdd1cb, 0 18px 40px -28px rgba(23, 25, 28, 0.38)",
-        "purpose": "Light only, under the sheet and cards. none in dark, and the list's sheet dissolves below 1024px."
+        "value": "0 1px 0 #bdbcb4, 0 18px 40px -30px rgba(28, 28, 26, 0.35)",
+        "purpose": "Light only, under cards and the white cards above the list on a desk. none in dark."
       },
       {
         "name": "cover",
         "value": "0 1px 2px rgba(0, 0, 0, 0.28), 0 3px 8px rgba(0, 0, 0, 0.1)",
-        "purpose": "A book cover lying on the sheet, in both lights."
+        "purpose": "A book cover lying on the Kobo's side, in both lights."
+      },
+      {
+        "name": "small-cover",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.25)",
+        "purpose": "The 32px colour cover on Hardcover's side."
       },
       {
         "name": "dialog",
@@ -1769,9 +2574,9 @@
         "purpose": "A large cover, over a backdrop of rgba(10, 12, 14, 0.88)."
       },
       {
-        "name": "nav-current",
-        "value": "0 1px 0 var(--rule)",
-        "purpose": "A hairline under the current page in the desk navigation."
+        "name": "disc-ring",
+        "value": "inset 0 0 0 1.5px currentColor",
+        "purpose": "The ring of a white disc on the seam (green for up to date, ink for failed); a grey disc has inset 0 0 0 1px var(--edge). A ring, not a shadow."
       },
       {
         "name": "site-lift",
@@ -1803,7 +2608,7 @@
       {
         "name": "landed",
         "value": "1.8s ease-out",
-        "purpose": "Coming back to a row after an action: a Blue Wash that fades."
+        "purpose": "Coming back to a row after an action: a Blue Wash on the Kobo's side of it that fades."
       },
       {
         "name": "cover-in",
@@ -1818,12 +2623,12 @@
       {
         "name": "sync-gauge",
         "value": "0.4s cubic-bezier(0.16, 1, 0.3, 1), on transform",
-        "purpose": "While a sync runs, the red line gauge under Sync now fills by transform: scaleX(var(--p)) as the books go out; scaled, never resized."
+        "purpose": "While a sync runs, the band-red gauge under Sync now fills by transform: scaleX(var(--p)) as the books go out; scaled, never resized."
       },
       {
         "name": "sync-sweep",
         "value": "1.1s ease-in-out infinite alternate",
-        "purpose": "While the count is not known yet, a 30% red segment of the gauge sweeps across by translateX."
+        "purpose": "While the count is not known yet, a 30% band-red segment of the gauge sweeps across by translateX."
       },
       {
         "name": "reduced-motion",
@@ -1875,27 +2680,27 @@
       {
         "name": "phone",
         "value": "below 720px",
-        "purpose": "The first book and its mark on the first screen at 390 by 844: the page line and the band's 'N of M books syncing' step aside, Filter and Sort share one row."
+        "purpose": "The first book and its mark on the first screen at 390 by 844: the page line and the band's 'N of M books syncing' step aside, the band's two facts side by side, Filter and Sort share one row."
       },
       {
         "name": "tablet",
         "value": "720px-1023px",
-        "purpose": "Two book cards per row; the rail's status in three columns with the two buttons under them, to the right."
+        "purpose": "Two book cards per row; the band's status in three columns with the two buttons under them, to the right."
       },
       {
         "name": "one-column",
         "value": "below 1024px",
-        "purpose": "Rail as a top band with its own Help button (.bandhelp), bottom navigation, filters behind one button, book cards with a margin strip, the first run a card of its own, 2.75rem controls."
+        "purpose": "The band at the top of the page with its own Help button, the navigation a bar under the thumb, filters behind one button, each book a card (the Kobo's part, the seam across with the mark at its right end, Hardcover's part below), 2.75rem controls."
       },
       {
         "name": "desk",
         "value": "1024px",
-        "purpose": "The 17.25rem rail and the sheet in one window; the list scrolls in its sheet under a sticky head."
+        "purpose": "The band across the top, the page in one window height: the list edge to edge, the Kobo's side on the grey, the seam at 64%, Hardcover's side white to the edge; the list scrolls in its panel under a sticky head; a one-line foot."
       },
       {
-        "name": "first-run-wide",
-        "value": "1100px",
-        "purpose": "The first run's three steps stand beside its heading and tally instead of under them."
+        "name": "wide",
+        "value": "1440px",
+        "purpose": "The tagline under the name and the third status fact in the band."
       },
       {
         "name": "coarse-pointer",
@@ -1971,97 +2776,89 @@
       "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "The default control: sheet, Field Edge border, ink words; 2.375rem, 2.75rem below 1024px and under a finger.",
-      "html": "<button class=\"ds-btn\" type=\"button\">Refresh</button>",
-      "css": ".ds-btn{font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:var(--r-ctl);padding:0.4rem 0.9rem;min-height:2.375rem;color:var(--ink);background:var(--sheet);border:1px solid var(--edge)} .ds-btn:hover{border-color:var(--ink)} .ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}"
+      "description": "The default control: white, a 1.5px Edge, ink words at 700; 2.375rem, 2.75rem below 1024px and under a finger.",
+      "html": "<button class=\"ds-btn\" type=\"button\">Check and save</button>",
+      "css": ".ds-btn{font-family:var(--sans);font-size:0.875rem;font-weight:700;cursor:pointer;border-radius:6px;padding:0.4rem 0.9rem;min-height:2.375rem;color:var(--ink);background:var(--sheet);border:1.5px solid var(--edge)} .ds-btn:hover{border-color:var(--ink)} .ds-btn:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}"
     },
     {
-      "name": "Primary button (red fill)",
+      "name": "Sync now, live (red fill)",
       "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Red fills only what sends to Hardcover: Sync now and Go live.",
-      "html": "<button class=\"ds-btn ds-primary\" type=\"button\">Sync now</button>",
-      "css": ".ds-btn{font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:var(--r-ctl);padding:0.4rem 0.9rem;min-height:2.375rem;color:var(--ink);background:var(--sheet);border:1px solid var(--edge)} .ds-primary{background:var(--red);border-color:var(--red);color:var(--on-fill)} .ds-primary:hover{filter:brightness(1.07)} .ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}"
+      "refersTo": "button-sync-now",
+      "description": "Red only when the sync is live; its second line counts what it is about to send.",
+      "html": "<div class=\"ds-band\"><button class=\"ds-sync\" type=\"button\"><span>Sync now</span><small>sends 3 marked changes</small></button></div>",
+      "css": ".ds-band{background:var(--band);padding:0.7rem 1rem;display:inline-block} .ds-sync{font-family:var(--sans);font-size:0.875rem;font-weight:700;cursor:pointer;border-radius:6px;padding:0.4rem 0.9rem;min-height:2.375rem;display:inline-flex;align-items:center;gap:0.6rem;min-height:2.75rem;padding-inline:1.1rem;font-size:0.9375rem;background:var(--red);border:1.5px solid var(--red);color:var(--on-fill)} .ds-sync small{font-size:0.8125rem;font-weight:400;font-variant-numeric:tabular-nums;opacity:0.92} .ds-sync:hover{filter:brightness(1.07)} .ds-sync:focus-visible{outline:2.5px solid var(--band-blue);outline-offset:2px}"
     },
     {
-      "name": "Sync now, running",
+      "name": "On the band (Refresh, Sync now in a dry run)",
       "kind": "button",
-      "refersTo": "button-primary",
-      "description": "In the rail: Sync now names what it would send on a second line; while a sync runs it stays red but disabled and aria-busy, says Syncing and what it is doing, and a red line gauge fills by scaleX(var(--p)) or sweeps while the count is unknown; after it, one status line with its mark says what the sync did.",
-      "html": "<div class=\"ds-rail-s\"><button class=\"ds-sync\" type=\"button\"><span>Sync now</span><small>would send 3 marked changes</small></button><div><button class=\"ds-sync\" type=\"button\" disabled aria-busy=\"true\"><span>Syncing</span><small aria-live=\"polite\">Checking 2 of 5</small></button><div class=\"ds-gauge\" aria-hidden=\"true\"><span style=\"--p:0.4\"></span></div></div><div><button class=\"ds-sync\" type=\"button\" disabled aria-busy=\"true\"><span>Syncing</span><small aria-live=\"polite\">Reading your Hardcover shelf</small></button><div class=\"ds-gauge ds-wait\" aria-hidden=\"true\"><span></span></div></div><div class=\"ds-done\" role=\"status\"><div class=\"ds-act ds-ok\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg><span>Done: 3 changes would be sent. This is a dry run.</span></div></div></div>",
-      "css": ".ds-rail-s{display:grid;gap:1.1rem;width:15rem;padding:1.2rem;background:var(--rail);color:var(--rail-ink);font-family:var(--sans)} .ds-sync{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.1rem;width:100%;min-height:2.75rem;line-height:1.2;padding:0.4rem 0.9rem;font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;background:var(--red);border:1px solid var(--red);color:var(--on-fill);border-radius:var(--r-ctl)} .ds-sync small{font-size:0.75rem;font-weight:500} .ds-sync:hover{filter:brightness(1.07)} .ds-sync:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} .ds-sync[aria-busy=\"true\"],.ds-sync[aria-busy=\"true\"]:hover{opacity:1;filter:none;cursor:progress} .ds-gauge{position:relative;height:9px;margin:0.5rem 0 0;background:repeating-linear-gradient(to right,var(--edge) 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(var(--edge),var(--edge)) left bottom/100% 1px no-repeat} .ds-gauge::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--edge)} .ds-gauge span{position:absolute;left:0;bottom:1px;height:4px;width:100%;background:var(--red);transform-origin:left;transform:scaleX(var(--p,0));transition:transform 0.4s cubic-bezier(0.16,1,0.3,1)} .ds-gauge.ds-wait span{width:30%;transform:none;animation:ds-sweep 1.1s ease-in-out infinite alternate} @keyframes ds-sweep{from{transform:translateX(0)}to{transform:translateX(233%)}} @media (prefers-reduced-motion:reduce){.ds-gauge.ds-wait span{animation:none;width:100%;opacity:0.35}.ds-gauge span{transition:none}} .ds-done{font-size:0.875rem} .ds-act{display:grid;grid-template-columns:1.6rem minmax(0,1fr);column-gap:0.5rem;align-items:start;color:var(--rail-ink)} .ds-act .ds-mk{width:20px;height:20px;margin-top:-0.05em} .ds-ok .ds-mk{color:var(--green)}"
+      "refersTo": "button-on-band",
+      "description": "Outlined in the band ink: Refresh, and Sync now when nothing goes to Hardcover.",
+      "html": "<div class=\"ds-band2\"><button class=\"ds-bb\" type=\"button\">Refresh</button> <button class=\"ds-bb\" type=\"button\">Sync now</button></div>",
+      "css": ".ds-band2{background:var(--band);padding:0.7rem 1rem;display:inline-flex;gap:0.5rem} .ds-bb{font-family:var(--sans);font-size:0.875rem;font-weight:700;cursor:pointer;border-radius:6px;padding:0.4rem 0.9rem;min-height:2.375rem;background:transparent;color:var(--band-ink);border:1.5px solid color-mix(in srgb, var(--band-ink) 45%, transparent)} .ds-bb:hover{border-color:var(--band-ink)} .ds-bb:focus-visible{outline:2.5px solid var(--band-blue);outline-offset:2px}"
     },
     {
       "name": "Solid button (ink fill)",
       "kind": "button",
       "refersTo": "button-solid",
-      "description": "Every other filled button: a choice that changes nothing on Hardcover yet (Use, Connect to Hardcover, I have approved it, a confirmation).",
-      "html": "<button class=\"ds-btn ds-solid\" type=\"button\">I have approved it</button>",
-      "css": ".ds-btn{font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:var(--r-ctl);padding:0.4rem 0.9rem;min-height:2.375rem;color:var(--ink);background:var(--sheet);border:1px solid var(--edge)} .ds-solid{background:var(--flag);border-color:var(--flag);color:var(--on-flag)} .ds-solid:hover{border-color:var(--flag)} .ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}"
+      "description": "A choice that changes nothing on Hardcover yet.",
+      "html": "<button class=\"ds-solid\" type=\"button\">Connect to Hardcover</button>",
+      "css": ".ds-solid{font-family:var(--sans);font-size:0.875rem;font-weight:700;cursor:pointer;border-radius:6px;padding:0.4rem 0.9rem;min-height:2.375rem;background:var(--flag);border:1.5px solid var(--flag);color:var(--on-flag)} .ds-solid:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}"
     },
     {
       "name": "Danger button (removing)",
       "kind": "button",
       "refersTo": "button-danger",
-      "description": "Removing actions: ink, no box, underlined; never red.",
-      "html": "<button class=\"ds-btn ds-danger\" type=\"button\">Remove the token</button>",
-      "css": ".ds-btn{font-family:var(--sans);font-size:0.875rem;font-weight:600;cursor:pointer;border-radius:var(--r-ctl);padding:0.4rem 0.9rem;min-height:2.375rem;color:var(--ink);background:var(--sheet);border:1px solid var(--edge)} .ds-danger{color:var(--ink);background:none;border-color:transparent;padding-inline:0.15rem;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px} .ds-danger:hover{text-decoration-thickness:2px} .ds-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}"
+      "description": "No box: ink words underlined, thicker on hover.",
+      "html": "<button class=\"ds-danger\" type=\"button\">Remove from Hardcover</button>",
+      "css": ".ds-danger{font-family:var(--sans);font-size:0.875rem;font-weight:700;cursor:pointer;border-radius:6px;padding:0.4rem 0.9rem;min-height:2.375rem;padding-inline:0.15rem;color:var(--ink);background:none;border:1.5px solid transparent;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px} .ds-danger:hover{text-decoration-thickness:2px} .ds-danger:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}"
     },
     {
       "name": "Field and select",
       "kind": "input",
       "refersTo": "field",
-      "description": "Sheet, 1px Field Edge, 4px; one drawn chevron for every select; the text caret is red.",
-      "html": "<div class=\"ds-find\"><input class=\"ds-in\" type=\"search\" placeholder=\"Search title or author\" aria-label=\"Search title or author\"><select class=\"ds-in ds-sel\" aria-label=\"Sort by\"><option>Last read</option><option>Author</option><option>Title</option></select></div>",
-      "css": ".ds-find{display:flex;flex-wrap:wrap;gap:0.5rem} .ds-in{font-family:var(--sans);font-size:0.875rem;color:var(--ink);background-color:var(--sheet);border:1px solid var(--edge);border-radius:var(--r-ctl);padding:0.4rem 0.7rem;min-height:2.375rem;caret-color:var(--red)} .ds-in::placeholder{color:var(--faint)} .ds-in:hover{border-color:var(--ink)} .ds-in:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} .ds-sel{appearance:none;-webkit-appearance:none;padding-right:2rem;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--graphite) 50%),linear-gradient(135deg,var(--graphite) 50%,transparent 50%);background-position:calc(100% - 1rem) 52%,calc(100% - 1rem + 5px) 52%;background-size:5px 5px;background-repeat:no-repeat}"
+      "description": "White, 1.5px Edge, 6px; the select with its drawn chevron.",
+      "html": "<div class=\"ds-fields\"><input class=\"ds-in\" type=\"search\" placeholder=\"Search title or author\"><select class=\"ds-sel\"><option>Last read, newest first</option></select></div>",
+      "css": ".ds-fields{display:flex;gap:0.5rem;flex-wrap:wrap} .ds-in,.ds-sel{font-family:var(--sans);font-size:0.875rem;color:var(--ink);background-color:var(--sheet);border:1.5px solid var(--edge);border-radius:6px;padding:0.4rem 0.7rem;min-height:2.375rem} .ds-in::placeholder{color:var(--faint)} .ds-in:hover,.ds-sel:hover{border-color:var(--ink)} .ds-in:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px} .ds-sel:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px} .ds-sel{appearance:none;padding-right:2rem;background-image:linear-gradient(45deg,transparent 50%,var(--graphite) 50%),linear-gradient(135deg,var(--graphite) 50%,transparent 50%);background-position:calc(100% - 1rem) 52%,calc(100% - 1rem + 5px) 52%;background-size:5px 5px;background-repeat:no-repeat}"
     },
     {
       "name": "Filter chips",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Borderless, graphite words with an ink count; the current one filled Blue Pencil. One choice at a time, in named groups.",
-      "html": "<div class=\"ds-fgroup\"><span class=\"ds-gname\">Reading progress</span><a class=\"ds-chip\" href=\"#\" aria-current=\"true\">All <b>34</b></a><a class=\"ds-chip\" href=\"#\">Reading <b>29</b></a><a class=\"ds-chip\" href=\"#\">Finished <b>3</b></a><a class=\"ds-chip ds-attn\" href=\"#\">Needs a match <b>1</b></a></div>",
-      "css": ".ds-fgroup{display:flex;flex-wrap:wrap;align-items:center;gap:0.1rem;font-family:var(--sans)} .ds-gname{color:var(--graphite);font-size:0.78rem;font-weight:650;margin-right:0.4rem} .ds-chip{display:inline-flex;align-items:center;gap:0.35rem;min-height:2rem;font-size:0.875rem;font-weight:500;text-decoration:none;color:var(--graphite);border-radius:var(--r-ctl);padding:0.2rem 0.6rem;white-space:nowrap} .ds-chip b{font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums} .ds-chip:hover{background:var(--blue-wash);color:var(--ink)} .ds-chip[aria-current=\"true\"]{background:var(--blue);color:var(--on-fill)} .ds-chip[aria-current=\"true\"] b{color:inherit} .ds-attn:not([aria-current=\"true\"]) b{color:var(--blue)} .ds-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}"
+      "description": "Pills; the chosen one filled in ink, the count of Needs a match blue.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-g\">Hardcover status</span><a class=\"ds-chip ds-on\" href=\"#\">All <b>412</b></a><a class=\"ds-chip\" href=\"#\">Next sync <b>3</b></a><a class=\"ds-chip ds-attn\" href=\"#\">Needs a match <b>2</b></a></div>",
+      "css": ".ds-chips{display:flex;flex-wrap:wrap;align-items:center;gap:0.1rem;font-family:var(--sans)} .ds-g{color:var(--graphite);font-size:0.8125rem;font-weight:700;margin-right:0.4rem} .ds-chip{display:inline-flex;align-items:center;gap:0.35rem;min-height:2rem;font-size:0.875rem;text-decoration:none;color:var(--ink);border-radius:999px;padding:0.2rem 0.75rem;white-space:nowrap} .ds-chip b{font-weight:800;font-variant-numeric:tabular-nums} .ds-chip:hover{background:color-mix(in srgb, var(--ink) 9%, transparent)} .ds-chip:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px} .ds-on{background:var(--flag);color:var(--on-flag);font-weight:700} .ds-attn b{color:var(--blue)}"
     },
     {
-      "name": "Legend of the marks",
+      "name": "The two sides and the seam",
       "kind": "custom",
-      "refersTo": "proof-margin",
-      "description": "The seven marks, in the strings' words, above the list. The circled query is also the drawn Help icon (marks.HELP).",
-      "html": "<ul class=\"ds-legend\"><li class=\"ds-next\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>Next sync changes this</li><li class=\"ds-wait\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\" stroke-dasharray=\"2.2 2.6\"/></svg>Nothing to send yet</li><li class=\"ds-ok\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg>Up to date</li><li class=\"ds-stet\"><span class=\"ds-mk ds-stet\" aria-hidden=\"true\">stet</span>Kept as on Hardcover</li><li class=\"ds-warn\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"7.6\" stroke-width=\"1.7\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\" stroke-width=\"1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg>Needs you</li><li class=\"ds-err\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"2.5\" width=\"15\" height=\"15\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M7 7l6 6M13 7l-6 6\" stroke-width=\"1.8\" style=\"stroke:var(--on-flag)\"/></svg>Failed</li><li class=\"ds-none\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 10h10\"/></svg>Not syncing</li></ul>",
-      "css": ".ds-legend{list-style:none;display:flex;flex-wrap:wrap;gap:0.2rem 1.1rem;margin:0;padding:0;font-family:var(--sans);font-size:0.8125rem;color:var(--graphite)} .ds-legend li{display:flex;align-items:center;gap:0.35rem} .ds-mk{flex:none;width:17px;height:17px} .ds-stet{width:auto;height:auto;line-height:1;font-style:italic;font-weight:800;font-size:0.8125rem;color:var(--blue)} .ds-ok .ds-mk{color:var(--green)} .ds-next .ds-mk{color:var(--red)} .ds-warn .ds-mk{color:var(--blue)} .ds-err .ds-mk{color:var(--flag)} .ds-wait .ds-mk,.ds-none .ds-mk{color:var(--faint)}"
+      "refersTo": "seam-mark-next",
+      "description": "One row: the Kobo's side on grey (the percentage, the grey cover, the title, the dotted gauge), the ink seam with the mark's disc on it, Hardcover's side on white with the correction.",
+      "html": "<div class=\"ds-row\"><div class=\"ds-kobo\"><span class=\"ds-pct\">64<small>%</small></span><span class=\"ds-cov\"></span><div><div class=\"ds-title\">The Left Hand of Darkness</div><div class=\"ds-author\">Ursula K. Le Guin</div><div class=\"ds-bar\"><span style=\"width:64%\"></span></div></div></div><div class=\"ds-hc\"><span class=\"ds-disc ds-next\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg></span><div class=\"ds-st\">Next sync</div><div class=\"ds-fix\"><s>52%</s> <ins>64%</ins></div><a class=\"ds-details\" href=\"#\">Details</a></div></div>",
+      "css": ".ds-row{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(0,1fr);font-family:var(--sans);color:var(--ink)} .ds-kobo{background:var(--ground);padding:1rem 0.9rem;display:grid;grid-template-columns:4.6rem 48px minmax(0,1fr);gap:0.95rem;align-items:start} .ds-pct{font-family:var(--serif);font-size:2.5rem;font-weight:700;line-height:0.95;letter-spacing:-0.04em;text-align:right;font-variant-numeric:tabular-nums lining-nums} .ds-pct small{font-size:0.42em;margin-left:0.04em} .ds-cov{display:block;width:48px;height:72px;border-radius:1px 3px 3px 1px;background:linear-gradient(160deg,#9a9a96,#5d5d59);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1)} .ds-title{font-family:var(--serif);font-size:1.0625rem;font-weight:600;line-height:1.25} .ds-author{color:var(--graphite);font-size:0.875rem;margin-top:0.15rem} .ds-bar{position:relative;height:7px;max-width:13rem;margin:0.65rem 0 0.4rem;background:radial-gradient(circle,var(--edge) 1.2px,transparent 1.6px) 0 0/10% 7px repeat-x} .ds-bar::after{content:\"\";position:absolute;left:0;right:0;top:3px;height:1px;background:var(--edge)} .ds-bar span{position:absolute;left:0;top:2px;height:3px;background:var(--ink);z-index:1} .ds-hc{position:relative;background:var(--sheet);border-left:2px solid var(--ink);padding:1rem 0.9rem 1rem 2rem} .ds-disc{position:absolute;left:calc(-1px - 1rem);top:0.85rem;width:2rem;height:2rem;padding:0.4rem;border-radius:50%;box-sizing:border-box;display:block} .ds-disc svg{width:100%;height:100%;display:block} .ds-next{background:var(--red);color:var(--on-fill)} .ds-st{font-weight:700;font-size:0.8125rem;color:var(--red)} .ds-fix{font-size:0.9375rem;margin-top:0.1rem} .ds-fix s{color:var(--graphite);text-decoration:none;background:linear-gradient(var(--red),var(--red)) no-repeat 0 58%/100% 1.5px;animation:ds-strike 0.5s cubic-bezier(0.16,1,0.3,1) both} .ds-fix ins{color:var(--red);font-weight:700;text-decoration:none;display:inline-block;animation:ds-write 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both} @keyframes ds-strike{from{background-size:0 1.5px}} @keyframes ds-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}} .ds-details{display:inline-flex;align-items:center;min-height:2rem;margin-top:0.55rem;font-size:0.8125rem;font-weight:700;color:var(--ink);text-decoration:none;background:var(--sheet);border:1.5px solid var(--edge);border-radius:6px;padding:0.15rem 0.7rem} .ds-details:hover{border-color:var(--ink)} .ds-details:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px} @media (prefers-reduced-motion: reduce){.ds-fix s,.ds-fix ins{animation:none}}"
     },
     {
-      "name": "Proof margin cell",
+      "name": "The marks on the seam",
       "kind": "custom",
-      "refersTo": "proof-margin",
-      "description": "The signature: the Hardcover column behind a double rule; a status line, the correction (old value struck, new after a caret, the pair kept on one line by .swap), the edition line with stet, one Details button.",
-      "html": "<div class=\"ds-hc\"><div class=\"ds-act ds-next\"><svg class=\"ds-mk\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg><span>Next sync</span></div><div class=\"ds-fix\">Currently reading, <span class=\"ds-swap\"><s>35%</s> <ins><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M1.5 8.5 5 2l3.5 6.5\"/></svg>37%</ins></span></div><div class=\"ds-sub\"><span class=\"ds-stet\" aria-hidden=\"true\">stet</span>Moby-Dick, Paperback</div><a class=\"ds-details\" href=\"#\">Details</a></div>",
-      "css": ".ds-hc{max-width:22rem;padding:1rem 0.9rem;border-left:3px double var(--rule);background:var(--margin);font-family:var(--sans);font-size:0.875rem;color:var(--ink)} .ds-act{display:grid;grid-template-columns:1.6rem minmax(0,1fr);column-gap:0.5rem;align-items:start} .ds-act .ds-mk{width:20px;height:20px;margin-top:-0.05em;color:var(--red)} .ds-act>span{font-weight:650;font-size:0.8125rem;color:var(--red)} .ds-fix,.ds-sub,.ds-details{margin-left:2.1rem} .ds-fix{margin-top:0.1rem;font-size:0.9375rem} .ds-swap{white-space:nowrap} .ds-fix s{color:var(--graphite);text-decoration:none;background:linear-gradient(var(--red),var(--red)) no-repeat 0 58%/100% 1.5px;animation:ds-strike 0.5s cubic-bezier(0.16,1,0.3,1) both} .ds-fix ins{display:inline-flex;align-items:baseline;gap:1px;color:var(--red);font-weight:650;text-decoration:none;animation:ds-write 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s both} .ds-fix ins svg{width:10px;height:10px;align-self:flex-end;margin-bottom:-4px} .ds-sub{color:var(--graphite);font-size:0.8125rem;margin-top:0.2rem} .ds-stet{display:inline;margin-right:0.3rem;font-style:italic;font-weight:800;font-size:0.78rem;color:var(--blue)} .ds-details{display:inline-flex;align-items:center;min-height:2rem;margin-top:0.55rem;font-size:0.8125rem;font-weight:600;color:var(--ink);text-decoration:none;background:var(--sheet);border:1px solid var(--edge);border-radius:var(--r-ctl);padding:0.15rem 0.65rem} .ds-details:hover{border-color:var(--ink)} .ds-details:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} @keyframes ds-strike{from{background-size:0 1.5px}} @keyframes ds-write{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}} @media (prefers-reduced-motion:reduce){.ds-fix s,.ds-fix ins{animation:none}}"
+      "refersTo": "seam-mark-ok",
+      "description": "The five discs: red caret, green tick ring, blue query, grey dash, ink square.",
+      "html": "<div class=\"ds-seam\"><span class=\"ds-d ds-n\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg></span><span class=\"ds-d ds-ok\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg></span><span class=\"ds-d ds-w\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"7.6\" stroke-width=\"1.7\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\" stroke-width=\"1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg></span><span class=\"ds-d ds-none\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 10h10\"/></svg></span><span class=\"ds-d ds-err\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"2.5\" width=\"15\" height=\"15\" rx=\"1.5\" fill=\"currentColor\" stroke=\"none\"/><path d=\"M7 7l6 6M13 7l-6 6\" stroke-width=\"1.8\" style=\"stroke: var(--on-flag)\"/></svg></span></div>",
+      "css": ".ds-seam{display:flex;gap:0.9rem;padding:1rem;background:linear-gradient(to right,var(--ground) 50%,var(--sheet) 50%);position:relative} .ds-seam::before{content:\"\";position:absolute;inset:0 auto 0 50%;width:2px;background:var(--ink);margin-left:-1px} .ds-d{position:relative;width:2rem;height:2rem;padding:0.4rem;box-sizing:border-box;border-radius:50%;display:block;background:var(--sheet);box-shadow:inset 0 0 0 1.5px currentColor} .ds-d svg{width:100%;height:100%;display:block} .ds-n{background:var(--red);color:var(--on-fill);box-shadow:none} .ds-ok{color:var(--green)} .ds-w{background:var(--blue);color:var(--on-fill);box-shadow:none} .ds-none{background:var(--ground);color:var(--graphite);box-shadow:inset 0 0 0 1px var(--edge)} .ds-err{color:var(--flag);padding:0.3rem}"
     },
     {
-      "name": "Book line: cover, title, gauge",
-      "kind": "custom",
-      "refersTo": "book-title",
-      "description": "The crossed box for a missing cover, the title in Source Serif 4, the New label in graphite (a fact, so neither pencil), the printer's line gauge with a tick per tenth, tabular facts.",
-      "html": "<div class=\"ds-bk\"><span class=\"ds-cover\" aria-hidden=\"true\"></span><div><div class=\"ds-title\">De avonden<span class=\"ds-tag\">New</span></div><div class=\"ds-author\">Author</div><div class=\"ds-bar\" aria-hidden=\"true\"><span style=\"width:54%\"></span></div><div class=\"ds-meta\"><span>54%</span><span>last read 28 Sep 2026</span><span>3 h read</span></div></div></div>",
-      "css": ".ds-bk{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0.95rem;align-items:start;font-family:var(--sans);color:var(--ink)} .ds-cover{display:block;width:48px;height:72px;border-radius:1px 3px 3px 1px;background-color:var(--sheet);border:1px solid var(--edge);background-image:linear-gradient(to top right,transparent calc(50% - 0.6px),var(--edge) 50%,transparent calc(50% + 0.6px)),linear-gradient(to top left,transparent calc(50% - 0.6px),var(--edge) 50%,transparent calc(50% + 0.6px))} .ds-title{font-family:var(--serif);font-size:1.0625rem;font-weight:600;line-height:1.25;letter-spacing:-0.005em} .ds-tag{display:inline-block;font-family:var(--sans);font-size:0.75rem;font-weight:700;line-height:1.1rem;color:var(--graphite);border:1px solid currentColor;border-radius:3px;padding:0 0.3rem;margin-left:0.45rem;vertical-align:0.12em} .ds-author{color:var(--graphite);font-size:0.875rem;margin-top:0.1rem} .ds-bar{position:relative;height:9px;max-width:16rem;margin:0.7rem 0 0.35rem;background:repeating-linear-gradient(to right,var(--edge) 0 1px,transparent 1px 10%) left bottom/100% 4px no-repeat,linear-gradient(var(--edge),var(--edge)) left bottom/100% 1px no-repeat} .ds-bar::after{content:\"\";position:absolute;right:0;bottom:0;width:1px;height:4px;background:var(--edge)} .ds-bar span{position:absolute;left:0;bottom:1px;height:4px;background:var(--ink)} .ds-meta{display:flex;gap:0.1rem 0.9rem;flex-wrap:wrap;color:var(--graphite);font-size:0.8125rem;font-variant-numeric:tabular-nums}"
+      "name": "The band, navigation and status",
+      "kind": "nav",
+      "refersTo": "band",
+      "description": "The dark band: the name after the red caret, the navigation with the current page a tab of the grey, the status in the band colours.",
+      "html": "<div class=\"ds-bd\"><b class=\"ds-name\"><svg viewBox=\"0 0 20 20\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg>Lastread</b><nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Books</a><a href=\"#\">Settings</a></nav><span class=\"ds-act\"><span class=\"ds-mk\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 10.5l4 4.5L16.5 5\"/></svg></span>Kobo read yesterday</span></div>",
+      "css": ".ds-bd{display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem 2rem;padding:0.7rem 2rem;background:var(--band);color:var(--band-ink);font-family:var(--sans)} .ds-name{display:flex;align-items:center;gap:0.45rem;font-size:1.35rem;font-weight:800;letter-spacing:-0.015em} .ds-name svg{color:var(--band-red)} .ds-nav{display:flex;gap:0.25rem} .ds-nav a{display:flex;align-items:center;min-height:2.5rem;padding:0 0.8rem;border-radius:6px;color:var(--band-ink);text-decoration:none;font-size:0.9375rem;font-weight:700} .ds-nav a:hover{background:color-mix(in srgb, var(--band-ink) 12%, transparent)} .ds-nav a[aria-current=\"page\"]{background:var(--ground);color:var(--ink)} .ds-nav a:focus-visible{outline:2.5px solid var(--band-blue);outline-offset:2px} .ds-act{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.8125rem} .ds-mk{color:var(--band-green);width:17px;height:17px;display:inline-block} .ds-mk svg{width:100%;height:100%}"
     },
     {
-      "name": "First-run steps",
+      "name": "Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "At the top of the Books sheet while in dry run: a heading, one paragraph, the ink tally of books switched on, and three numbered steps in 1.6rem circles (the one 50% radius); the current step is filled blue because it is the reader's. A double rule closes it; below 1024px it is a card of its own.",
-      "html": "<section class=\"ds-fr\" aria-labelledby=\"ds-fr-h\"><div><h3 id=\"ds-fr-h\">Pick the books that are yours</h3><p>Your Kobo sent 214 books. The 198 that were on it before Lastread started begin as Off, so books someone else read on a shared Kobo account stay off your Hardcover shelf. Search for an author or a title, then switch on everything shown at once.</p><p class=\"ds-tally\"><strong>12</strong> <span>switched on so far. Nothing is sent while this is a dry run.</span></p></div><ol class=\"ds-steps\" aria-label=\"Three steps\"><li><span class=\"ds-n\">1</span><b>Connect to Hardcover</b><span class=\"ds-s\">Not yet. <a href=\"#\">Connect in Settings</a></span></li><li class=\"ds-here\" aria-current=\"step\"><span class=\"ds-n\">2</span><b>Pick your books</b><span class=\"ds-s\">You are here. Each book you switch on gets a red mark in the Hardcover column: what Hardcover would be told.</span></li><li><span class=\"ds-n\">3</span><b>Go live</b><span class=\"ds-s\">Under Settings, once the marks look right. This part of the page goes away then.</span></li></ol></section>",
-      "css": ".ds-fr{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem 2.5rem;padding:1.3rem 1.25rem 1.25rem;background:var(--sheet);border-bottom:3px double var(--rule);font-family:var(--sans);font-size:0.9375rem;line-height:1.5;color:var(--ink)} .ds-fr h3{margin:0;font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;line-height:1.2} .ds-fr p{margin:0.55rem 0 0;max-width:62ch;color:var(--graphite)} .ds-fr .ds-tally{display:flex;align-items:baseline;gap:0.6rem;margin-top:0.85rem} .ds-tally strong{font-size:1.75rem;font-weight:800;letter-spacing:-0.03em;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums} .ds-tally span{font-size:0.875rem} .ds-steps{list-style:none;margin:0;padding:0;display:grid;align-content:start} .ds-steps li{display:grid;grid-template-columns:1.75rem minmax(0,1fr);column-gap:0.7rem;padding:0.65rem 0;border-top:1px solid var(--rule-soft)} .ds-steps li:first-child{border-top:0;padding-top:0.1rem} .ds-n{grid-row:1 / span 2;display:flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border:1.5px solid var(--edge);border-radius:50%;font-size:0.8125rem;font-weight:700;color:var(--graphite);font-variant-numeric:tabular-nums} .ds-steps b{font-weight:650} .ds-s{grid-column:2;font-size:0.875rem;color:var(--graphite)} .ds-here .ds-n{border-color:var(--blue);background:var(--blue);color:var(--on-fill)} .ds-here b{color:var(--blue)} .ds-fr a{color:var(--blue);text-underline-offset:3px;text-decoration-thickness:1px} .ds-fr a:hover{text-decoration-thickness:2px} .ds-fr a:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} @media (min-width:1100px){.ds-fr{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);padding:1.4rem 1.5rem}}"
-    },
-    {
-      "name": "Rail navigation, theme switch and Help",
-      "kind": "nav",
-      "refersTo": "nav-item-current",
-      "description": "The desk rail in Non-repro Blue: the navigation as a list, the current page a sheet box; at its foot the theme switch and the square Help button with its drawn circled query.",
-      "html": "<div class=\"ds-rail\"><nav class=\"ds-nav\"><a href=\"#\" aria-current=\"page\">Books</a><a href=\"#\">Settings</a><a href=\"#\">Admin</a></nav><div class=\"ds-toolrow\"><div class=\"ds-theme\" role=\"group\" aria-label=\"Theme\"><button type=\"button\" aria-pressed=\"false\">Light</button><button type=\"button\" aria-pressed=\"true\">Auto</button><button type=\"button\" aria-pressed=\"false\">Dark</button></div><button type=\"button\" class=\"ds-help\" aria-label=\"Help\" title=\"Help\"><svg class=\"ds-ic\" viewBox=\"0 0 20 20\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"7.6\" stroke-width=\"1.7\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9c-.8.5-1.2.9-1.2 1.7\" stroke-width=\"1.7\"/><circle cx=\"10\" cy=\"14.1\" r=\".6\" fill=\"currentColor\"/></svg></button></div></div>",
-      "css": ".ds-rail{display:grid;gap:1.6rem;width:17.25rem;padding:1.75rem 1.4rem 1rem;background:var(--rail);color:var(--rail-ink);font-family:var(--sans)} .ds-nav{display:grid;gap:2px} .ds-nav a{display:flex;align-items:center;gap:0.75rem;min-height:2.6rem;padding:0 0.75rem;border-radius:var(--r-ctl);text-decoration:none;color:var(--rail-ink);font-size:0.9375rem;font-weight:600} .ds-nav a:hover{background:color-mix(in srgb,var(--sheet) 50%,transparent)} .ds-nav a[aria-current=\"page\"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 0 var(--rule)} .ds-nav a:focus-visible,.ds-theme button:focus-visible,.ds-help:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px} .ds-theme{justify-self:start;display:inline-flex;gap:2px;padding:2px;border:1px solid color-mix(in srgb,var(--rail-ink) 32%,transparent);border-radius:var(--r-ctl)} .ds-theme button{font-family:inherit;font-size:0.8125rem;font-weight:500;color:var(--rail-ink);background:none;border:0;min-height:2rem;padding:0.2rem 0.7rem;border-radius:3px;cursor:pointer} .ds-theme button:hover{background:color-mix(in srgb,var(--sheet) 45%,transparent)} .ds-theme button[aria-pressed=\"true\"]{background:var(--sheet);color:var(--ink);font-weight:650} .ds-toolrow{display:flex;justify-content:space-between;align-items:center;gap:0.5rem} .ds-help{display:inline-flex;align-items:center;justify-content:center;width:2.375rem;min-height:2.375rem;padding:0;cursor:pointer;background:transparent;color:var(--rail-ink);border:1px solid color-mix(in srgb,var(--rail-ink) 35%,transparent);border-radius:var(--r-ctl)} .ds-help:hover{border-color:var(--ink)} .ds-ic{width:20px;height:20px}"
+      "description": "A white card on the grey: 4px, 1px Rule, the light-only lift.",
+      "html": "<section class=\"ds-card\"><h2>Hardcover</h2><p>Connected as a reader. The next sync sends 3 changes.</p></section>",
+      "css": ".ds-card{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--lift);padding:1.2rem 1.35rem 1.35rem;font-family:var(--sans);color:var(--ink);max-width:28rem} .ds-card h2{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.75rem;line-height:1.2} .ds-card p{margin:0;font-size:0.9375rem;line-height:1.5}"
     },
     {
       "name": "Tip band (Mac app)",
@@ -2129,32 +2926,33 @@
     }
   ],
   "narrative": {
-    "northStar": "The Galley Proof",
-    "overview": "**Creative North Star: \"The Galley Proof\"**\n\nThe list of books is a galley proof of your Hardcover shelf. Each book is a line set on the sheet, and the Hardcover column is the proof margin: what the next sync will change is marked there in proofreaders' marks, on the row itself. The old value is struck through in red, the new value is written in after a caret. A reader who looks at the page sees, per book, what Hardcover will be told and why.\n\nThe world is a print shop's, made of paper, pencil and rule. A cool grey galley stock for the page; a near-white sheet for the list; a pale non-repro blue rail that is \"your Kobo\" (the name, the navigation, and on Books what the Kobo and Hardcover last did, with the button that sends). Two pencils do the marking: red for what a sync sends, blue for what the reader chose or is asked. Everything else is ink and graphite. The page is dense where a proof is dense, in the list, and only the book titles are set in a book face.\n\nIt turns down the usual look for this kind of tool: a neutral list with coloured status dots and badges. A mark is drawn beside plain words, never pinned on as a badge. There are no pill shapes and no photographs; book covers are the only pictures, and the tool fetches them itself.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and the Mac app's: the claim and the download, then one row of the tool's Books page drawn at full size with the proof mark on it, on a white ground by day and a near-black one at night, and under it the three the sync runs between, the Kobo, your computer and Hardcover, one card each, with photographs of people reading as cards too. It keeps the page's two faces from its own font files, the page's marks, its one motion and its theme switch, and the drawn row keeps the tool's own colours; nothing else of the galley. Its tokens carry the `site-` prefix, the `site-sheet-` set and the three gradient families, and its rules are under *The site* in Colors and Components.",
+    "northStar": "Two Sides",
+    "overview": "The page is drawn as the handover it makes. Every book has two sides: the\nKobo's, where it is read, and Hardcover's, where it is recorded. The Kobo's\nside is grey e-ink paper: the book, a big figure of how far it is read,\nthe cover in greyscale, the Kobo's own dotted line of progress, and the\ntwo switches, *Sync* and *State*. Hardcover's side is white, and there the\ncover takes its colour. Between them runs the seam, an ink rule, and on the\nseam each row carries its mark: what the next sync does with that book.\nA reader who looks down the seam sees the whole handover at once.\n\nThe world is the two devices' own. The grey is the Kobo's screen, the\nwhite is the web page that receives the book, the ink rule is the edge\nwhere one hands over to the other. Above everything a dark band is the\ntool itself: the name after a red caret, the navigation, what the Kobo and\nHardcover last did, and *Refresh* and *Sync now*. A quiet foot holds who\nis signed in, the theme switch, Help and the sentence that says the\nproject is independent. Red is only for what a sync sends and the button\nthat sends it; blue is a question for the reader; a green tick is up to\ndate; ink is a failure and the reader's chosen filter. Everything else is\nink and grey.\n\nIt turns down the usual look for this kind of tool: a neutral list with\ncoloured status badges scattered across it. Status lives in one place, on\nthe seam, as a drawn mark with plain words beside it. Covers are the only\npictures, and the tool fetches them itself. The one authored motion is\nkept from the earlier proofreading direction: when a value changes, the\nold one is struck through and the new one writes in after a caret.\n\n**The site and the Mac app** still follow the previous system, \"The\nGalley Proof\" (galley stock, a non-repro blue rail, Schibsted Grotesk and\nSource Serif 4), until they are redesigned. Their tokens are the `site-`\nset and the `mac-` set below, and their sections are kept as they were;\nwhere a Mac app section names Galley Stock, Proof Sheet, Margin Tint,\nNon-repro Blue or a pencil, it means the `mac-` token of that name.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and\nthe Mac app's: the claim and the download, then one row of the tool's\nBooks page drawn at full size with the proof mark on it, on a white\nground by day and a near-black one at night, and under it the three the\nsync runs between, the Kobo, your computer and Hardcover, one card each,\nwith photographs of people reading as cards too. It keeps its two faces\nfrom its own font files, the page's marks, its one motion and its theme\nswitch, and the drawn row keeps the Galley Proof's colours. Its tokens\ncarry the `site-` prefix, the `site-sheet-` set and the three gradient\nfamilies, and its rules are under *The site* in Colors and Components.",
     "keyCharacteristics": [
-      "The Hardcover column is a proof margin: a tinted column behind a double hairline rule, holding one status line per book.",
-      "Seven marks, all in the legend above the list: red caret, dashed caret, tick, *stet*, circled query, ink square with a cross, dash.",
-      "Two pencils with one job each: red for what a sync sends, blue for the reader's own choice or a question for them.",
-      "Two typefaces with one job each: Source Serif 4 for book titles, Schibsted Grotesk for everything else.",
-      "Square-cut: 2px to 4px corners, no pills; the round shapes are the ring around a Getting started step number and, in the Mac app's *Covers*, the disc under a cover's red caret.",
+      "Two sides per book: the Kobo's on grey paper (`ground`), Hardcover's on white (`sheet`); the cover grey on one, in colour on the other.",
+      "The seam: a 2px ink rule between the sides, holding each row's mark as a 2rem disc.",
+      "Five discs on the seam: red filled with a caret (the next sync changes this), white with a green tick ring (up to date), blue filled with a query (needs a match), grey with a dash (not syncing, or nothing to send yet), white with an ink square (failed).",
+      "How far a book is read, set large in Literata at 700, beside its cover.",
+      "A dark band across the top holds the tool; a quiet foot closes the page.",
+      "Two typefaces with one job each: Literata for book titles, page heads and the percentage; Atkinson Hyperlegible Next for everything else.",
+      "Red only for what a sync sends: *Sync now* is red only when the sync is live, and outlined in a dry run.",
       "Light and dark share every role; WCAG 2.2 AA in both.",
-      "One authored motion: the strike draws, the new value writes in. Only the Mac app's *Covers* pane has a second: the run drifts, a cover lifts. The site has one of its own, once on load: the download card, the sheet and the story cards rise into place, and the strike and the write-in follow in the sheet's row.",
-      "The site is its own world: the tool's row drawn as the hero, then the gradient cards (plum, teal, cobalt, slate) the same in both lights, 18px corners, photographs under a scrim, no rules between cards; only the download card and the sheet change with the light, the card ink by day and white at night, the sheet in the tool's two lights."
+      "One authored motion: the strike draws, the new value writes in."
     ],
     "rules": [
       {
-        "name": "The Two Pencils Rule",
-        "body": "Red fills only *Sync now* and *Go live*, and marks only what a sync sends. Every other filled button is an ink fill (*Start using Lastread*, *Connect to Hardcover*, *I have approved it*, *Use*, a confirmation, *Check and save*). Blue is only for the reader's own choice or a question for them; a label that states a fact (*New*, *Admin*) is grey. A removing action is ink, never red. The site has no red fill at all: its one filled button is the card's reverse, and the sheet carries the tool's red as a mark only.",
+        "name": "The One Red Rule",
+        "body": "Red fills only *Sync now* while the sync is live, and *Go live*, and marks only what a sync sends. In a dry run *Sync now* is outlined in the band's ink like *Refresh*, because nothing goes to Hardcover. Every other filled button is an ink fill (*Start using Lastread*, *Connect to Hardcover*, *I have approved it*, *Use*, a confirmation, *Check and save*). Blue is only for a question for the reader or the step they are on; a label that states a fact (*New*, *Admin*) is grey. A removing action is ink, never red. The site has no red fill at all: its one filled button is the card's reverse, and the sheet carries red as a mark only.",
         "section": "colors"
       },
       {
-        "name": "The Legend Rule",
-        "body": "Every mark the margin can hold is in the legend above the list, drawn and coloured the same, with the words of the page's strings: *Next sync changes this*, *Nothing to send yet*, *Up to date*, *Kept as on Hardcover*, *Needs you*, *Failed*, *Not syncing*. Help explains each one under *Hardcover status*. A new mark is not used until it is in both.",
+        "name": "The Seam Rule",
+        "body": "A row's status is said once, on the seam, as a disc with the mark in it and the words beside it on Hardcover's side. The legend, folded behind *What the marks mean*, holds every mark the seam can carry, drawn and coloured the same, with the words of the page's strings: *Next sync changes this*, *Nothing to send yet*, *Up to date*, *Kept as on Hardcover*, *Needs you*, *Failed*, *Not syncing*. Help explains each one under *Hardcover status*. A new mark is not used until it is in both.",
         "section": "colors"
       },
       {
         "name": "The Two Lights Rule",
-        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`). On the site the gradient and photo cards are the same in both lights, a card does not change with the room; the ground, the words, the quiet card, the download card and the sheet swap, the download card from ink to white and the sheet in the tool's two lights, so that the action stays the strongest thing on the ground in each light.",
+        "body": "Every colour has a light and a dark value with the same role. A colour that exists in one theme only is a mistake. In dark the red and blue are lighter and fills carry dark words (`on-fill-dark`); the band's colours are the same in both. On the site the gradient and photo cards are the same in both lights, a card does not change with the room; the ground, the words, the quiet card, the download card and the sheet swap, the download card from ink to white, so that the action stays the strongest thing on the ground in each light.",
         "section": "colors"
       },
       {
@@ -2163,13 +2961,13 @@
         "section": "colors"
       },
       {
-        "name": "The Book Face Rule",
-        "body": "Source Serif 4 is for book titles and nothing else: in the list, at the top of Details, under a large cover. The name, headings, buttons and every fact are Schibsted Grotesk.",
+        "name": "The Reading Face Rule",
+        "body": "Literata is for what is read as a book: book titles in the list, at the top of Details and under a large cover, a page's head, and the percentage. The name, sans headings, buttons, labels and every fact are Atkinson Hyperlegible Next. The site and the Mac app keep Source Serif 4 for their book titles until they are redesigned.",
         "section": "typography"
       },
       {
         "name": "The Figures Rule",
-        "body": "Tabular figures go only where numbers stand in columns or are compared: the facts under a gauge (`.meta`), the counts on chips, the count on the Filter button, the end of the list's count, Getting started's tally and step numbers, and code. Never on the root or on running text: in Schibsted Grotesk `tabular-nums` widens full stops and commas too. `tests/test_design_tokens.py` holds this.",
+        "body": "Tabular figures go only where numbers stand in columns or are compared: the percentage, the facts under a gauge (`.meta`), the counts on chips, the count on the Filter button, the end of the list's count, Getting started's tally and step numbers, the count on *Sync now*, and code. Never on the root or on running text. `tests/test_design_tokens.py` holds this.",
         "section": "typography"
       },
       {
@@ -2183,38 +2981,41 @@
         "section": "elevation"
       },
       {
-        "name": "The No Pills Rule",
-        "body": "No pill-shaped buttons, chips, tags or switches. The largest corner on anything you operate is 4px in the tool and the Mac app, and 12px on the site's one button and its theme switch, a card's rounding, still far from a pill.",
+        "name": "The Round Means Something Rule",
+        "body": "A round shape on the page is one of three: a mark's disc on the seam, a filter chip (a pill), or a step number's circle. Buttons, fields, switches and tags stay square-cornered at 6px or 3px. The site's largest corner on anything you operate is 12px.",
         "section": "shapes"
       }
     ],
     "dos": [
-      "**Do** put what a sync will do with a book in its proof margin, as one status line with one of the seven marks.",
+      "**Do** put a book's status on the seam, as one 2rem disc with its mark, and its words beside it on Hardcover's side.",
       "**Do** strike the old value in red and write the new value after a red caret when the next sync changes something.",
-      "**Do** fill red only *Sync now* and *Go live*; give every other filled button the ink fill.",
-      "**Do** keep blue for the reader's own choice or a question for them.",
-      "**Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears in a row.",
-      "**Do** set book titles in Source Serif 4 at 600 and everything else in Schibsted Grotesk.",
-      "**Do** put `tabular-nums` only on numbers that stand in columns or are compared: the facts, chip counts, the Filter count, the end of the list's count, Getting started's tally and step numbers, code.",
-      "**Do** use 2px for sheets, cards and dialogs, 4px for what you operate, and the 3px double rule where the margin begins.",
+      "**Do** fill red only *Sync now* while the sync is live and *Go live*; outline *Sync now* in a dry run, and give every other filled button the ink fill.",
+      "**Do** keep blue for a question for the reader, or the step they are on.",
+      "**Do** fill the chosen filter chip, the pressed theme button and any other chosen state in ink.",
+      "**Do** add any new mark to the legend and to Help's *Hardcover status*, drawn and coloured the same, before it appears on the seam.",
+      "**Do** show the cover in grey on the Kobo's side and in colour on Hardcover's.",
+      "**Do** set book titles, page heads and the percentage in Literata, and everything else in Atkinson Hyperlegible Next.",
+      "**Do** put `tabular-nums` only on numbers that stand in columns or are compared: the percentage, the facts, chip counts, the Filter count, the end of the list's count, Getting started's tally and step numbers, code.",
+      "**Do** use 4px for cards, book cards and dialogs, 6px for what you operate, 3px for small inner parts, and the 2px ink seam as the one heavy line.",
       "**Do** make every control 2.75rem below 1024px and under a finger.",
-      "**Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks.",
+      "**Do** give every new colour a light and a dark value with the same role, and check it: 4.5:1 for words, 3:1 for field edges and marks; on the band use the band's own mark colours.",
       "**Do** make every action work without JavaScript, and stop every motion under `prefers-reduced-motion`.",
       "**Do** draw a missing cover as the crossed box.",
-      "**Do** keep the site's cards the same in both lights, the words on the dark end of the gradient; only the download card and the sheet swap, the card ink by day and white at night, the sheet in the tool's two lights.",
+      "**Do** keep the site's cards the same in both lights, the words on the dark end of the gradient; only the download card and the sheet swap, the card ink by day and white at night.",
       "**Do** draw the site's marks as the page's caret, tick, circled query and dash, inline SVG: in the words' colour on a card, in the sheet's own red, green, blue and faint on the sheet."
     ],
     "donts": [
-      "**Don't** show status as coloured dots or badges on a neutral list; the mark is drawn beside plain words.",
+      "**Don't** scatter status as coloured dots or badges across a row; a book's status is its one disc on the seam, with plain words beside it.",
       "**Don't** use red for decoration, for a warning, or for a button that removes something; a removing action is ink, underlined.",
-      "**Don't** use pill shapes, for buttons, chips, tags or switches.",
+      "**Don't** use pill shapes for buttons, tags, fields or switches; the pill is the filter chip's, and the disc is the seam's.",
       "**Don't** set `tabular-nums` on the root or on running text.",
-      "**Don't** set anything but a book title in Source Serif 4.",
+      "**Don't** set anything but a book title, a page head or the percentage in Literata.",
+      "**Don't** load Schibsted Grotesk or Source Serif 4 on the page; they stay in the fonts folder for the Mac app's packaging.",
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
       "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the download card, the sheet and the story cards rise once on load and the strike and write-in follow in the sheet's row, standing still under reduced motion.",
       "**Don't** load a font, a script, a style or a picture from elsewhere; the tool serves everything, the two fonts and the book covers included, and the site bundles its fonts and its four photographs. The site's one request out is the latest release's version, with JavaScript; without it the download link stands.",
-      "**Don't** put a kicker or an eyebrow above a heading on the site, or a hairline between its cards; colour parts them. The sheet's rules are the tool's, and stay inside the sheet."
+      "**Don't** put a kicker or an eyebrow above a heading, on the page or on the site, or a hairline between the site's cards; colour parts them. The site sheet's rules stay inside the sheet."
     ]
   }
 }
