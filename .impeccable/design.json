@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-22T21:17:57Z",
+  "generatedAt": "2026-11-23T00:20:00Z",
   "title": "Design System: Lastread",
   "extensions": {
     "colorMeta": {
@@ -772,676 +772,356 @@
           "#eeefed"
         ]
       },
-      "mac-ground": {
-        "role": "neutral",
-        "displayName": "Galley Stock (Mac app)",
-        "canonical": "#edefea",
-        "oklch": "oklch(94.9% 0.007 124)",
-        "tonalRamp": [
-          "#0a0c09",
-          "#232521",
-          "#3f403c",
-          "#5d5e5a",
-          "#7c7e79",
-          "#9d9f9a",
-          "#c3c5c0",
-          "#edefea"
-        ]
-      },
-      "mac-sheet": {
-        "role": "neutral",
-        "displayName": "Proof Sheet (Mac app)",
-        "canonical": "#fbfbf8",
-        "oklch": "oklch(98.7% 0.004 106)",
-        "tonalRamp": [
-          "#0b0b09",
-          "#242422",
-          "#40403d",
-          "#5e5e5b",
-          "#7d7d7b",
-          "#9e9e9c",
-          "#c4c4c1",
-          "#efefec"
-        ]
-      },
-      "mac-margin": {
-        "role": "neutral",
-        "displayName": "Margin Tint (Mac app)",
-        "canonical": "#f4f5f1",
-        "oklch": "oklch(96.8% 0.005 118)",
-        "tonalRamp": [
-          "#0b0b09",
-          "#242421",
-          "#3f403d",
-          "#5d5e5b",
-          "#7d7e7a",
-          "#9e9f9b",
-          "#c4c4c1",
-          "#eeefeb"
-        ]
-      },
-      "mac-ink": {
-        "role": "neutral",
-        "displayName": "Proof Ink (Mac app)",
-        "canonical": "#17191c",
-        "oklch": "oklch(21.3% 0.007 258)",
-        "tonalRamp": [
-          "#090b0e",
-          "#222427",
-          "#3e4043",
-          "#5b5e61",
-          "#7b7d81",
-          "#9c9fa3",
-          "#c1c4c8",
-          "#eceff3"
-        ]
-      },
-      "mac-graphite": {
-        "role": "neutral",
-        "displayName": "Graphite (Mac app)",
-        "canonical": "#4a4f57",
-        "oklch": "oklch(42.6% 0.015 260)",
-        "tonalRamp": [
-          "#080b11",
-          "#20242b",
-          "#3b4048",
-          "#595e66",
-          "#787e86",
-          "#999fa8",
-          "#bfc4ce",
-          "#e9eff9"
-        ]
-      },
-      "mac-faint": {
-        "role": "neutral",
-        "displayName": "Faint Graphite (Mac app)",
-        "canonical": "#5f656e",
-        "oklch": "oklch(50.5% 0.016 258)",
-        "tonalRamp": [
-          "#070b12",
-          "#1f242c",
-          "#3b4048",
-          "#585e67",
-          "#777e87",
-          "#989fa9",
-          "#bec5cf",
-          "#e8effa"
-        ]
-      },
-      "mac-rule": {
-        "role": "neutral",
-        "displayName": "Rule (Mac app)",
-        "canonical": "#cdd1cb",
-        "oklch": "oklch(85.6% 0.009 135)",
-        "tonalRamp": [
-          "#090c08",
-          "#222521",
-          "#3e413c",
-          "#5b5f5a",
-          "#7b7f79",
-          "#9ca09a",
-          "#c1c5c0",
-          "#ecf0ea"
-        ]
-      },
-      "mac-rule-soft": {
-        "role": "neutral",
-        "displayName": "Soft Rule (Mac app)",
-        "canonical": "#e3e6e0",
-        "oklch": "oklch(92.1% 0.009 129)",
-        "tonalRamp": [
-          "#0a0c08",
-          "#232520",
-          "#3e413c",
-          "#5c5f59",
-          "#7c7e79",
-          "#9d9f9a",
-          "#c2c5bf",
-          "#edf0ea"
-        ]
-      },
-      "mac-edge": {
-        "role": "neutral",
-        "displayName": "Field Edge (Mac app)",
-        "canonical": "#80868e",
-        "oklch": "oklch(61.8% 0.014 256)",
-        "tonalRamp": [
-          "#070b11",
-          "#20242b",
-          "#3b4047",
-          "#585e66",
-          "#787e86",
-          "#999fa7",
-          "#bec5cd",
-          "#e8eff8"
-        ]
-      },
-      "mac-rail": {
-        "role": "neutral",
-        "displayName": "Non-repro Blue (Mac app)",
-        "canonical": "#c3e2ef",
-        "oklch": "oklch(89.4% 0.037 225)",
-        "tonalRamp": [
-          "#000e17",
-          "#0d2832",
-          "#29444f",
-          "#47626e",
-          "#66828e",
-          "#86a4b0",
-          "#abcad7",
-          "#d5f4ff"
-        ]
-      },
-      "mac-rail-ink": {
-        "role": "neutral",
-        "displayName": "Rail Ink (Mac app)",
-        "canonical": "#14222b",
-        "oklch": "oklch(24.4% 0.026 237)",
-        "tonalRamp": [
-          "#020d15",
-          "#18262f",
-          "#33424c",
-          "#50606b",
-          "#6f808b",
-          "#90a1ad",
-          "#b5c7d3",
-          "#dff2fe"
-        ]
-      },
-      "mac-rail-graphite": {
-        "role": "neutral",
-        "displayName": "Rail Graphite (Mac app)",
-        "canonical": "#2f4653",
-        "oklch": "oklch(38.1% 0.036 234)",
-        "tonalRamp": [
-          "#000d18",
-          "#102733",
-          "#2c4350",
-          "#4a616f",
-          "#698190",
-          "#89a3b2",
-          "#aec9d8",
-          "#d8f3ff"
-        ]
-      },
-      "mac-blue": {
-        "role": "secondary",
-        "displayName": "Blue Pencil (Mac app)",
-        "canonical": "#1c5e8b",
-        "oklch": "oklch(46.4% 0.098 243)",
-        "tonalRamp": [
-          "#000c21",
-          "#00264a",
-          "#00436f",
-          "#226390",
-          "#4583b3",
-          "#66a5d7",
-          "#8cccff",
-          "#d7f3ff"
-        ]
-      },
-      "mac-blue-wash": {
-        "role": "secondary",
-        "displayName": "Blue Wash (Mac app)",
-        "canonical": "#ddeff7",
-        "oklch": "oklch(94.1% 0.022 226)",
-        "tonalRamp": [
-          "#020d12",
-          "#18262c",
-          "#344249",
-          "#516067",
-          "#708087",
-          "#91a2a9",
-          "#b6c7cf",
-          "#e0f2fa"
-        ]
-      },
-      "mac-red": {
+      "mac-red-held": {
         "role": "primary",
-        "displayName": "Red Pencil (Mac app)",
-        "canonical": "#c0212b",
-        "oklch": "oklch(52.3% 0.192 25)",
+        "displayName": "Held Red (Mac app)",
+        "canonical": "#bb1d2a",
+        "oklch": "oklch(51.1% 0.190 24)",
         "tonalRamp": [
-          "#220000",
-          "#4d0004",
-          "#7e000e",
-          "#b1041e",
-          "#d83c3f",
-          "#ff625f",
-          "#ffa79f",
-          "#ffe6e3"
+          "#270000",
+          "#510003",
+          "#7f0615",
+          "#af222a",
+          "#d84b4b",
+          "#f47c76",
+          "#ffa9a3",
+          "#ffd7d0"
         ]
       },
-      "mac-red-wash": {
+      "mac-fill": {
         "role": "primary",
-        "displayName": "Red Wash (Mac app)",
-        "canonical": "#f9e3e1",
-        "oklch": "oklch(93.3% 0.024 24)",
+        "displayName": "Native Fill (Mac app)",
+        "canonical": "#bb1d2a",
+        "oklch": "oklch(51.1% 0.190 24)",
         "tonalRamp": [
-          "#140707",
-          "#2f1f1e",
-          "#4c3b39",
-          "#6b5957",
-          "#8b7876",
-          "#ad9997",
-          "#d4bebc",
-          "#ffe9e7"
+          "#270000",
+          "#510003",
+          "#7f0615",
+          "#af222a",
+          "#d84b4b",
+          "#f47c76",
+          "#ffa9a3",
+          "#ffd7d0"
         ]
       },
-      "mac-green": {
-        "role": "tertiary",
-        "displayName": "Tick Green (Mac app)",
-        "canonical": "#2c6a39",
-        "oklch": "oklch(47.0% 0.101 148)",
-        "tonalRamp": [
-          "#001100",
-          "#002f05",
-          "#084d1e",
-          "#2f6d3c",
-          "#508e5a",
-          "#71b07b",
-          "#96d79f",
-          "#c0ffc9"
-        ]
-      },
-      "mac-green-wash": {
-        "role": "tertiary",
-        "displayName": "Green Wash (Mac app)",
-        "canonical": "#e1f0e2",
-        "oklch": "oklch(94.0% 0.024 147)",
-        "tonalRamp": [
-          "#050e06",
-          "#1c271d",
-          "#374338",
-          "#556256",
-          "#748175",
-          "#95a396",
-          "#bac9bb",
-          "#e4f3e5"
-        ]
-      },
-      "mac-flag": {
-        "role": "tertiary",
-        "displayName": "Flag Ink (Mac app)",
-        "canonical": "#17191c",
-        "oklch": "oklch(21.3% 0.007 258)",
-        "tonalRamp": [
-          "#090b0e",
-          "#222427",
-          "#3e4043",
-          "#5b5e61",
-          "#7b7d81",
-          "#9c9fa3",
-          "#c1c4c8",
-          "#eceff3"
-        ]
-      },
-      "mac-on-flag": {
-        "role": "tertiary",
-        "displayName": "On Flag (Mac app)",
-        "canonical": "#fbfbf8",
-        "oklch": "oklch(98.7% 0.004 106)",
-        "tonalRamp": [
-          "#0b0b09",
-          "#242422",
-          "#40403d",
-          "#5e5e5b",
-          "#7d7d7b",
-          "#9e9e9c",
-          "#c4c4c1",
-          "#efefec"
-        ]
-      },
-      "mac-on-fill": {
+      "mac-graphite-more": {
         "role": "neutral",
-        "displayName": "On Fill (Mac app)",
-        "canonical": "#ffffff",
-        "oklch": "oklch(100.0% 0.000 90)",
+        "displayName": "Graphite, Increase Contrast (Mac app)",
+        "canonical": "#3d3c37",
+        "oklch": "oklch(35.5% 0.009 98)",
         "tonalRamp": [
-          "#0b0b0b",
-          "#242424",
-          "#404040",
-          "#5d5d5d",
-          "#7d7d7d",
-          "#9e9e9e",
-          "#c4c4c4",
-          "#eeeeee"
+          "#0c0b07",
+          "#262520",
+          "#43423d",
+          "#62615c",
+          "#83827c",
+          "#a6a59f",
+          "#cac9c3",
+          "#efeee8"
         ]
       },
-      "mac-ground-dark": {
+      "mac-faint-more": {
         "role": "neutral",
-        "displayName": "Galley Stock (dark) (Mac app)",
-        "canonical": "#0f1114",
-        "oklch": "oklch(17.7% 0.007 258)",
+        "displayName": "Faint, Increase Contrast (Mac app)",
+        "canonical": "#46453f",
+        "oklch": "oklch(38.9% 0.010 99)",
         "tonalRamp": [
-          "#090b0e",
-          "#222427",
-          "#3d4043",
-          "#5b5e62",
-          "#7b7d81",
-          "#9c9fa3",
-          "#c1c4c9",
-          "#eceff3"
+          "#0c0b07",
+          "#262520",
+          "#43423c",
+          "#62615b",
+          "#83827b",
+          "#a7a59e",
+          "#cbc9c2",
+          "#f0eee7"
         ]
       },
-      "mac-sheet-dark": {
+      "mac-edge-more": {
         "role": "neutral",
-        "displayName": "Proof Sheet (dark) (Mac app)",
-        "canonical": "#171a1e",
-        "oklch": "oklch(21.6% 0.009 256)",
+        "displayName": "Edge, Increase Contrast (Mac app)",
+        "canonical": "#5a5953",
+        "oklch": "oklch(46.3% 0.010 99)",
         "tonalRamp": [
-          "#090b0f",
-          "#212428",
-          "#3d4045",
-          "#5a5e63",
-          "#7a7e83",
-          "#9b9fa4",
-          "#c0c4ca",
-          "#eaeff5"
+          "#0c0b07",
+          "#262520",
+          "#43423d",
+          "#62615b",
+          "#83827c",
+          "#a6a59f",
+          "#cbc9c2",
+          "#efeee7"
         ]
       },
-      "mac-margin-dark": {
+      "mac-rule-more": {
         "role": "neutral",
-        "displayName": "Margin Tint (dark) (Mac app)",
-        "canonical": "#1b1f24",
-        "oklch": "oklch(23.7% 0.011 254)",
+        "displayName": "Rule, Increase Contrast (Mac app)",
+        "canonical": "#7e7d76",
+        "oklch": "oklch(58.8% 0.011 100)",
         "tonalRamp": [
-          "#080b10",
-          "#20242a",
-          "#3c4046",
-          "#595e64",
-          "#797e84",
-          "#9a9fa5",
-          "#bfc5cb",
-          "#e9eff6"
+          "#0c0b06",
+          "#26251f",
+          "#43423c",
+          "#62615a",
+          "#83827b",
+          "#a6a59e",
+          "#cbc9c2",
+          "#f0eee7"
         ]
       },
-      "mac-ink-dark": {
+      "mac-rule-soft-more": {
         "role": "neutral",
-        "displayName": "Proof Ink (dark) (Mac app)",
-        "canonical": "#e7e9e4",
-        "oklch": "oklch(93.1% 0.007 124)",
+        "displayName": "Soft Rule, Increase Contrast (Mac app)",
+        "canonical": "#95958e",
+        "oklch": "oklch(66.8% 0.010 107)",
         "tonalRamp": [
-          "#0a0c09",
-          "#232521",
-          "#3f403c",
-          "#5d5e5a",
-          "#7c7e79",
-          "#9d9f9a",
-          "#c3c5c0",
-          "#edefea"
+          "#0b0b07",
+          "#252520",
+          "#43433c",
+          "#61615b",
+          "#82827c",
+          "#a6a69f",
+          "#cacac2",
+          "#efefe7"
         ]
       },
-      "mac-graphite-dark": {
-        "role": "neutral",
-        "displayName": "Graphite (dark) (Mac app)",
-        "canonical": "#aeb4bb",
-        "oklch": "oklch(76.7% 0.012 252)",
+      "mac-red-more": {
+        "role": "primary",
+        "displayName": "Send Red, Increase Contrast (Mac app)",
+        "canonical": "#8a1520",
+        "oklch": "oklch(41.1% 0.150 23)",
         "tonalRamp": [
-          "#080c10",
-          "#20242a",
-          "#3b4046",
-          "#595e64",
-          "#787e84",
-          "#999fa6",
-          "#bfc5cc",
-          "#e9eff7"
+          "#1e0002",
+          "#4c010a",
+          "#7f0417",
+          "#a53336",
+          "#cc5756",
+          "#f57b78",
+          "#fcb4b0",
+          "#fee8e6"
         ]
       },
-      "mac-faint-dark": {
-        "role": "neutral",
-        "displayName": "Faint Graphite (dark) (Mac app)",
-        "canonical": "#959ca4",
-        "oklch": "oklch(69.0% 0.014 252)",
+      "mac-red-held-more": {
+        "role": "primary",
+        "displayName": "Held Red, Increase Contrast (Mac app)",
+        "canonical": "#87151e",
+        "oklch": "oklch(40.5% 0.148 24)",
         "tonalRamp": [
-          "#070c11",
-          "#1f252b",
-          "#3a4047",
-          "#585e66",
-          "#777e86",
-          "#989fa7",
-          "#bec5cd",
-          "#e8eff8"
+          "#1e0102",
+          "#4b0309",
+          "#7e0817",
+          "#a43436",
+          "#cb5856",
+          "#f47c78",
+          "#feb3ae",
+          "#fee8e6"
         ]
       },
-      "mac-rule-dark": {
-        "role": "neutral",
-        "displayName": "Rule (dark) (Mac app)",
-        "canonical": "#30353c",
-        "oklch": "oklch(32.7% 0.014 257)",
-        "tonalRamp": [
-          "#070b11",
-          "#20242b",
-          "#3b4047",
-          "#595e66",
-          "#787e86",
-          "#999fa7",
-          "#bec5cd",
-          "#e9eff8"
-        ]
-      },
-      "mac-rule-soft-dark": {
-        "role": "neutral",
-        "displayName": "Soft Rule (dark) (Mac app)",
-        "canonical": "#24282e",
-        "oklch": "oklch(27.5% 0.013 258)",
-        "tonalRamp": [
-          "#080b10",
-          "#20242a",
-          "#3c4046",
-          "#595e65",
-          "#797e85",
-          "#9a9fa6",
-          "#bfc4cc",
-          "#e9eff7"
-        ]
-      },
-      "mac-edge-dark": {
-        "role": "neutral",
-        "displayName": "Field Edge (dark) (Mac app)",
-        "canonical": "#6e757e",
-        "oklch": "oklch(56.0% 0.016 255)",
-        "tonalRamp": [
-          "#070c12",
-          "#1f252c",
-          "#3a4048",
-          "#585e67",
-          "#777e87",
-          "#989fa9",
-          "#bdc5cf",
-          "#e7effa"
-        ]
-      },
-      "mac-rail-dark": {
-        "role": "neutral",
-        "displayName": "Non-repro Blue (dark) (Mac app)",
-        "canonical": "#123040",
-        "oklch": "oklch(29.4% 0.046 235)",
-        "tonalRamp": [
-          "#000d1b",
-          "#082737",
-          "#264455",
-          "#446274",
-          "#638295",
-          "#83a4b7",
-          "#a8cade",
-          "#d2f4ff"
-        ]
-      },
-      "mac-rail-ink-dark": {
-        "role": "neutral",
-        "displayName": "Rail Ink (dark) (Mac app)",
-        "canonical": "#e3f1f7",
-        "oklch": "oklch(94.9% 0.017 225)",
-        "tonalRamp": [
-          "#040d11",
-          "#1b262a",
-          "#364247",
-          "#546065",
-          "#738085",
-          "#94a1a6",
-          "#b9c7cc",
-          "#e3f1f7"
-        ]
-      },
-      "mac-rail-graphite-dark": {
-        "role": "neutral",
-        "displayName": "Rail Graphite (dark) (Mac app)",
-        "canonical": "#a9c6d4",
-        "oklch": "oklch(81.0% 0.037 229)",
-        "tonalRamp": [
-          "#000e17",
-          "#0e2732",
-          "#2a444f",
-          "#48626e",
-          "#67828f",
-          "#87a3b1",
-          "#acc9d7",
-          "#d6f4ff"
-        ]
-      },
-      "mac-blue-dark": {
+      "mac-blue-more": {
         "role": "secondary",
-        "displayName": "Blue Pencil (dark) (Mac app)",
-        "canonical": "#86c5ea",
-        "oklch": "oklch(79.4% 0.083 235)",
+        "displayName": "Question Blue, Increase Contrast (Mac app)",
+        "canonical": "#1a4280",
+        "oklch": "oklch(38.7% 0.114 259)",
         "tonalRamp": [
-          "#000d1c",
-          "#002840",
-          "#004665",
-          "#256586",
-          "#4785a8",
-          "#69a7cb",
-          "#8ecdf3",
-          "#d0f5ff"
+          "#000923",
+          "#022254",
+          "#18407d",
+          "#3760a1",
+          "#5782c6",
+          "#79a6ec",
+          "#abcbfd",
+          "#e5effe"
         ]
       },
-      "mac-blue-wash-dark": {
-        "role": "secondary",
-        "displayName": "Blue Wash (dark) (Mac app)",
-        "canonical": "#173444",
-        "oklch": "oklch(31.0% 0.045 235)",
+      "mac-green-more": {
+        "role": "tertiary",
+        "displayName": "Tick Green, Increase Contrast (Mac app)",
+        "canonical": "#1d4f29",
+        "oklch": "oklch(38.3% 0.083 149)",
         "tonalRamp": [
-          "#000d1b",
-          "#092737",
-          "#274454",
-          "#446274",
-          "#638295",
-          "#84a4b7",
-          "#a9cade",
-          "#d2f4ff"
+          "#001002",
+          "#022e0f",
+          "#1c4e28",
+          "#3d6e46",
+          "#5e9066",
+          "#80b489",
+          "#a4d9ac",
+          "#c8fed0"
         ]
       },
-      "mac-red-dark": {
+      "mac-red-held-dark": {
         "role": "primary",
-        "displayName": "Red Pencil (dark) (Mac app)",
-        "canonical": "#ff8077",
-        "oklch": "oklch(74.3% 0.156 26)",
+        "displayName": "Held Red (dark) (Mac app)",
+        "canonical": "#ff9ba0",
+        "oklch": "oklch(79.3% 0.120 17)",
         "tonalRamp": [
-          "#220000",
-          "#4e0002",
-          "#7e0009",
-          "#a42c2b",
-          "#c9504a",
-          "#f0726a",
-          "#ffa79e",
-          "#ffe6e2"
+          "#1e0004",
+          "#4b0112",
+          "#741e2a",
+          "#994048",
+          "#bf6168",
+          "#e6858a",
+          "#feb2b4",
+          "#fee8e8"
         ]
       },
-      "mac-red-wash-dark": {
+      "mac-fill-dark": {
         "role": "primary",
-        "displayName": "Red Wash (dark) (Mac app)",
-        "canonical": "#3b1f1f",
-        "oklch": "oklch(27.7% 0.044 20)",
+        "displayName": "Native Fill (dark) (Mac app)",
+        "canonical": "#bb1d2a",
+        "oklch": "oklch(51.1% 0.190 24)",
         "tonalRamp": [
-          "#1a0304",
-          "#361b1b",
-          "#553636",
-          "#755453",
-          "#967372",
-          "#b89493",
-          "#dfb9b8",
-          "#ffe6e5"
+          "#270000",
+          "#510003",
+          "#7f0615",
+          "#af222a",
+          "#d84b4b",
+          "#f47c76",
+          "#ffa9a3",
+          "#ffd7d0"
         ]
       },
-      "mac-green-dark": {
-        "role": "tertiary",
-        "displayName": "Tick Green (dark) (Mac app)",
-        "canonical": "#86cf95",
-        "oklch": "oklch(79.1% 0.110 150)",
-        "tonalRamp": [
-          "#001100",
-          "#002f08",
-          "#004f1c",
-          "#246e3a",
-          "#488f59",
-          "#6ab279",
-          "#8fd89e",
-          "#b9ffc7"
-        ]
-      },
-      "mac-green-wash-dark": {
-        "role": "tertiary",
-        "displayName": "Green Wash (dark) (Mac app)",
-        "canonical": "#18301e",
-        "oklch": "oklch(28.3% 0.045 151)",
-        "tonalRamp": [
-          "#001003",
-          "#122a18",
-          "#2e4733",
-          "#4b6551",
-          "#6a8570",
-          "#8ba790",
-          "#b0cdb5",
-          "#daf8df"
-        ]
-      },
-      "mac-flag-dark": {
-        "role": "tertiary",
-        "displayName": "Flag Ink (dark) (Mac app)",
-        "canonical": "#e7e9e4",
-        "oklch": "oklch(93.1% 0.007 124)",
-        "tonalRamp": [
-          "#0a0c09",
-          "#232521",
-          "#3f403c",
-          "#5d5e5a",
-          "#7c7e79",
-          "#9d9f9a",
-          "#c3c5c0",
-          "#edefea"
-        ]
-      },
-      "mac-on-flag-dark": {
-        "role": "tertiary",
-        "displayName": "On Flag (dark) (Mac app)",
-        "canonical": "#0f1114",
-        "oklch": "oklch(17.7% 0.007 258)",
-        "tonalRamp": [
-          "#090b0e",
-          "#222427",
-          "#3d4043",
-          "#5b5e62",
-          "#7b7d81",
-          "#9c9fa3",
-          "#c1c4c9",
-          "#eceff3"
-        ]
-      },
-      "mac-on-fill-dark": {
+      "mac-graphite-more-dark": {
         "role": "neutral",
-        "displayName": "On Fill (dark) (Mac app)",
-        "canonical": "#0f1114",
-        "oklch": "oklch(17.7% 0.007 258)",
+        "displayName": "Graphite, Increase Contrast (dark) (Mac app)",
+        "canonical": "#cbcac2",
+        "oklch": "oklch(83.8% 0.011 101)",
         "tonalRamp": [
-          "#090b0e",
-          "#222427",
-          "#3d4043",
-          "#5b5e62",
-          "#7b7d81",
-          "#9c9fa3",
-          "#c1c4c9",
-          "#eceff3"
+          "#0c0b06",
+          "#26251f",
+          "#43423c",
+          "#62615a",
+          "#83827b",
+          "#a6a59e",
+          "#cbcac2",
+          "#efeee6"
+        ]
+      },
+      "mac-faint-more-dark": {
+        "role": "neutral",
+        "displayName": "Faint, Increase Contrast (dark) (Mac app)",
+        "canonical": "#c0bfb7",
+        "oklch": "oklch(80.3% 0.011 101)",
+        "tonalRamp": [
+          "#0c0b06",
+          "#26251f",
+          "#43423c",
+          "#62615a",
+          "#83827b",
+          "#a6a59e",
+          "#cbcac1",
+          "#efeee6"
+        ]
+      },
+      "mac-edge-more-dark": {
+        "role": "neutral",
+        "displayName": "Edge, Increase Contrast (dark) (Mac app)",
+        "canonical": "#a5a49b",
+        "oklch": "oklch(71.7% 0.013 102)",
+        "tonalRamp": [
+          "#0c0b06",
+          "#26251e",
+          "#43423b",
+          "#626159",
+          "#83827a",
+          "#a7a69d",
+          "#cbcac0",
+          "#f0efe5"
+        ]
+      },
+      "mac-rule-more-dark": {
+        "role": "neutral",
+        "displayName": "Rule, Increase Contrast (dark) (Mac app)",
+        "canonical": "#7a7a73",
+        "oklch": "oklch(57.7% 0.010 107)",
+        "tonalRamp": [
+          "#0b0b07",
+          "#252520",
+          "#43433c",
+          "#61615b",
+          "#82827b",
+          "#a6a69e",
+          "#cacac2",
+          "#efefe7"
+        ]
+      },
+      "mac-rule-soft-more-dark": {
+        "role": "neutral",
+        "displayName": "Soft Rule, Increase Contrast (dark) (Mac app)",
+        "canonical": "#656661",
+        "oklch": "oklch(50.8% 0.008 116)",
+        "tonalRamp": [
+          "#0b0b08",
+          "#252521",
+          "#42433e",
+          "#61625d",
+          "#82837d",
+          "#a5a6a0",
+          "#c9cac4",
+          "#eeefe9"
+        ]
+      },
+      "mac-red-more-dark": {
+        "role": "primary",
+        "displayName": "Send Red, Increase Contrast (dark) (Mac app)",
+        "canonical": "#ffa3a8",
+        "oklch": "oklch(80.8% 0.109 16)",
+        "tonalRamp": [
+          "#1d0104",
+          "#4b0313",
+          "#71232d",
+          "#95444b",
+          "#ba656b",
+          "#e1888d",
+          "#fdb2b5",
+          "#fee8e9"
+        ]
+      },
+      "mac-red-held-more-dark": {
+        "role": "primary",
+        "displayName": "Held Red, Increase Contrast (dark) (Mac app)",
+        "canonical": "#ffd5d7",
+        "oklch": "oklch(90.9% 0.047 15)",
+        "tonalRamp": [
+          "#1b0305",
+          "#391b1e",
+          "#59383a",
+          "#7a5658",
+          "#9c7779",
+          "#c19a9c",
+          "#e6bdbf",
+          "#fee8e9"
+        ]
+      },
+      "mac-blue-more-dark": {
+        "role": "secondary",
+        "displayName": "Question Blue, Increase Contrast (dark) (Mac app)",
+        "canonical": "#b0caff",
+        "oklch": "oklch(83.8% 0.080 264)",
+        "tonalRamp": [
+          "#00052c",
+          "#11224b",
+          "#2c406c",
+          "#4a608f",
+          "#6a81b2",
+          "#8ca5d8",
+          "#afc9fe",
+          "#e6eefe"
+        ]
+      },
+      "mac-green-more-dark": {
+        "role": "tertiary",
+        "displayName": "Tick Green, Increase Contrast (dark) (Mac app)",
+        "canonical": "#9ddcab",
+        "oklch": "oklch(83.9% 0.094 151)",
+        "tonalRamp": [
+          "#000f04",
+          "#012e12",
+          "#0e4f26",
+          "#337045",
+          "#559265",
+          "#79b687",
+          "#9cdbaa",
+          "#c7fed3"
         ]
       },
       "site-ground": {
@@ -2861,20 +2541,20 @@
       "css": ".ds-card{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--lift);padding:1.2rem 1.35rem 1.35rem;font-family:var(--sans);color:var(--ink);max-width:28rem} .ds-card h2{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;margin:0 0 0.75rem;line-height:1.2} .ds-card p{margin:0;font-size:0.9375rem;line-height:1.5}"
     },
     {
-      "name": "Tip band (Mac app)",
+      "name": "Needs you and the tip (Mac app)",
       "kind": "custom",
       "refersTo": "book-title",
-      "description": "One book from the reader's own shelf with a question for them: the blue circled query, because it asks the reader; red stays for what a sync sends. Between the toolbar and the list on Books; the same tip lies on the Covers pile.",
-      "html": "<div class=\"ds-tip\"><svg class=\"ds-q\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"7.6\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9C10.4 10.5 10 10.9 10 11.7\"/><circle cx=\"10\" cy=\"14.1\" r=\"0.6\" class=\"ds-dot\"/></svg><span class=\"ds-tc\" aria-hidden=\"true\"></span><div class=\"ds-tw\"><div class=\"ds-tt\">The Doodle Knit Directory</div><div class=\"ds-tq\">You stopped at 14% in September 2025. Pick it up again?</div></div><button class=\"ds-tb\">Open</button><button class=\"ds-tb\">Not now</button></div>",
-      "css": ".ds-tip{display:flex;align-items:center;gap:12px;padding:8px 14px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-q{width:20px;height:20px;flex:none;fill:none;stroke:var(--blue);stroke-width:1.7;stroke-linecap:round} .ds-q .ds-dot{fill:var(--blue);stroke:none} .ds-tc{width:30px;height:45px;flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1)} .ds-tw{flex:1;min-width:0} .ds-tt{font-family:var(--serif);font-size:14px;font-weight:600} .ds-tq{font-size:13px;color:var(--graphite)} .ds-tb{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--edge);border-radius:4px;background:var(--sheet);color:var(--ink)} .ds-tb:hover{border-color:var(--ink)} .ds-tb:focus-visible{outline:2px solid var(--blue);outline-offset:2px}"
+      "description": "One book from the reader's own shelf with a question for them: the query on its blue disc, because it asks the reader; red stays for what a sync sends. In a white box with 8pt corners above the Books list, under Needs you when that shows, the title in Literata at 13pt and the question in Graphite; the same tip lies on the Covers pile, its disc on the seam.",
+      "html": "<div class=\"ds-tip\"><span class=\"ds-disc\" aria-hidden=\"true\"><svg viewBox=\"0 0 20 20\"><circle cx=\"10\" cy=\"10\" r=\"7.6\"/><path d=\"M7.9 8.1a2.2 2.2 0 1 1 3.3 1.9C10.4 10.5 10 10.9 10 11.7\"/><circle cx=\"10\" cy=\"14.1\" r=\"0.6\" class=\"ds-dot\"/></svg></span><span class=\"ds-tc\" aria-hidden=\"true\"></span><div class=\"ds-tw\"><span class=\"ds-tt\">The Doodle Knit Directory</span> <span class=\"ds-tq\">· You stopped at 14% in September 2025. Pick it up again?</span></div><button class=\"ds-tb ds-fill\">Open</button><button class=\"ds-tb\">Not now</button></div>",
+      "css": ".ds-tip{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--sheet);border:1px solid var(--rule);border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;color:var(--ink)} .ds-disc{display:grid;place-items:center;width:15px;height:15px;margin:0 3.5px;flex:none;border-radius:50%;background:var(--blue)} .ds-disc svg{width:9px;height:9px;fill:none;stroke:var(--on-fill);stroke-width:1.9;stroke-linecap:round} .ds-disc .ds-dot{fill:var(--on-fill);stroke:none} .ds-tc{width:20px;height:30px;flex:none;border-radius:2px;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 1px rgba(0,0,0,0.28),0 3px 4px rgba(0,0,0,0.12)} .ds-tw{flex:1;min-width:0} .ds-tt{font-family:'Literata',Georgia,serif;font-size:13px;font-weight:600} .ds-tq{color:var(--graphite)} .ds-tb{font:inherit;height:28px;padding:0 14px;border:1px solid var(--edge);border-radius:7px;background:none;color:var(--ink)} .ds-tb.ds-fill{background:var(--flag);border-color:var(--flag);color:var(--on-flag)} .ds-tb:focus-visible{outline:2px solid var(--blue);outline-offset:2px}"
     },
     {
       "name": "Press run (Mac app, Covers)",
       "kind": "custom",
       "refersTo": "book-title",
-      "description": "Three rows of covers drifting left on Galley Stock (back 72pt never opened, middle 108pt the rest read, front 150pt read in the last year); the red caret on a Proof Sheet disc at the foot of a cover the next sync changes; a lifted cover grows 1.12x with its caption slip; a 3pt double rule; the delivery pile below.",
-      "html": "<div class=\"ds-run\"><div class=\"ds-row\" style=\"--h:36px\"><i></i><i></i><i></i><i></i><i></i></div><div class=\"ds-row\" style=\"--h:54px\"><i></i><i></i><i class=\"ds-up\"></i><i></i></div><div class=\"ds-row\" style=\"--h:75px\"><i></i><i><svg class=\"ds-caret\" viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M5 14 10 6 15 14\"/></svg></i><i></i></div><div class=\"ds-slip\"><div class=\"ds-st\">Stad vol geesten</div><div class=\"ds-sa\">V.E. Schwab</div></div><div class=\"ds-dr\" aria-hidden=\"true\"></div><div class=\"ds-pile\"><i style=\"--h:75px\"></i><div><div class=\"ds-pt\">Waarom slapende vogels niet uit de boom vallen</div><div class=\"ds-sa\">Mick O'Hare</div></div></div></div>",
-      "css": ".ds-run{background:var(--ground);padding:12px 10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-row{display:flex;gap:12px;margin-bottom:11px} .ds-row i,.ds-pile i{display:block;position:relative;height:var(--h);width:calc(var(--h) / 1.5);flex:none;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 2px rgba(0,0,0,0.28),0 3px 8px rgba(0,0,0,0.1);transition:transform 0.25s cubic-bezier(0.16,1,0.3,1)} .ds-row i:hover,.ds-row .ds-up{transform:scale(1.12);transform-origin:bottom;z-index:1;box-shadow:0 6px 12px rgba(0,0,0,0.22),0 3px 8px rgba(0,0,0,0.1)} .ds-caret{position:absolute;left:-5px;bottom:-6px;width:14px;height:14px;border-radius:50%;background:var(--sheet);fill:none;stroke:var(--red);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round} .ds-slip{width:180px;padding:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:2px;box-shadow:0 6px 20px rgba(0,0,0,0.18);margin-bottom:11px} .ds-st{font-family:var(--serif);font-size:15px;font-weight:600} .ds-sa{font-size:12px;color:var(--graphite)} .ds-dr{height:3px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin:0 10px 14px} .ds-pile{display:flex;gap:16px;align-items:flex-start} .ds-pt{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2} @media (prefers-reduced-motion: reduce){.ds-row i{transition:none} .ds-row i:hover,.ds-row .ds-up{transform:none}}"
+      "description": "Three rows of covers drifting left on the Kobo's grey (back 72pt never opened, middle 108pt the rest read, front 150pt read in the last year); the red disc with its caret at the foot of a cover the next sync changes; a lifted cover grows 1.12x with its caption slip, the title in Literata; the 2pt ink seam across the window with the tip's blue disc on it; the pile below on Hardcover's white, how far set large in Literata.",
+      "html": "<div class=\"ds-run\"><div class=\"ds-row\" style=\"--h:36px\"><i></i><i></i><i></i><i></i><i></i></div><div class=\"ds-row\" style=\"--h:54px\"><i></i><i></i><i class=\"ds-up\"></i><i></i></div><div class=\"ds-row\" style=\"--h:75px\"><i></i><i><b class=\"ds-red\" aria-hidden=\"true\"><svg viewBox=\"0 0 20 20\"><path d=\"M4 15.5 10 5l6 10.5\"/></svg></b></i><i></i></div><div class=\"ds-slip\"><div class=\"ds-st\">Stad vol geesten</div><div class=\"ds-sa\">V.E. Schwab</div></div></div><div class=\"ds-seam\" aria-hidden=\"true\"><b class=\"ds-q\"></b></div><div class=\"ds-pile\"><i style=\"--h:75px\"></i><div><div class=\"ds-sa\">Reading now</div><div class=\"ds-pt\"><span class=\"ds-pc\">42<small>%</small></span> Waarom slapende vogels niet uit de boom vallen</div><div class=\"ds-sa\">Mick O'Hare</div></div></div>",
+      "css": ".ds-run{background:var(--ground);padding:12px 10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-row{display:flex;gap:12px;margin-bottom:11px} .ds-row i,.ds-pile i{display:block;position:relative;height:var(--h);width:calc(var(--h) / 1.5);flex:none;border-radius:2px;background:var(--sheet);border:1px solid var(--edge);box-shadow:0 1px 1px rgba(0,0,0,0.28),0 3px 4px rgba(0,0,0,0.1);transition:transform 0.25s cubic-bezier(0.16,1,0.3,1)} .ds-row i:hover,.ds-row .ds-up{transform:scale(1.12);transform-origin:bottom;z-index:1;box-shadow:0 6px 6px rgba(0,0,0,0.22),0 3px 4px rgba(0,0,0,0.1)} .ds-red{position:absolute;left:-6px;bottom:-7px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--red)} .ds-red svg{width:9px;height:9px;fill:none;stroke:var(--on-fill);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round} .ds-slip{width:180px;padding:10px;background:var(--sheet);border:1px solid var(--rule);border-radius:2px;box-shadow:0 6px 10px rgba(0,0,0,0.18)} .ds-st{font-family:'Literata',Georgia,serif;font-size:15px;font-weight:600} .ds-sa{font-size:12.5px;color:var(--graphite)} .ds-seam{position:relative;height:2px;background:var(--ink)} .ds-q{position:absolute;left:40px;top:-15px;width:30px;height:30px;border-radius:50%;background:var(--blue)} .ds-pile{display:flex;gap:22px;align-items:center;padding:16px 40px;background:var(--sheet);font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink)} .ds-pt{font-family:'Literata',Georgia,serif;font-size:24px;font-weight:600;line-height:1.2} .ds-pc{font-size:44px;font-weight:700;letter-spacing:-0.04em;font-variant-numeric:tabular-nums} .ds-pc small{font-size:0.43em} @media (prefers-reduced-motion: reduce){.ds-row i{transition:none} .ds-row i:hover,.ds-row .ds-up{transform:none}}"
     },
     {
       "name": "Story card (site)",
@@ -2927,7 +2607,7 @@
   ],
   "narrative": {
     "northStar": "Two Sides",
-    "overview": "The page is drawn as the handover it makes. Every book has two sides: the\nKobo's, where it is read, and Hardcover's, where it is recorded. The Kobo's\nside is grey e-ink paper: the book, a big figure of how far it is read,\nthe cover in greyscale, the Kobo's own dotted line of progress, and the\ntwo switches, *Sync* and *State*. Hardcover's side is white, and there the\ncover takes its colour. Between them runs the seam, an ink rule, and on the\nseam each row carries its mark: what the next sync does with that book.\nA reader who looks down the seam sees the whole handover at once.\n\nThe world is the two devices' own. The grey is the Kobo's screen, the\nwhite is the web page that receives the book, the ink rule is the edge\nwhere one hands over to the other. Above everything a dark band is the\ntool itself: the name after a red caret, the navigation, what the Kobo and\nHardcover last did, and *Refresh* and *Sync now*. A quiet foot holds who\nis signed in, the theme switch, Help and the sentence that says the\nproject is independent. Red is only for what a sync sends and the button\nthat sends it; blue is a question for the reader; a green tick is up to\ndate; ink is a failure and the reader's chosen filter. Everything else is\nink and grey.\n\nIt turns down the usual look for this kind of tool: a neutral list with\ncoloured status badges scattered across it. Status lives in one place, on\nthe seam, as a drawn mark with plain words beside it. Covers are the only\npictures, and the tool fetches them itself. The one authored motion is\nkept from the earlier proofreading direction: when a value changes, the\nold one is struck through and the new one writes in after a caret.\n\n**The site and the Mac app** still follow the previous system, \"The\nGalley Proof\" (galley stock, a non-repro blue rail, Schibsted Grotesk and\nSource Serif 4), until they are redesigned. Their tokens are the `site-`\nset and the `mac-` set below, and their sections are kept as they were;\nwhere a Mac app section names Galley Stock, Proof Sheet, Margin Tint,\nNon-repro Blue or a pencil, it means the `mac-` token of that name.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and\nthe Mac app's: the claim and the download, then one row of the tool's\nBooks page drawn at full size with the proof mark on it, on a white\nground by day and a near-black one at night, and under it the three the\nsync runs between, the Kobo, your computer and Hardcover, one card each,\nwith photographs of people reading as cards too. It keeps its two faces\nfrom its own font files, the page's marks, its one motion and its theme\nswitch, and the drawn row keeps the Galley Proof's colours. Its tokens\ncarry the `site-` prefix, the `site-sheet-` set and the three gradient\nfamilies, and its rules are under *The site* in Colors and Components.",
+    "overview": "The page is drawn as the handover it makes. Every book has two sides: the\nKobo's, where it is read, and Hardcover's, where it is recorded. The Kobo's\nside is grey e-ink paper: the book, a big figure of how far it is read,\nthe cover in greyscale, the Kobo's own dotted line of progress, and the\ntwo switches, *Sync* and *State*. Hardcover's side is white, and there the\ncover takes its colour. Between them runs the seam, an ink rule, and on the\nseam each row carries its mark: what the next sync does with that book.\nA reader who looks down the seam sees the whole handover at once.\n\nThe world is the two devices' own. The grey is the Kobo's screen, the\nwhite is the web page that receives the book, the ink rule is the edge\nwhere one hands over to the other. Above everything a dark band is the\ntool itself: the name after a red caret, the navigation, what the Kobo and\nHardcover last did, and *Refresh* and *Sync now*. A quiet foot holds who\nis signed in, the theme switch, Help and the sentence that says the\nproject is independent. Red is only for what a sync sends and the button\nthat sends it; blue is a question for the reader; a green tick is up to\ndate; ink is a failure and the reader's chosen filter. Everything else is\nink and grey.\n\nIt turns down the usual look for this kind of tool: a neutral list with\ncoloured status badges scattered across it. Status lives in one place, on\nthe seam, as a drawn mark with plain words beside it. Covers are the only\npictures, and the tool fetches them itself. The one authored motion is\nkept from the earlier proofreading direction: when a value changes, the\nold one is struck through and the new one writes in after a caret.\n\n**The Mac app** (`packaging/macos/`) is drawn in Two Sides as well: the\ndark band across the top of every pane, the Kobo's grey and Hardcover's\nwhite with the ink seam between them and each book's mark on the seam as a\ndisc, in Books, Overview and Covers alike. Titles and the percentage are\nLiterata, in the window and the widget; controls and the words around them\nare the system font, as a Mac app's are. Its colours are the page's tokens;\nthe few `mac-` tokens are only what macOS asks for beyond them (a red that\nholds on a chosen row, the fill of a native button that sends, the stronger\nvalues Increase Contrast takes). Its rules are the *(Mac app)* sections of\nComponents.\n\nThe site (`site/`) is a world of its own, kept apart from the tool's and\nthe Mac app's: the claim and the download, then one row of the tool's\nBooks page drawn at full size with the proof mark on it, on a white\nground by day and a near-black one at night, and under it the three the\nsync runs between, the Kobo, your computer and Hardcover, one card each,\nwith photographs of people reading as cards too. It keeps its two faces\nfrom its own font files, the page's marks, its one motion and its theme\nswitch, and the drawn row keeps the Galley Proof's colours. Its tokens\ncarry the `site-` prefix, the `site-sheet-` set and the three gradient\nfamilies, and its rules are under *The site* in Colors and Components.",
     "keyCharacteristics": [
       "Two sides per book: the Kobo's on grey paper (`ground`), Hardcover's on white (`sheet`); the cover grey on one, in colour on the other.",
       "The seam: a 2px ink rule between the sides, holding each row's mark as a 2rem disc.",
@@ -2962,7 +2642,7 @@
       },
       {
         "name": "The Reading Face Rule",
-        "body": "Literata is for what is read as a book: book titles in the list, at the top of Details and under a large cover, a page's head, and the percentage. The name, sans headings, buttons, labels and every fact are Atkinson Hyperlegible Next. The site and the Mac app keep Source Serif 4 for their book titles until they are redesigned.",
+        "body": "Literata is for what is read as a book: book titles in the list, at the top of Details and under a large cover, a page's head, and the percentage. The name, sans headings, buttons, labels and every fact are Atkinson Hyperlegible Next. The Mac app keeps the rule in its own terms: Literata for book titles, the percentage and the heads of Overview's two sides, the system font for everything else. The site's drawn row keeps its own title face (`site-sheet-title`).",
         "section": "typography"
       },
       {
@@ -3010,7 +2690,7 @@
       "**Don't** use pill shapes for buttons, tags, fields or switches; the pill is the filter chip's, and the disc is the seam's.",
       "**Don't** set `tabular-nums` on the root or on running text.",
       "**Don't** set anything but a book title, a page head or the percentage in Literata.",
-      "**Don't** load Schibsted Grotesk or Source Serif 4 on the page; they stay in the fonts folder for the Mac app's packaging.",
+      "**Don't** load Schibsted Grotesk or Source Serif 4 on the page; the Mac app takes Literata from the page's own files.",
       "**Don't** rely on a shadow to separate surfaces; the dark theme has none.",
       "**Don't** set labels in capitals or track them out.",
       "**Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the download card, the sheet and the story cards rise once on load and the strike and write-in follow in the sheet's row, standing still under reduced motion.",

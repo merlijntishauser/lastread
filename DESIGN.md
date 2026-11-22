@@ -50,48 +50,28 @@ colors:
   flag-dark: "#ecebe4"
   on-flag-dark: "#121311"
   on-fill-dark: "#121311"
-  mac-ground: "#edefea"
-  mac-sheet: "#fbfbf8"
-  mac-margin: "#f4f5f1"
-  mac-ink: "#17191c"
-  mac-graphite: "#4a4f57"
-  mac-faint: "#5f656e"
-  mac-rule: "#cdd1cb"
-  mac-rule-soft: "#e3e6e0"
-  mac-edge: "#80868e"
-  mac-rail: "#c3e2ef"
-  mac-rail-ink: "#14222b"
-  mac-rail-graphite: "#2f4653"
-  mac-blue: "#1c5e8b"
-  mac-blue-wash: "#ddeff7"
-  mac-red: "#c0212b"
-  mac-red-wash: "#f9e3e1"
-  mac-green: "#2c6a39"
-  mac-green-wash: "#e1f0e2"
-  mac-flag: "#17191c"
-  mac-on-flag: "#fbfbf8"
-  mac-on-fill: "#ffffff"
-  mac-ground-dark: "#0f1114"
-  mac-sheet-dark: "#171a1e"
-  mac-margin-dark: "#1b1f24"
-  mac-ink-dark: "#e7e9e4"
-  mac-graphite-dark: "#aeb4bb"
-  mac-faint-dark: "#959ca4"
-  mac-rule-dark: "#30353c"
-  mac-rule-soft-dark: "#24282e"
-  mac-edge-dark: "#6e757e"
-  mac-rail-dark: "#123040"
-  mac-rail-ink-dark: "#e3f1f7"
-  mac-rail-graphite-dark: "#a9c6d4"
-  mac-blue-dark: "#86c5ea"
-  mac-blue-wash-dark: "#173444"
-  mac-red-dark: "#ff8077"
-  mac-red-wash-dark: "#3b1f1f"
-  mac-green-dark: "#86cf95"
-  mac-green-wash-dark: "#18301e"
-  mac-flag-dark: "#e7e9e4"
-  mac-on-flag-dark: "#0f1114"
-  mac-on-fill-dark: "#0f1114"
+  mac-red-held: "#bb1d2a"
+  mac-fill: "#bb1d2a"
+  mac-graphite-more: "#3d3c37"
+  mac-faint-more: "#46453f"
+  mac-edge-more: "#5a5953"
+  mac-rule-more: "#7e7d76"
+  mac-rule-soft-more: "#95958e"
+  mac-red-more: "#8a1520"
+  mac-red-held-more: "#87151e"
+  mac-blue-more: "#1a4280"
+  mac-green-more: "#1d4f29"
+  mac-red-held-dark: "#ff9ba0"
+  mac-fill-dark: "#bb1d2a"
+  mac-graphite-more-dark: "#cbcac2"
+  mac-faint-more-dark: "#c0bfb7"
+  mac-edge-more-dark: "#a5a49b"
+  mac-rule-more-dark: "#7a7a73"
+  mac-rule-soft-more-dark: "#656661"
+  mac-red-more-dark: "#ffa3a8"
+  mac-red-held-more-dark: "#ffd5d7"
+  mac-blue-more-dark: "#b0caff"
+  mac-green-more-dark: "#9ddcab"
   site-ground: "#fbfbfd"
   site-ink: "#17191c"
   site-graphite: "#4a4f57"
@@ -642,12 +622,16 @@ pictures, and the tool fetches them itself. The one authored motion is
 kept from the earlier proofreading direction: when a value changes, the
 old one is struck through and the new one writes in after a caret.
 
-**The site and the Mac app** still follow the previous system, "The
-Galley Proof" (galley stock, a non-repro blue rail, Schibsted Grotesk and
-Source Serif 4), until they are redesigned. Their tokens are the `site-`
-set and the `mac-` set below, and their sections are kept as they were;
-where a Mac app section names Galley Stock, Proof Sheet, Margin Tint,
-Non-repro Blue or a pencil, it means the `mac-` token of that name.
+**The Mac app** (`packaging/macos/`) is drawn in Two Sides as well: the
+dark band across the top of every pane, the Kobo's grey and Hardcover's
+white with the ink seam between them and each book's mark on the seam as a
+disc, in Books, Overview and Covers alike. Titles and the percentage are
+Literata, in the window and the widget; controls and the words around them
+are the system font, as a Mac app's are. Its colours are the page's tokens;
+the few `mac-` tokens are only what macOS asks for beyond them (a red that
+holds on a chosen row, the fill of a native button that sends, the stronger
+values Increase Contrast takes). Its rules are the *(Mac app)* sections of
+Components.
 
 The site (`site/`) is a world of its own, kept apart from the tool's and
 the Mac app's: the claim and the download, then one row of the tool's
@@ -717,16 +701,19 @@ still reads as the page the book lands on.
 - **Rule** (`rule`) and **Soft Rule** (`rule-soft`): borders of cards and book cards, lines between rows (soft on Hardcover's side) and between sections.
 - **The Band** (`band`, with `band-ink` and `band-graphite`): the dark band across the top and the navigation bar under the thumb on a phone. Its marks have their own lighter colours so they hold on the dark: `band-green` for a tick, `band-red` for a change and for the sync gauge, `band-blue` for a question and the focus ring on the band, `band-ink` for a failure, `band-graphite` for a dash. The same values in both lights.
 
-### The Mac app (Galley Proof)
-The Mac app keeps the previous palette, at the values `packaging/macos/Paper.swift`
-holds: `mac-ground` (Galley Stock), `mac-sheet` (Proof Sheet),
-`mac-margin` (Margin Tint), `mac-ink`, `mac-graphite`, `mac-faint`,
-`mac-rule`, `mac-rule-soft`, `mac-edge` (Field Edge), `mac-rail` with
-`mac-rail-ink` and `mac-rail-graphite` (Non-repro Blue), `mac-blue` (Blue
-Pencil), `mac-red` (Red Pencil), `mac-green` (Tick Green), `mac-flag` (Flag
-Ink), each with its wash and `-dark` value. Its sections under Components
-use these names. They move to the page's palette when the Mac app is
-redesigned.
+### The Mac app
+The Mac app paints with the page's palette, at the values `enum Pencil` in
+`packaging/macos/Paper.swift` holds, the same in light and dark: `ground`,
+`sheet`, `margin`, `ink`, `graphite`, `faint`, `edge`, `rule`, `rule-soft`,
+`red`, `blue`, `blue-wash`, `green`, `green-wash`, `flag`, `on-flag`,
+`on-fill`, and the band's set (`band`, `band-ink`, `band-graphite`,
+`band-green`, `band-blue`, `band-red`). A Mac app section that names E-ink
+Paper, Hardcover White, Ink or the band means the page's token. It adds
+only what macOS asks of it:
+- **Held Red** (`mac-red-held`, dark #ff9ba0): what a sync sends, on a row chosen while its window is in the back.
+- **Native Fill** (`mac-fill`, #bb1d2a in both lights): a native prominent button that sends (*Go live*), whose white words need the darker red at night too. *Sync now* on the band and the red disc take `red` with On Fill words.
+- **Increase Contrast** (the `-more` tokens): with Increase Contrast on, each colour that sits on the grey takes a stronger value (`tone(..., more:)`): the words reach 7:1 on the grey (Graphite #3d3c37, dark #cbcac2), the rules 3:1. Ink, the grey, the white and the band stay as they are.
+- What was found, facts and labels are Graphite in every pane, in Settings and in the widget, never the system's grey. Where the system's selection is behind a row, the words, marks and gauge take the selection's white; a disc keeps its colours, as it is its own ground.
 
 ### The site
 The site's palette is its own: none of these tokens is used by the tool
@@ -799,12 +786,14 @@ at 13px in a row. Both are served by the tool from its own static files
 (latin and latin-ext, Atkinson in roman and italic), under the SIL Open
 Font Licence, weights 400 to 800 on the `wght` axis, Literata with optical
 sizing on. Schibsted Grotesk and Source Serif 4 stay in the fonts folder
-only for the Mac app's packaging and are not loaded by the page. The Mac
-app sets titles from those files: the latin subset, with latin-ext behind
+and are not loaded by the page. The Mac app sets its titles and the
+percentage in Literata from the page's own files, which its build copies
+into the app and into the widget: the latin subset, with latin-ext behind
 it as a cascade for the letters only it has (registered side by side,
 macOS chose latin-ext, which holds no lowercase, and set titles in the
 system font), at the weight on the `wght` axis and `opsz` at the point
-size; without the files, the serif macOS has.
+size; without the files, the serif macOS has. Everything else in the app
+is the system font.
 
 ### Hierarchy
 - **Display** (Atkinson, 800, 1.3rem, 1.35rem from 1024px, 1.05, -0.015em): the name in the band, once, after the red caret.
@@ -821,6 +810,22 @@ size; without the files, the serif macOS has.
 - **Small** (400, 0.8125rem): facts under the gauge, the legend (0.75rem below 1024px), hints, the edition line, the foot.
 - **Fine** (400, 0.75rem, 1.45): the independence sentence in the foot, the count on *Sync now*, a tag.
 - **Sign-in code** (system monospace, 600, min(1.375rem, 7vw), 0.12em): set large because the reader compares it by eye with what Hardcover shows. Other code is the monospace at 0.8125rem.
+
+### The Mac app's scale
+In points. In Literata: the percentage 30pt at 700 in a Books row (22pt
+when narrow) and 44pt on the Covers pile, tracked -0.04em with tabular
+figures and the % sign at 0.43 of it, Faint at 0; the head of each side of
+Overview 30pt at 700; a book title at 600, 15pt in a row and in a cover's
+caption, 18pt at the top of Details, 28pt in the spread, 24pt for the book
+being read on the pile, 22pt for the tip there and under the large cover,
+13pt in the tip line, 14pt in the EPUB Folder; the widget's titles 13pt and
+15pt. In the system font: the band's sentence 16pt bold, its second line
+and its buttons 13pt; a link's name on Overview 16pt bold and its line
+12.5pt; a side's label 13pt bold in Graphite; the list's heads 12pt at 600
+in Graphite; a status's first line 11.5pt bold over a second line, 13pt
+alone; the author and facts 12pt with tabular figures; buttons 13pt. The
+widget's percentage is the system caption with tabular figures, in
+Graphite, beside its gauge.
 
 ### The site's scale
 The site (`site/`) is a page read once from a chair, not a list worked
@@ -856,8 +861,10 @@ is the first line of its card or block: no kicker or eyebrow above it.
 **The Reading Face Rule.** Literata is for what is read as a book: book
 titles in the list, at the top of Details and under a large cover, a
 page's head, and the percentage. The name, sans headings, buttons, labels
-and every fact are Atkinson Hyperlegible Next. The site and the Mac app
-keep Source Serif 4 for their book titles until they are redesigned.
+and every fact are Atkinson Hyperlegible Next. The Mac app keeps the rule
+in its own terms: Literata for book titles, the percentage and the heads
+of Overview's two sides, the system font for everything else. The site's
+drawn row keeps its own title face (`site-sheet-title`).
 
 **The Figures Rule.** Tabular figures go only where numbers stand in
 columns or are compared: the percentage, the facts under a gauge
@@ -1018,7 +1025,15 @@ the sheet, 12px on the button and the theme switch (9px on its three
 buttons), 10px on a screenshot inside its card, 8px on a code chip;
 inside the sheet 4px on the drawn switches and *Details*
 (`site-sheet-ctl`), and the cover's 1px spine and 3px fore-edge; its
-focus ring is 3px with 4px corners. The Mac app keeps its 4pt corners.
+focus ring is 3px with 4px corners.
+
+The Mac app's corners are in points: 4pt on a white sheet, 8pt on the
+white box above the list and on the last sync on Overview, 7pt on what you
+operate (the band's buttons, the app's own buttons, the slip of *Hold* and
+*Show* on the seam), 2pt on a cover, a caption and a row's word. Its discs
+are the page's: 24pt on the list's seam, 40pt on Overview's chain and its
+hop, 30pt for the tip on Covers' seam, 20pt on a cover the next sync
+changes, at full size.
 
 Lines carry the structure. Borders are 1px; the edge of a control is
 1.5px. The one heavy line is the seam, a 2px ink rule
@@ -1205,64 +1220,72 @@ row. Help is reading matter: the title and *Close* stay put above a double
 rule while the text scrolls, and the words and marks from the page stand
 in their own 11rem column.
 
-### The overview (Mac app)
-The window's first pane is the page's paper too, not a grey form: Galley
-Stock, with each part on a Proof Sheet inside a 1pt Rule, 4pt corners,
-720pt wide at most.
+### The band (Mac app)
+Across the top of every pane, dark in both lights (`band`): the tool
+itself. Padded 24pt across and 14pt down: the readiness mark at 22pt in
+the band's own colours (a small spinner while a sync runs); then *Ready
+for the Kobo*, *Ready, with a warning*, *Needs attention:* and the link,
+or *Syncing…*, at 16pt bold in Band Ink; under it at 13pt in Band Graphite
+the mode, the last sync and a plugged-in Kobo (*On this Mac · last sync
+today at 10:22 · Kobo plugged in*), or, after a sync ended while the
+window was open, what it did after its 14pt mark, in Band Ink at 600 when
+it failed; two lines at most. On the right the page's button (*Open in
+Browser*, or *Open on* and the server's name) and *Sync now*, 30pt tall,
+7pt corners, 13pt, outlined in Band Ink at 55%. *Sync now* is filled `red`
+with On Fill words only while the sync is live, with *sends 3 changes*
+beside its name when the next sync has some; in a dry run it is outlined
+like the other. Pressed at 75%, disabled at 45%.
 
-- **The chain:** Kobo → This Mac → (Server) → Hardcover on one sheet. *Your
-  Kobo* is a slip of Non-repro Blue, its name in Rail Ink, its line in Rail
-  Graphite, its dash Rail Graphite, as the page's rail. *Hardcover* is the
-  proof margin: Margin Tint behind the double rule down its left. This Mac
-  and the server stand on the sheet. A link's line is Graphite, Blue Pencil
-  when it needs you, ink at 600 when it failed. The open link has a 2pt
-  rule under it in its name's colour.
-- **The arrows:** Field Edge. The count on the way to Hardcover is Red
-  Pencil at 600 with the caret only when the sync is live and has books to
-  send (the Two Pencils Rule); in a dry run it is Graphite.
-- **The status line above:** *Ready for the Kobo* in Tick Green, *Ready,
-  with a warning* in Blue Pencil, *Needs attention* in ink: the first line
-  in its mark's colour, as in the margin.
-- **A sync:** its steps on a sheet, rows parted by Soft Rule; the outcome as
-  the page's messages, on Green Wash when it worked and on the sheet inside
-  a 1px Flag Ink rule when it failed.
-- **History** is on the same stock: its syncs on one sheet, parted by Soft
-  Rule, each with its mark, what it did in ink and when in Graphite. So are
-  the panes' other states (not set up, the tool not answering): no pane of
-  the window is a grey form; only Settings, a window of its own, is.
-- What was found, facts and labels are Graphite in every pane, in Settings
-  and in the widget, never the system's grey, which is 3.9:1 on the light
-  stock. On a selected row of the Books list, whose blue would sink the
-  pencils, the words, marks and gauge take the selection's white. On the
-  grey of a row chosen in a window in the back, what a sync sends is in
-  Held Red (#b41e28, dark #ff9c94), 4.5:1 on that grey where Red is 3.9.
-- With Increase Contrast on, the Mac app takes a stronger pencil for each
-  colour that sits on the stock (`tone(..., more:)` in Paper.swift): the
-  words reach 7:1 (Graphite #33373d, dark #cdd2d7), the rules 3:1.
-  Ink, the stock and the sheet stay; the web page keeps its one set.
+### Books (Mac app)
+The page's list in two sides, drawn as rows of its own rather than a
+native table: a table's columns cannot carry two grounds and the seam,
+and its selection would cover both. Each row is the Kobo's side on E-ink
+Paper, the 2pt ink seam with the row's 24pt disc centred on it, and
+Hardcover's side on white, about a third of the width (34%, 220 to 420pt;
+36% and at least 150pt below 940pt). Under the last row the two grounds and
+the seam run on to the foot.
+- **The Kobo's side,** padded 24pt from the left (14pt narrow), 18pt right, 12pt down, a 1pt Rule above: how far, large in Literata; the cover in grey, 34pt wide (26pt narrow), on white with the cover shadow, at 60% when the book does not sync; the title in Literata at 15pt; the author, when it was last read and how long, at 12pt in Graphite with tabular figures; the Kobo's dotted gauge; then *Sync* (90pt) and *State* (150pt) as small pop-up menus, which go under the book below 940pt, as when Details is open beside the list. The grey cover is the small cover with no saturation and 1.04 contrast, made once and kept, so that scrolling costs nothing.
+- **The seam:** a 2pt ink rule down the list; on it each row's disc, the page's five (*The seam and its marks*): red filled with an On Fill caret, blue filled with the query, white in a 1.5pt green ring round the tick, white in a 1.5pt ink ring round the ink square, grey in a 1pt Edge ring round the dash. The disc keeps its colours on any row.
+- **Hardcover's side,** padded 24pt, a 1pt Soft Rule above: the cover in colour, 26pt wide, once the book syncs and has its match; then the status, its first line small and bold in the mark's colour (11.5pt over a second line, 13pt alone), a change struck in red and written in after a caret, a failure reversed out of ink; then the edition.
+- **The heads:** *Book*, *Sync* and *State* on the grey, *Hardcover status* on the white, 12pt at 600 in Graphite, 30pt tall under a 1pt Rule; hidden from VoiceOver, as each row says its own.
+- **The open book:** a click or the arrow keys open its Details beside the list, 300pt wide on white, and that row's grey side takes Blue Wash. No focus ring: the wash shows where the keyboard is. The context menu and VoiceOver's row actions stay.
+- **Above the list:** search, the page's filters and sorts, and the legend of the marks, drawn bare at 16pt; then *Needs you* and the tip in a white box (*The tip*).
+
+### The overview (Mac app)
+Split across the seam as the list is. The grey takes most of the width;
+past a 2pt ink seam Hardcover's side is white, 30% of the width, 230 to
+380pt. A newer version and Getting started (until live) stand above both
+on the grey, padded 40pt; the seam starts under them.
+- **Your side,** padded 40pt left, 28pt right, 36pt down: the side's head, *On your side* at 13pt bold in Graphite over *The Kobo and this Mac* (or *The Kobo, this Mac and the server*) in Literata at 30pt, 700; then the chain, each link a 40pt disc with its mark, its name at 16pt bold in ink, how it is at 12.5pt in Graphite, Blue when it needs you, ink at 600 when it failed. The open link has a 2pt ink rule under it. A narrow window has the links from top to bottom.
+- **The arrows:** 1.2pt lines in Edge with their heads, the counts of `status --json` above and below in the caption size with tabular figures, in Graphite. The count on the way to Hardcover is Red at 600 after a 12pt caret only when the sync is live and has books to send (the Two Pencils Rule); in a dry run it is Graphite. While a sync works on an arrow a 2pt red line a third of its length sweeps along it (0.9s, ease-in-out, back and forth); under Reduce motion it is a still line.
+- **The hop:** the way to Hardcover runs through the side's margin to the seam, where the hop is a 40pt disc level with the last of your links: how Hardcover is. Its words are on the link past it.
+- **Hardcover's side,** padded 36pt left: *On Hardcover* and how the sync stands there, in the same head; then the Hardcover link, the last book read that syncs and has its match lying in colour at 64pt, its name and its line.
+- **The last sync,** under the chain when nothing runs: its 26pt disc, what it said at 14pt at 600, when and what started it at 13pt in Graphite, in a white box with 8pt corners and a 1pt Rule, padded 18pt by 14pt, *Check again* beside it. The open link's checks follow on a white sheet (4pt, a 1pt Rule), rows parted by Soft Rule. A sync's steps and outcome are the page's messages: on Green Wash when it worked, on white inside an ink rule when it failed.
+- **History** and the panes' other states (not set up, the tool not answering) are white sheets on the grey, at most 720pt wide, padded 24pt by 22pt; each sync a row with its mark, what it did in ink and when in Graphite. Only Settings, a window of its own, is a native form.
 
 ### The tip (Mac app)
 One book from the reader's own shelf, chosen by the tool, with a question
-for them. It takes the blue circled query (*Needs you*), because it asks
-the reader something; red stays for what a sync sends. On Books it is
-one line of the notes between the toolbar and the list (padded 14pt by
-8pt, 6pt between lines), under *Needs you* when that shows: *Needs you*
-leads with the query at 20pt and its words at 500, the tip follows as a
-nudge, its query at 14pt centred in the same 20pt column, the cover 20pt
-wide, the title in Source Serif 4 at 13pt and the question after it in
-graphite, then *Open* (Details) and *Not now* (aside for a month) on the
-right, small plain buttons ending on the same edge as *Show Them* above.
-On Covers the same tip lies on the delivery pile.
+for them. It takes the query on its blue disc (*Needs you*), because it
+asks the reader something; red stays for what a sync sends. On Books it
+shares a white box with 8pt corners above the list with *Needs you*, when
+that shows: *Needs you* leads with a 22pt blue disc, its words at 13pt at
+600 and *Show them* underlined in Blue; the tip follows as a nudge, its
+disc at 15pt centred in the same 22pt column, the cover 20pt wide, the
+title in Literata at 13pt and the question after it in Graphite, then
+*Open* (Details) and *Not now* (aside for a month), ending on the same
+edge as *Show them*. On Covers the same tip lies on the pile, its blue
+disc on the seam.
+
 
 ### Setup (Mac app)
-The first run is on the galley, not in alerts. One proof sheet under the
+The first run is on the grey, not in alerts. One white sheet under the
 head *Where should your reading go?* holds the two ways as rows, each a
-radio in the pencils (a 16pt ring in Edge; chosen, filled Blue with a 6pt
-dot of On Flag, the title in Blue): *On this computer* and *With a
+radio in the page's colours (a 16pt white ring in Edge; chosen, filled
+Blue with a 6pt dot of On Flag, the title at 500 in Blue): *On this computer* and *With a
 server*, each with its sentence in graphite; under the second, when
 chosen, the address field. *Set up* is the default button, right, with
 the spinner and *Setting up…* on its left while it runs. What setup said
-is a second sheet: one row with the tick and the mode in the app's
+is a second white sheet: one row with the tick and the mode in the app's
 words, in server mode this Mac's hash at 14pt monospaced 600 (as the
 sign-in shows its code) with a small *Copy*; everything setup printed
 behind *Details*, monospaced in graphite. Under the sheet, in callout,
@@ -1273,7 +1296,8 @@ what macOS asks, and *Try Again*.
 
 ### The press run (signature, Mac app)
 The Mac app's *Covers* pane: the library as a press run, the covers the
-work itself. The upper 62% is the run on Galley Stock, three rows
+work itself, in two sides across the window. The upper 62% is the run on
+the Kobo's grey (`ground`), three rows
 drifting left, back to front: books on the Kobo never opened (72pt tall,
 by title), every other book read (108pt), books read in the last year
 (150pt); the last two newest read first. A row without books takes no
@@ -1282,19 +1306,20 @@ scale down together in a smaller window, never below 0.45 and never above
 full size. Covers stand a cover's width plus 22% apart (at least 10pt); a
 row too short for the window spreads out to fill it, each book on the run
 once and no stretch of bare ground. Covers carry the cover shadow and
-nothing else. The one mark on the run is the red caret, at the foot of a
-cover the next sync changes, on a small disc of Proof Sheet so it reads on
-any picture; every other mark waits for the caption.
+nothing else. The one mark on the run is the seam's red disc with its On
+Fill caret, 20pt at full size and scaled with the run (never under 14pt),
+at the foot of a cover the next sync changes, so it reads on any picture;
+every other mark waits for the caption.
 
-- **Row words:** a lifted cover's caption ends with its row's word in Faint: *Never opened*, *Read earlier*, *Read this year*. When the whole run stands by choice (*Hold*, or reduced motion) each row's word also sits at its left edge, 10pt in, on a slip of the sheet in the gap above it, small at 500 in graphite: the key to the run, never over a drifting row, never popping up away from where the pointer is; they fade out while the rows are moved by hand and return three seconds after the last move.
-- **Hold:** a small *Hold* / *Let drift* button with the pause or play symbol on the rule, left of *Show*, hidden under reduced motion. Held, the rows ease to a stop and stand until let go, remembered between visits (`CoversHeld`); the keyboard and the trackpad still move them.
+- **Row words:** a lifted cover's caption ends with its row's word in Faint: *Never opened*, *Read earlier*, *Read this year*. When the whole run stands by choice (*Hold*, or reduced motion) each row's word also sits at its left edge, 10pt in, on a white slip (2pt corners, a 1pt Rule) in the gap above it, at the caption size at 500 in Graphite: the key to the run, never over a drifting row, never popping up away from where the pointer is; they fade out while the rows are moved by hand and return three seconds after the last move.
+- **Hold:** a small *Hold* / *Let drift* button with the pause or play symbol on the seam, left of *Show*, hidden under reduced motion. Held, the rows ease to a stop and stand until let go, remembered between visits (`CoversHeld`); the keyboard and the trackpad still move them.
 - **Lift:** the cover under the pointer, or reached by the arrow keys or from Spotlight, grows 1.12x from its foot and its shadow deepens (22% black, 6pt blur, 6pt down); its row stands. A click opens the spread; Return opens the lifted one; arrows move along a row and between rows, a third in from the left, and the run stands while the keyboard is in it; Escape lets go. Two fingers on the trackpad move the run by hand.
-- **Caption:** under a lifted cover (above it where the run has no room below, as under the front row), always over the covers, a 260pt slip of Proof Sheet, 2px, a 1px Rule, padded 10pt, lying over the run with a soft fall of shadow (18% black, 10pt blur, 6pt down): the title in Source Serif 4 at 15pt, the author in graphite, the line gauge, and the book's status line with its mark at 14pt.
-- **Double rule:** two 1pt Rule lines 1pt apart, 3pt in all, inset 20pt from the sides: where the run ends and the pile begins. At its right end, 28pt in, the rule breaks for *Show* (a small native menu on Galley Stock, like a mark in the margin): which books the run holds, the list's own filters with their counts, remembered apart from Books'. The pile keeps the book being read and the tip whatever is shown; a selection without books says so in the run. A book brought up from Spotlight or the widget that the selection leaves out sets it back to all.
-- **Delivery pile:** the lower 38%, padded 24pt across and 22pt below the rule. The book being read (the most recently read that is started and not finished) and the tip, 36pt apart, each a cover lying as wide as the front row's (less when the pile is short) with its words 16pt beside it. The book being read: its title in Source Serif 4 at 22pt, the author in graphite, the line gauge, the facts (tabular). The tip: the circled query at 18pt with the question, the title at 16pt, the author, *Open* and *Not now*. With no books the pile is one line: plug in the Kobo.
-- **Spread:** a click on a cover (or Return, or *Open* on the pile) lays the book over the pane on Galley Stock: the cover in the left third, as large as the height allows (32pt clear of the edges), on Proof Sheet with a deeper fall of shadow (16% black, 18pt blur, 12pt down), the thumbnail first and the large cover once the tool has it; a 1pt Rule; then Details in the other two thirds, at most 620pt wide, without its small cover and with the title in Source Serif 4 at 28pt. A click on its cover shows it in the lightbox; Escape or the close button puts the spread back. The run has no focus ring: the lifted cover shows where the keyboard is.
-- **Lightbox:** Space on the run, or a click on the cover in the spread, shows the cover over the whole window, sidebar included, as large as it fits (48pt clear at the sides, room for the title below), the large cover once the tool has it, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Source Serif 4 at 22pt in white. A click, Space or Escape puts it back (Escape first closes the lightbox, then the spread).
-- **Tones:** the app's pencils hold the page's Galley Stock, Proof Sheet and Rule (`ground`, `sheet`, `rule`) at the same values in light and dark: the ground under the covers, the sheet behind a cover and of the caption, the rule of the caption and the double rule. No colour outside the page's.
+- **Caption:** under a lifted cover (above it where the run has no room below, as under the front row), always over the covers, a 260pt white slip, 2pt corners, a 1pt Rule, padded 10pt, lying over the run with a soft fall of shadow (18% black, 10pt blur, 6pt down): the title in Literata at 15pt, the author in Graphite, the Kobo's gauge, the book's status line with its mark at 14pt, and its row's word in Faint.
+- **The seam:** a 2pt ink rule across the whole window where the run ends and the pile begins: the Kobo's run above, Hardcover's pile below. Over the tip's cover the tip's 30pt blue disc stands on it, the one question on the pile. At its right end, 24pt in, a slip of the grey, 30pt tall with 7pt corners and a 1pt Edge, holds *Hold* and *Show* (a small native menu): which books the run holds, the list's own filters with their counts, remembered apart from Books'. The pile keeps the book being read and the tip whatever is shown; a selection without books says so in the run. A book brought up from Spotlight or the widget that the selection leaves out sets it back to all.
+- **Delivery pile:** the lower 38%, on Hardcover's white, padded 40pt across and 16pt down. The book being read (the most recently read that is started and not finished) and the tip, 40pt apart, each in its half, each a cover lying in colour as wide as the front row's (less when the pile is short, never under 48pt) with its words beside it. The book being read: *Reading now* at 12.5pt bold in Graphite, how far in Literata at 44pt beside the title in Literata at 24pt, the facts at 13.5pt in Graphite, and the gauge 220pt wide. The tip: its blue disc at 20pt with the question at 13.5pt at 600 in Blue, the title in Literata at 22pt, the author in Graphite, then *Open* filled in ink and *Not now* outlined in Edge. A click on either cover opens the spread.
+- **Spread:** a click on a cover (or Return, or *Open* on the pile) lays the book over the pane on the grey: the cover in the left third, as large as the height allows (32pt clear of the edges), on white with a deeper fall of shadow (16% black, 18pt blur, 12pt down), the thumbnail first and the large cover once the tool has it; a 1pt Rule; then Details in the other two thirds, at most 620pt wide, without its small cover and with the title in Literata at 28pt. A click on its cover shows it in the lightbox; Escape or the close button puts the spread back. The run has no focus ring: the lifted cover shows where the keyboard is.
+- **Lightbox:** Space on the run, or a click on the cover in the spread, shows the cover over the whole window, sidebar included, as large as it fits (48pt clear at the sides, room for the title below), the large cover once the tool has it, with the page's lightbox shadow over the same `rgba(10, 12, 14, 0.88)`, its title in Literata at 22pt in white. A click, Space or Escape puts it back (Escape first closes the lightbox, then the spread).
+- **Tones:** the run on the grey, the pile on the white, the seam the one heavy line between them; a cover lies on white behind its picture, a caption and a row's word on a white slip in a 1pt Rule. No colour outside the page's.
 ### The site (signature)
 One static page, `site/`, in a world of its own. Its proof is the
 tool's own: one row of the Books page at full size, drawn in the page's
@@ -1386,7 +1411,7 @@ smooth scroll to an in-page link is off too.
 - **Don't** use pill shapes for buttons, tags, fields or switches; the pill is the filter chip's, and the disc is the seam's.
 - **Don't** set `tabular-nums` on the root or on running text.
 - **Don't** set anything but a book title, a page head or the percentage in Literata.
-- **Don't** load Schibsted Grotesk or Source Serif 4 on the page; they stay in the fonts folder for the Mac app's packaging.
+- **Don't** load Schibsted Grotesk or Source Serif 4 on the page; the Mac app takes Literata from the page's own files.
 - **Don't** rely on a shadow to separate surfaces; the dark theme has none.
 - **Don't** set labels in capitals or track them out.
 - **Don't** add a second authored motion; the strike and the write-in are the one. The Mac app's *Covers* pane is the one approved exception: the drift and the lift, standing still under Reduce motion and when not visible. The site's is its own one: the download card, the sheet and the story cards rise once on load and the strike and write-in follow in the sheet's row, standing still under reduced motion.

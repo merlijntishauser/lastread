@@ -19,11 +19,14 @@ delivery pile, where the book in hand and one tip are laid. It refuses
 the category default: a scrolling grid of equal covers with a search
 field on top.
 
-OWN-WORLD: The Galley Proof, unchanged. Galley Stock ground, covers with
-the cover shadow as the only depth, a 3px double rule between run and
-pile, Source Serif 4 for titles only, the line gauge, the marks. Red
-caret on a cover the next sync changes; the tip is the blue circled
-query, a question to the reader. No pills, no glow, no blur.
+OWN-WORLD: Two Sides, as the page and the rest of the app. The run on the
+Kobo's grey e-ink paper, covers with the cover shadow as the only depth; a
+2pt ink seam across the window between run and pile, the tip's blue disc
+on it; the pile on Hardcover's white, its covers in colour. Literata for
+titles and for how far a book is read, the Kobo's dotted gauge, the page's
+marks and their discs. The red disc with its caret on a cover the next
+sync changes; the tip is the query on its blue disc, a question to the
+reader. No pills, no glow, no blur.
 
 STORY: The reader sees their reading at a glance, front row recent,
 middle row the rest read, back row never opened. A hover stops the run

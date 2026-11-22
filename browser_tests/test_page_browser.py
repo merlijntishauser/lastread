@@ -23,7 +23,7 @@ from playwright.sync_api import sync_playwright
 
 CHROMIUM = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
 OUT = os.environ.get("DEV_OUT")
-DARK_BG, LIGHT_BG = "rgb(15, 17, 20)", "rgb(237, 239, 234)"
+DARK_BG, LIGHT_BG = "rgb(43, 44, 40)", "rgb(226, 225, 219)"  # --ground: the Kobo's grey paper, at night and by day
 IMAGE_IDS = [i for i in os.environ.get("KOBO_TEST_IMAGE_IDS", "").split(",") if i]
 
 
@@ -320,7 +320,8 @@ def test_cover_opens_in_a_lightbox_and_closes(browser, base_url):
 def test_list_scrolls_in_its_own_panel_and_the_page_stays(browser, base_url):
     ctx, page = new_page(browser, base_url)
     wrap = page.locator(".tablewrap")
-    page.mouse.move(640, 600)
+    box = wrap.bounding_box()  # the wheel turned over the list itself, wherever the band and the filters leave it
+    page.mouse.move(640, box["y"] + min(box["height"] - 10, 120))
     page.mouse.wheel(0, 600)
     page.wait_for_timeout(200)
     assert page.evaluate("window.scrollY") == 0  # the page did not move
@@ -621,7 +622,7 @@ def test_under_a_finger_every_control_is_44px(browser, base_url):
         """() => { const out = [];
         for (const e of document.querySelectorAll('a[href], button, select, input:not([type=hidden])')) {
           if (e.closest('dialog:not([open])') || !e.getClientRects().length || getComputedStyle(e).display === 'inline') continue;
-          if (/linkbtn|coverlink/.test(e.className)) continue;
+          if (/linkbtn|coverlink|skip/.test(e.className)) continue;  // skip: off the screen until the keyboard reaches it, not a touch target
           e.scrollIntoView({block: 'center'});
           const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
           const mine = p => { const h = document.elementFromPoint(x, p); return h && (h === e || e.contains(h) || h.contains(e)); };
