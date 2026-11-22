@@ -265,82 +265,82 @@ typography:
     letterSpacing: "0.12em"
     fontFeature: "\"tnum\""
   site-headline:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "clamp(2.4rem, 1.2rem + 3vw, 3.8rem)"
     fontWeight: 800
     lineHeight: 0.98
     letterSpacing: "-0.04em"
   site-section:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "clamp(1.7rem, 1.1rem + 2vw, 2.6rem)"
     fontWeight: 800
     lineHeight: 1.05
     letterSpacing: "-0.035em"
   site-card-heading:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "1.375rem"
     fontWeight: 800
     lineHeight: 1.05
     letterSpacing: "-0.02em"
   site-figure:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "clamp(6rem, 3rem + 7vw, 9rem)"
     fontWeight: 800
     lineHeight: 0.82
     letterSpacing: "-0.06em"
   site-step-figure:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "clamp(4.5rem, 2rem + 5vw, 6.5rem)"
     fontWeight: 800
     lineHeight: 0.82
     letterSpacing: "-0.06em"
   site-line:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
     fontWeight: 500
     lineHeight: 1.3
   site-sure:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 500
     lineHeight: 1.4
   site-lede:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
     fontWeight: 400
     lineHeight: 1.45
   site-body:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.5
   site-caption:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.5
   site-name:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
     fontWeight: 800
     letterSpacing: "-0.02em"
   site-nav:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 600
   site-photo-title:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Literata', Georgia, 'Times New Roman', serif"
     fontSize: "1.75rem"
     fontWeight: 800
     lineHeight: 1.05
     letterSpacing: "-0.02em"
   site-facts:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.4
   site-button:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.125rem"
     fontWeight: 800
     letterSpacing: "-0.01em"
@@ -349,7 +349,7 @@ typography:
     fontSize: "0.8125rem"
     fontWeight: 400
   site-sheet:
-    fontFamily: "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    fontFamily: "'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     fontSize: "1.0625rem"
     fontWeight: 400
     lineHeight: 1.4

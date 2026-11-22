@@ -1,11 +1,13 @@
 /* The site of lastread (DESIGN.md, the site). The first viewport
    is the claim, the download card, and one row of the tool's own Books page
-   at full size, with the proof mark drawn on it; under it the three the sync
-   runs between, the Kobo, your computer and Hardcover, one card each. The ground is white by day and near-black at night; the two
-   faces are the project's own files; nothing is loaded from elsewhere. */
+   at full size, drawn in the tool's design (two sides, the seam, its mark);
+   under it the three the sync runs between, the Kobo, your computer and
+   Hardcover, one card each. The site keeps its colour (the gradient cards,
+   the photographs) and takes the tool's language: the dark band across the
+   top, Literata for headings and figures, Atkinson Hyperlegible Next for
+   the words, the marks as discs. The ground is white by day and near-black
+   at night; the faces are the project's own files; nothing is loaded from elsewhere. */
 
-@font-face { font-family: "Schibsted Grotesk"; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-latin.woff2) format("woff2"); }
-@font-face { font-family: "Schibsted Grotesk"; font-style: italic; font-weight: 400 900; font-display: swap; src: url(fonts/SchibstedGrotesk-italic-latin.woff2) format("woff2"); }
 @font-face { font-family: "Literata"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/Literata-latin.woff2) format("woff2"); }
 @font-face { font-family: "Atkinson Hyperlegible Next"; font-style: normal; font-weight: 400 800; font-display: swap; src: url(fonts/AtkinsonHyperlegibleNext-latin.woff2) format("woff2"); }
 
@@ -26,7 +28,9 @@
   --r-card: 18px; --r-ctl: 12px; --r-shot: 10px;
   --lift: 0 24px 48px -28px rgba(23, 25, 28, 0.45);
   --serif: "Literata", Georgia, "Times New Roman", serif;
-  --sans: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sans: "Atkinson Hyperlegible Next", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --band: #1c1c1a; --band-ink: #efeee8; --band-graphite: #b8b7ae; --band-red: #ff8f93; --band-ok: #7dcf92;
+  --disc-red: #bb1d2a; --disc-green: #256535; --disc-blue: #22509c;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --gutter: max(16px, env(safe-area-inset-left, 0px));
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
@@ -65,10 +69,11 @@ a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
 .card.plum :focus-visible, .card.teal :focus-visible, .card.cobalt :focus-visible, .card.ink :focus-visible, .card.photo :focus-visible { outline-color: #fff; }
 .card.flag :focus-visible { outline-color: var(--on-flag); }  /* the quiet card and the sheet keep the page's own ring */
-h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; }
-h1 { font-size: clamp(2.4rem, 1.2rem + 3vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
-h2 { font-size: clamp(1.7rem, 1.1rem + 2vw, 2.6rem); font-weight: 800; letter-spacing: -0.035em; }
-h3 { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.02em; }
+/* Headings and figures in Literata, the tool's reading face; the words in Atkinson Hyperlegible Next. */
+h1, h2, h3 { margin: 0; line-height: 1.05; text-wrap: balance; font-family: var(--serif); }
+h1 { font-size: clamp(2.5rem, 1.2rem + 3.3vw, 4.1rem); font-weight: 700; letter-spacing: -0.035em; line-height: 0.98; }
+h2 { font-size: clamp(1.7rem, 1.1rem + 2vw, 2.6rem); font-weight: 700; letter-spacing: -0.025em; }
+h3 { font-size: 1.375rem; font-weight: 700; letter-spacing: -0.015em; }
 p { margin: 0; }
 .lede { color: var(--graphite); font-size: 1.125rem; line-height: 1.45; max-width: 60ch; text-wrap: pretty; }
 .caption { color: var(--graphite); font-size: 0.875rem; max-width: 62ch; }
@@ -77,19 +82,27 @@ code { font: 0.8125rem var(--mono); overflow-wrap: anywhere; }
 .skip { position: absolute; left: var(--gutter); top: -3rem; background: var(--flag); color: var(--on-flag); padding: 0.5rem 0.8rem; border-radius: var(--r-ctl); z-index: 10; }
 .skip:focus { top: 0.5rem; }
 
-/* The head: the name with its caret, and the page's places. */
+/* The head: the tool's dark band across the top, the name with its caret, and the page's places.
+   The band runs to the window's edges; its contents keep to the page's 90rem. */
 .top {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1.5rem;
-  padding-inline: var(--gutter) var(--gutter-r); padding-block: 0.9rem; max-width: 90rem; margin: 0 auto;
+  padding-block: 0.85rem; background: var(--band); color: var(--band-ink);
+  padding-left: max(var(--gutter), calc((100% - 90rem) / 2 + 16px)); padding-right: max(var(--gutter-r), calc((100% - 90rem) / 2 + 16px));
 }
-.name { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 1.125rem; letter-spacing: -0.02em; }
-.name svg { width: 1rem; height: 1rem; color: #e8343f; }
-.top nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1.4rem; font-size: 0.9375rem; font-weight: 600; }
-.top nav a { color: var(--graphite); text-decoration: none; padding: 0.4rem 0; }
-.top nav a:hover { color: var(--ink); text-decoration: underline; }
+.name { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--band-ink); text-decoration: none; font-weight: 800; font-size: 1.125rem; letter-spacing: -0.01em; }
+.name svg { width: 1rem; height: 1rem; color: var(--band-red); }
+.top nav { display: flex; flex-wrap: wrap; gap: 0.2rem 1.4rem; font-size: 0.9375rem; font-weight: 700; }
+.top nav a { color: var(--band-graphite); text-decoration: none; padding: 0.4rem 0; }
+.top nav a:hover { color: var(--band-ink); text-decoration: underline; }
+.top :focus-visible { outline-color: var(--band-ink); }
+/* A mark as the tool draws it on its seam: a disc. Red filled for a change, a green ring for up to date. */
+.disc { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; flex: none; }
+.disc svg { width: 58%; height: 58%; }
+.card > .disc.next { background: var(--disc-red); color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85); }
+.card > .disc.ok { background: #fff; color: var(--disc-green); box-shadow: inset 0 0 0 2px var(--disc-green); }
 @media (max-width: 719.98px) { .top nav .inpage { display: none; } }
 
-main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5rem, 1.5vw, 1.25rem) 5rem; }
+main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(1.75rem, 3vw, 3rem) 5rem; }
 .hero, .block { width: 100%; max-width: 90rem; margin: 0 auto; padding-inline: var(--gutter) var(--gutter-r); display: grid; gap: 1.25rem; min-width: 0; }
 .block .head { display: grid; gap: 0.75rem; margin-bottom: 0.5rem; }
 
@@ -114,12 +127,12 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .card a { color: inherit; }
 .card .lede, .card .caption { color: inherit; }
 .card .lede { opacity: 0.92; }
-.figure { font-size: clamp(6rem, 3rem + 7vw, 9rem); font-weight: 800; letter-spacing: -0.06em; line-height: 0.82; margin-bottom: 0.25rem; }
+.figure { font-family: var(--serif); font-size: clamp(6rem, 3rem + 7vw, 9rem); font-weight: 700; letter-spacing: -0.05em; line-height: 0.82; margin-bottom: 0.25rem; font-variant-numeric: lining-nums; }
 .line { font-size: 1.125rem; font-weight: 500; line-height: 1.3; max-width: 34ch; }
 .card.photo { padding: 0; justify-content: flex-end; margin: 0; background: #1a1926; }
 .card.photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .card.photo > figcaption, .card.photo > .over { position: relative; padding: 5rem 1.6rem 1.7rem; background: var(--scrim); display: grid; gap: 0.5rem; }
-.card.photo .title { font-size: 1.75rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }  /* a heading, not a book title: the Book Face Rule holds */
+.card.photo .title { font-size: 1.75rem; font-weight: 700; line-height: 1.05; letter-spacing: -0.015em; }
 .card.photo .facts { font-size: 1rem; line-height: 1.4; opacity: 0.94; }
 
 /* ---------- the first viewport ---------- */
@@ -147,7 +160,7 @@ main { display: grid; gap: clamp(4.5rem, 8vw, 7.5rem); padding-block: clamp(0.5r
 .get { display: grid; gap: 0.75rem; align-content: end; }
 .primary {
   display: inline-flex; align-items: center; justify-content: center; min-height: 3.25rem; padding: 0.6rem 1.5rem; width: fit-content;
-  font-weight: 800; font-size: 1.125rem; letter-spacing: -0.01em; color: var(--flag); background: var(--on-flag); border-radius: var(--r-ctl); text-decoration: none;
+  font-weight: 800; font-size: 1.125rem; letter-spacing: 0; color: var(--flag); background: var(--on-flag); border-radius: var(--r-ctl); text-decoration: none;
 }
 .card .primary { color: var(--flag); background: var(--on-flag); }
 .card.flag .primary { width: 100%; min-height: 3.75rem; font-size: 1.25rem; }

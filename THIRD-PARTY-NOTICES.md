@@ -30,9 +30,8 @@ does not allow selling the fonts by themselves.
 
 The tool's page uses no photographs or other pictures from elsewhere: the
 icon is the project's own, and book covers are fetched while it runs
-(below). Schibsted Grotesk, Literata and Atkinson Hyperlegible Next (their
-latin files) are in `site/fonts/` a second time, with the same licence
-files, for the site.
+(below). Literata and Atkinson Hyperlegible Next (their latin files) are
+in `site/fonts/` a second time, with the same licence files, for the site.
 
 ### Photographs on the site
 

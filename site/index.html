@@ -7,8 +7,8 @@
 <meta name="description" content="Lastread syncs your Kobo's reading progress to Hardcover: which books, how far, finished when. It works with a stock Kobo and Kobo-store books, over USB, on your own computer.">
 <link rel="canonical" href="https://lastread.app/">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d0c14" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1c1c1a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1a" media="(prefers-color-scheme: dark)">
 <meta property="og:title" content="Lastread: your Kobo's reading, on Hardcover">
 <meta property="og:description" content="Your Kobo knows what you read. Now Hardcover does too. Plug in the Kobo; its own page shows what the next sync changes before it is sent.">
 <meta property="og:type" content="website">
@@ -118,10 +118,12 @@ try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") 
         <figcaption><h2 class="title">The Kobo, as it comes</h2><p class="facts">It reads Kobo-store books and your own files alike, over the cable, from the Kobo's own database. Nothing is installed on it.</p></figcaption>
       </figure>
       <div class="card plum" style="--i:3">
+        <span class="disc ok" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4.5L16.5 5"/></svg></span>
         <h2>Your computer</h2>
         <p class="line">The sync runs here, on your Mac or Linux machine, with no account to make and no cloud in between.</p>
       </div>
       <div class="card teal" style="--i:4">
+        <span class="disc next" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 10 5l6 10.5"/></svg></span>
         <h2>Hardcover</h2>
         <p class="line">Your shelf there follows the Kobo, and what you change on Hardcover stays.</p>
       </div>
