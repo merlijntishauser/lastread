@@ -56,12 +56,14 @@ page from the same files.
   shelf (`browser_tests/shots.py`), light and dark at 2560 pixels wide (on a
   phone a crop of the switches and the Hardcover column, at size), a phone
   at 390, and a book's Details, each in a quiet card with its caption; the
-  Mac app by the owner's own screenshots of its window (Overview, Books,
-  Covers at full width), taken on the Mac in both themes and shown in the
-  theme the page is in (a `<picture>` on the system's theme, swapped by the
-  theme switch), with the server's name and the Hardcover handle painted
-  out: the button says *Open on the server*, the app's own short label,
-  built from the glyphs of the line beside it. The row's cover is drawn (`browser_tests/covers/`, a
+  Mac app by pictures of its window (Overview, Books, Covers at full width)
+  as the app draws them: a preview build's `KHS_SNAPSHOT` pictures, in both
+  themes, reading a copy of the owner's folder, and shown in the theme the
+  page is in (a `<picture>` on the system's theme, swapped by the theme
+  switch). They are cropped beside the sidebar, which the snapshot cannot
+  draw, and the server's name, the Hardcover handle and the title's
+  *(preview)* are painted out: the button says *Open on the server*, the
+  app's own short label, built from the glyphs of the line beside it. The row's cover is drawn (`browser_tests/covers/`, a
   publisher's series on bookcloth); the captions say the shelf is made up.
 - **The photographs** are four from Unsplash, chosen by the owner, under the
   Unsplash License (`THIRD-PARTY-NOTICES.md` lists them; each file carries
