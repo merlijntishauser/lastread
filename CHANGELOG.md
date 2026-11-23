@@ -5,7 +5,7 @@ What changed, for people who use the tool. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Before 1.0, a
 minor version may change behaviour; the notes will say so.
 
-## Unreleased
+## 0.33.0 - 2026-11-23
 
 ### Changed
 
@@ -24,6 +24,17 @@ minor version may change behaviour; the notes will say so.
 - **Easier by keyboard and screen reader.** A first Tab offers *Skip to
   the page*; each book's Sync, State and date fields carry the book's
   title in their name; the focus ring shows on the dark band too.
+- **On a computer screen the list keeps the window's height.** Your name,
+  the theme switch and Help now sit at the right of the dark band, and the
+  line that says Lastread is not made by Kobo or Hardcover is in Help, as
+  on a phone.
+- **The Mac app has the same look.** Overview, Books and Covers have the
+  dark band with *Sync now*, the Kobo's grey side, the rule with each
+  book's mark, and Hardcover's white side. The book list is now drawn by
+  the app instead of a standard table: clicking, the arrow keys, the
+  right-click menu, Details and VoiceOver's actions work as before, but
+  the columns can no longer be resized, and typing a title no longer
+  jumps to it. The widget is set in Literata.
 
 ## 0.32.1 - 2026-11-22
 
